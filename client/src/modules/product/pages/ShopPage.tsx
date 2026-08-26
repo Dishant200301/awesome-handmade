@@ -12,12 +12,14 @@ import {
   Plus,
   Minus,
   Check,
+  Eye,
 } from "lucide-react";
 import Navbar from "@/modules/core/components/Navbar";
 import Footer from "@/modules/core/components/Footer";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useQuickView } from "../context/QuickViewContext";
+import ProductHoverSlider from "../components/ProductHoverSlider";
 import { CLIENT_SHOP_PRODUCTS } from "../data/productData";
 import { ClientShopProduct } from "../types/product";
 import {
@@ -42,17 +44,17 @@ export default function ShopPage() {
   const { openQuickView, isMobileOrTablet } = useQuickView();
 
   // Dynamic Filters State
-  const [filterConfig, setFilterConfig] = useState(getLiveFilters());
+  const [filterConfig, setFilterConfig] = useState(() => getLiveFilters());
 
   useEffect(() => {
     const unsubscribeFilters = subscribeToFilterStore(() => {
-      setFilterConfig(getLiveFilters());
+      setFilterConfig(getLiveFilters() || { categories: [], colors: [], sizes: [], maxPrice: 3000 });
     });
     return () => unsubscribeFilters();
   }, []);
 
   const handleProductClick = (e: React.MouseEvent, productId: string | number) => {
-    if (isMobileOrTablet || window.innerWidth < 1024) {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
       e.preventDefault();
       openQuickView(productId);
     }
@@ -297,7 +299,7 @@ export default function ShopPage() {
         </button>
         {openSections.categories && (
           <ul className="space-y-2 text-xs font-semibold text-zinc-600 tracking-wide">
-            {filterConfig.categories.map((cat: any) => {
+            {(filterConfig?.categories || []).map((cat: any) => {
               const catKey = cat.key || cat.id || cat.name;
               const rawName = cat.name || catKey;
               // Format uppercase strings to natural Title Case (e.g. BRALETTES -> Bralettes)
@@ -336,7 +338,7 @@ export default function ShopPage() {
         <button
           type="button"
           onClick={() => toggleSection("price")}
-          className="flex w-full items-center justify-between text-sm font-semibold tracking-wider text-zinc-900 mb-3 cursor-pointer"
+          className="flex w-full items-center justify-between text-sm font-semibold tracking-wider text-[#1c1c1e] mb-3 cursor-pointer"
         >
           <span>Filter By Price</span>
           {openSections.price ? (
@@ -350,7 +352,7 @@ export default function ShopPage() {
             <input
               type="range"
               min="200"
-              max={filterConfig.maxPrice || 3000}
+              max={filterConfig?.maxPrice || 3000}
               step="100"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -381,7 +383,7 @@ export default function ShopPage() {
         </button>
         {openSections.color && (
           <ul className="space-y-2 text-xs font-semibold text-zinc-600 font-semibold tracking-wide">
-            {filterConfig.colors.map((c: any) => {
+            {(filterConfig?.colors || []).map((c: any) => {
               const colorName = typeof c === "string" ? c : c.name;
               const colorHex = typeof c === "object" ? c.hex : null;
               const checked = selectedColors.includes(colorName);
@@ -426,7 +428,7 @@ export default function ShopPage() {
         </button>
         {openSections.size && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {filterConfig.sizes.map((s: any) => {
+            {(filterConfig?.sizes || []).map((s: any) => {
               const sizeVal = typeof s === "string" ? s : s.name || s.id;
               const checked = selectedSizes.includes(sizeVal);
               return (
@@ -518,7 +520,7 @@ export default function ShopPage() {
       <Navbar />
 
       {/* TOP SHOP BY CATEGORY CIRCLES SECTION */}
-      <section className="bg-white pt-24 pb-8 border-b border-zinc-100">
+      <section className="bg-white pt-10 pb-8 border-b border-zinc-100">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-[11px] font-extrabold font-semibold tracking-[0.2em] text-[#80a17d] mb-2">
             AARAMLY CATEGORIES
@@ -772,7 +774,18 @@ export default function ShopPage() {
 
           {/* Product Grid / List Display */}
           <section>
-            {displayedProducts.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-zinc-200/80 p-2.5 space-y-3 animate-pulse">
+                    <div className="aspect-[3/3.5] bg-zinc-100 rounded-xl" />
+                    <div className="h-4 bg-zinc-100 rounded w-3/4" />
+                    <div className="h-3 bg-zinc-100 rounded w-1/2" />
+                    <div className="h-9 bg-zinc-100 rounded-xl w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : displayedProducts.length === 0 ? (
               <div className="text-center py-16 bg-zinc-50 border border-zinc-200 rounded-2xl p-8 space-y-4">
                 <h3 className="text-lg font-bold text-zinc-900">No products found</h3>
                 <p className="text-xs text-zinc-500 max-w-sm mx-auto">
@@ -788,7 +801,7 @@ export default function ShopPage() {
               </div>
             ) : viewMode === "grid" ? (
               /* GRID VIEW MODE matching Hervia layout */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {displayedProducts.map((p) => {
                   const mainImg =
                     p.images?.[0] ||
@@ -811,48 +824,53 @@ export default function ShopPage() {
                         return (
                           <>
                             <div>
-                              {/* Image Frame & Badges */}
+                              {/* Image Frame & Badges with Smooth Right-to-Left Auto Slider on Hover */}
                               <Link
                                 to={`/product/${p.id}`}
                                 onClick={(e) => handleProductClick(e, p.id)}
-                                className="relative aspect-[3/3.5] bg-zinc-100 rounded-xl overflow-hidden block cursor-pointer"
+                                className="block cursor-pointer"
                               >
-                                <img
-                                  src={mainImg}
+                                <ProductHoverSlider
+                                  product={p}
                                   alt={p.name}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-
-                                {/* Badges */}
-                                <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-                                  {discount > 0 && (
-                                    <span className="bg-[#80a17d] text-white text-[9px] font-extrabold font-semibold px-2 py-0.5 rounded-full shadow-xs">
-                                      -{discount}%
-                                    </span>
-                                  )}
-                                  {p.labels?.bestSeller && (
-                                    <span className="bg-amber-500 text-white text-[9px] font-extrabold font-semibold px-2 py-0.5 rounded-full shadow-xs">
-                                      BEST SELLER
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Wishlist Heart Button */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleWishlist(String(p.id));
-                                  }}
-                                  className={`absolute top-2.5 right-2.5 p-2 rounded-full backdrop-blur-md shadow-xs transition-colors z-10 cursor-pointer ${wishlisted
-                                      ? "bg-rose-500 text-white"
-                                      : "bg-white/80 text-zinc-700 hover:bg-white"
-                                    }`}
-                                  aria-label="Wishlist"
+                                  className="relative aspect-[3/3.5] bg-zinc-100 rounded-xl overflow-hidden block"
                                 >
-                                  <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
-                                </button>
+                                  {/* Badges */}
+                                  <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
+                                    {discount > 0 && (
+                                      <span className="bg-[#80a17d] text-white text-[9px] font-extrabold font-semibold px-2 py-0.5 rounded-full shadow-xs">
+                                        -{discount}%
+                                      </span>
+                                    )}
+                                    {p.labels?.bestSeller && (
+                                      <span className="bg-amber-500 text-white text-[9px] font-extrabold font-semibold px-2 py-0.5 rounded-full shadow-xs">
+                                        BEST SELLER
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Wishlist Heart Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      toggleWishlist(String(p.id));
+                                    }}
+                                    className={`absolute top-2.5 right-2.5 p-2 rounded-full backdrop-blur-md shadow-xs transition-colors z-10 cursor-pointer ${
+                                      wishlisted
+                                        ? "bg-rose-500 text-white"
+                                        : "bg-white/80 text-zinc-700 hover:bg-white"
+                                    }`}
+                                    aria-label="Wishlist"
+                                  >
+                                    <Heart
+                                      className={`w-3.5 h-3.5 ${
+                                        wishlisted ? "fill-white" : ""
+                                      }`}
+                                    />
+                                  </button>
+                                </ProductHoverSlider>
                               </Link>
 
                               {/* Card Content Body */}
@@ -1013,6 +1031,22 @@ export default function ShopPage() {
                         >
                           <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${wishlisted ? "fill-current" : ""}`} />
                         </button>
+
+                        {/* Quick View Hover Button (Tablet & Laptop) */}
+                        <div className="absolute inset-x-2 bottom-2 z-20 translate-y-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden sm:block">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openQuickView(p.id);
+                            }}
+                            className="w-full bg-white/95 hover:bg-black hover:text-white text-zinc-900 font-extrabold text-xs tracking-wider uppercase py-2.5 px-3 rounded-xl shadow-lg border border-white/50 backdrop-blur-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <Eye className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Quick View</span>
+                          </button>
+                        </div>
                       </Link>
 
                       {/* Content Details */}

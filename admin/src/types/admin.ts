@@ -39,6 +39,8 @@ export interface Attribute {
 export interface Variant {
   id: string;
   sku: string;
+  title?: string; // Custom Variant/Color Specific Title
+  productInfo?: string; // Custom Variant/Color Specific Description Info
   parentProductId?: string;
   parentProductName?: string;
   color?: string;
@@ -108,6 +110,7 @@ export interface ProductDescriptionCard {
   description: string;
   image: string;
   sortOrder: number;
+  colorName?: string; // Optional color assignment (e.g., "Black", "Beige", "All Colors")
 }
 
 export interface ProductHighlight {
@@ -176,6 +179,8 @@ export interface SizeGuide {
   rows: SizeGuideRow[];
 }
 
+import { ProductSizeChartConfig } from './attribute.types';
+
 export interface Product {
   id: string;
   name: string;
@@ -202,6 +207,7 @@ export interface Product {
   images: string[];
   labels?: ProductLabels;
   inventory?: ProductInventory;
+  barcode?: string;
   shipping?: ProductShipping;
   seo?: ProductSEO;
   variants: Variant[];
@@ -212,8 +218,12 @@ export interface Product {
   highlights?: ProductHighlight[];
   washingInstructions?: ProductWashingInstruction[];
   manufacturingInfo?: ProductManufacturingInfo;
+  productAttributes?: any[];
+  productType?: 'simple' | 'variant';
+  colorMediaConfigs?: any[];
   idealForPills?: string[];
   sizeGuideId?: string;
+  sizeChart?: ProductSizeChartConfig;
   createdAt?: string;
 }
 

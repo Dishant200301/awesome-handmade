@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiCheckCircle, FiInfo } from "react-icons/fi";
-import { SizeChartEntry, SizeGuide } from "../types/product";
+import { SizeChartEntry, SizeGuide, ProductSizeChartConfig } from "../types/product";
 import {
   Table,
   TableHeader,
@@ -16,6 +16,7 @@ interface SizeChartModalProps {
   isOpen: boolean;
   onClose: () => void;
   sizeChart: SizeChartEntry[];
+  sizeChartConfig?: ProductSizeChartConfig;
   sizeGuide?: SizeGuide;
   selectedSize: string;
   onSelectSize: (size: string) => void;
@@ -48,6 +49,7 @@ export const SizeChartModal: React.FC<SizeChartModalProps> = ({
   isOpen,
   onClose,
   sizeChart = DEFAULT_SIZE_CHART,
+  sizeChartConfig,
   sizeGuide,
   selectedSize,
   onSelectSize,
@@ -69,7 +71,6 @@ export const SizeChartModal: React.FC<SizeChartModalProps> = ({
 
   const chartData = (sizeChart && sizeChart.length > 0) ? sizeChart : DEFAULT_SIZE_CHART;
 
-  // Determine countries list from dynamic sizeGuide or static default
   const countriesList = sizeGuide && sizeGuide.countries && sizeGuide.countries.length > 0
     ? sizeGuide.countries
     : [
@@ -119,9 +120,12 @@ export const SizeChartModal: React.FC<SizeChartModalProps> = ({
     }, 150);
   };
 
+  // Check if product has active product-specific sizeChartConfig
+  const hasProductSpecificConfig = sizeChartConfig && sizeChartConfig.enabled && sizeChartConfig.rows && sizeChartConfig.rows.length > 0;
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto font-sans">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto font-sans">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -138,221 +142,206 @@ export const SizeChartModal: React.FC<SizeChartModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden z-10 border border-zinc-200/80 my-auto flex flex-col max-h-[88vh]"
+          className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden z-10 border border-zinc-200 my-auto flex flex-col max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50/70">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-zinc-900 text-white">
-                <FiInfo size={18} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
-                  {sizeGuide ? sizeGuide.title : "Size Guide & Conversion"}
-                </h3>
-                <p className="text-xs text-zinc-500 font-medium">
-                  {sizeGuide?.description || "Find your perfect fit with international size mapping"}
-                </p>
-              </div>
-            </div>
+          {/* Header Bar matching Screenshot */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 bg-zinc-50">
+            <h3 className="text-base sm:text-lg font-bold text-zinc-900 tracking-tight">
+              {hasProductSpecificConfig ? (sizeChartConfig?.title || "Size Chart") : (sizeGuide ? sizeGuide.title : "Size Guide & Conversion")}
+            </h3>
 
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200/60 cursor-pointer"
+              className="rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/80 cursor-pointer"
             >
-              <FiX size={18} />
+              <FiX size={20} />
             </Button>
           </div>
 
-          {/* Controls Bar: Country Tabs & Unit Switcher */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3 border-b border-zinc-100 bg-white">
-            {/* Dynamic Country Standard Tabs */}
-            <div className="flex flex-wrap gap-1.5 bg-zinc-100/80 p-1 rounded-xl">
-              {countriesList.map((country) => {
-                const isActive = activeTab === country.name || activeTab === country.code;
-                return (
-                  <button
-                    key={country.id || country.code}
-                    type="button"
-                    onClick={() => setActiveTab(country.name)}
-                    className={`text-xs px-3.5 py-1.5 font-bold rounded-lg transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-white text-zinc-900 shadow-xs border border-zinc-200"
-                        : "text-zinc-600 hover:text-zinc-900"
-                    }`}
-                  >
-                    {country.name}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Unit Switcher (cm vs in) */}
-            <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/80 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setUnit("cm")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                  unit === "cm"
-                    ? "bg-white text-zinc-900 shadow-2xs font-bold"
-                    : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                cm
-              </button>
-              <button
-                type="button"
-                onClick={() => setUnit("in")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                  unit === "in"
-                    ? "bg-white text-zinc-900 shadow-2xs font-bold"
-                    : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                in
-              </button>
-            </div>
-          </div>
-
           {/* Table Container */}
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-            <div className="rounded-xl border border-zinc-200 overflow-hidden shadow-2xs bg-white">
-              {sizeGuide && sizeGuide.rows && sizeGuide.rows.length > 0 ? (
-                /* Dynamic Admin Size Guide Table */
-                <Table>
-                  <TableHeader className="bg-zinc-100/90 sticky top-0 z-10">
-                    <TableRow className="hover:bg-zinc-100/90">
-                      {sizeGuide.columns.map((col) => (
-                        <TableHead key={col.id} className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">
-                          {col.key === "countrySize" ? `${activeCountry.name.toUpperCase()} STANDARD` : col.name.toUpperCase()}
-                        </TableHead>
-                      ))}
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider text-right">ACTION</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-zinc-100 text-xs font-medium">
-                    {sizeGuide.rows.map((row) => {
-                      const isSelected = selectedSize === row.brandSize;
-                      return (
-                        <TableRow
-                          key={row.id}
-                          onClick={() => handleSelectRow(row.brandSize)}
-                          className={`cursor-pointer transition-colors ${
-                            isSelected
-                              ? "bg-zinc-900 text-white hover:bg-zinc-800 font-bold"
-                              : "hover:bg-zinc-50 text-zinc-800"
-                          }`}
-                        >
-                          {sizeGuide.columns.map((col) => {
-                            if (col.key === "brandSize") {
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin space-y-4">
+            {/* If product has product-specific size chart config */}
+            {hasProductSpecificConfig ? (
+              <div className="space-y-4">
+                {/* SUBTITLE BANNER matching Screenshot */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs sm:text-sm font-extrabold text-zinc-900 uppercase tracking-wide">
+                    {sizeChartConfig.title || "IN KURTAS & KURTIS"}
+                  </span>
+                  {sizeChartConfig.unit && (
+                    <span className="text-xs font-semibold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-md border border-zinc-200">
+                      Unit: {sizeChartConfig.unit}
+                    </span>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-zinc-200 overflow-hidden shadow-2xs bg-white">
+                  <Table className="w-full text-left">
+                    <TableHeader className="bg-zinc-50 border-b border-zinc-200">
+                      <TableRow className="hover:bg-zinc-50">
+                        {sizeChartConfig.columns.map((col, cIdx) => (
+                          <TableHead
+                            key={col.id}
+                            className={`font-bold text-zinc-900 text-xs sm:text-sm p-3.5 whitespace-nowrap ${
+                              cIdx === 0 ? "font-extrabold text-black" : ""
+                            }`}
+                          >
+                            {col.name}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-zinc-200 text-xs sm:text-sm font-medium">
+                      {sizeChartConfig.rows.map((row) => {
+                        const isSelected = selectedSize.toLowerCase() === row.size.toLowerCase();
+                        return (
+                          <TableRow
+                            key={row.id}
+                            onClick={() => handleSelectRow(row.size)}
+                            className={`cursor-pointer transition-colors ${
+                              isSelected
+                                ? "bg-zinc-900 text-white font-bold hover:bg-zinc-800"
+                                : "hover:bg-zinc-50/80 text-zinc-800"
+                            }`}
+                          >
+                            {sizeChartConfig.columns.map((col, cIdx) => {
+                              const val = row.measurements[col.id] || (cIdx === 0 ? row.size : "-");
                               return (
-                                <TableCell key={col.id} className="font-extrabold text-sm">
-                                  {row.brandSize}
+                                <TableCell
+                                  key={col.id}
+                                  className={`p-3.5 whitespace-nowrap ${
+                                    cIdx === 0 ? "font-extrabold text-sm sm:text-base text-zinc-950" : ""
+                                  } ${isSelected ? "text-white" : "text-zinc-800"}`}
+                                >
+                                  {val}
                                 </TableCell>
                               );
-                            }
-                            const valObj = row.values[`${activeCountry.code}_${col.key}`] || { cm: "-", inch: "-" };
-                            const displayVal = unit === "cm" ? (valObj.cm || "-") : (valObj.inch || valObj.cm || "-");
-                            return (
-                              <TableCell key={col.id} className={isSelected ? "text-zinc-200 font-bold" : "text-zinc-700"}>
-                                {displayVal}
-                              </TableCell>
-                            );
-                          })}
-                          <TableCell className="text-right">
-                            {isSelected ? (
-                              <span className="text-xs font-extrabold text-emerald-400 flex items-center justify-end gap-1">
-                                <FiCheckCircle size={13} /> Selected
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectRow(row.brandSize);
-                                }}
-                                className="text-xs font-bold text-zinc-500 hover:text-zinc-900 underline underline-offset-2 cursor-pointer"
-                              >
-                                Select
-                              </button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              ) : (
-                /* Fallback Static Size Chart Table */
-                <Table>
-                  <TableHeader className="bg-zinc-100/90 sticky top-0 z-10">
-                    <TableRow className="hover:bg-zinc-100/90">
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">BRAND SIZE</TableHead>
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">
-                        {activeCountry.code === "CN" ? "CN STANDARD" : `${activeCountry.name.toUpperCase()} STANDARD`}
-                      </TableHead>
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">BUST</TableHead>
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">UNDERBUST</TableHead>
-                      <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider text-right">ACTION</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-zinc-100 text-xs font-medium">
-                    {chartData.map((row, idx) => {
-                      const isSelected = selectedSize === row.brandSize;
-                      const countryVal = row[getCountrySizeKey(activeTab)] || row.inSize;
-
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              /* Fallback Admin Global Size Guide Table */
+              <div className="space-y-4">
+                {/* Controls Bar: Country Tabs & Unit Switcher */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                  <div className="flex flex-wrap gap-1.5 bg-zinc-100 p-1 rounded-xl">
+                    {countriesList.map((country) => {
+                      const isActive = activeTab === country.name || activeTab === country.code;
                       return (
-                        <TableRow
-                          key={idx}
-                          onClick={() => handleSelectRow(row.brandSize)}
-                          className={`cursor-pointer transition-colors ${
-                            isSelected
-                              ? "bg-zinc-900 text-white hover:bg-zinc-800 font-bold"
-                              : "hover:bg-zinc-50 text-zinc-800"
+                        <button
+                          key={country.id || country.code}
+                          type="button"
+                          onClick={() => setActiveTab(country.name)}
+                          className={`text-xs px-3 py-1 font-bold rounded-lg transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-white text-zinc-900 shadow-xs border border-zinc-200"
+                              : "text-zinc-600 hover:text-zinc-900"
                           }`}
                         >
-                          <TableCell className="font-extrabold text-sm text-zinc-900">
-                            {row.brandSize}
-                          </TableCell>
-                          <TableCell className="font-bold text-zinc-700">{countryVal}</TableCell>
-                          <TableCell className={isSelected ? "text-zinc-200 font-bold" : "text-zinc-700 font-medium"}>
-                            {formatValue(row.bustCm)}
-                          </TableCell>
-                          <TableCell className={isSelected ? "text-zinc-200 font-bold" : "text-zinc-700 font-medium"}>
-                            {formatValue(row.underbustCm)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isSelected ? (
-                              <span className="text-xs font-extrabold text-emerald-400 flex items-center justify-end gap-1">
-                                <FiCheckCircle size={13} /> Selected
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectRow(row.brandSize);
-                                }}
-                                className="text-xs font-bold text-zinc-500 hover:text-zinc-900 underline underline-offset-2 cursor-pointer"
-                              >
-                                Select
-                              </button>
-                            )}
-                          </TableCell>
-                        </TableRow>
+                          {country.name}
+                        </button>
                       );
                     })}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
+                  </div>
+
+                  <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setUnit("cm")}
+                      className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                        unit === "cm" ? "bg-white text-zinc-900 shadow-2xs font-bold" : "text-zinc-500 hover:text-zinc-900"
+                      }`}
+                    >
+                      cm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUnit("in")}
+                      className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                        unit === "in" ? "bg-white text-zinc-900 shadow-2xs font-bold" : "text-zinc-500 hover:text-zinc-900"
+                      }`}
+                    >
+                      in
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200 overflow-hidden shadow-2xs bg-white">
+                  <Table>
+                    <TableHeader className="bg-zinc-50 border-b border-zinc-200">
+                      <TableRow className="hover:bg-zinc-50">
+                        <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">BRAND SIZE</TableHead>
+                        <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">
+                          {activeCountry.code === "CN" ? "CN STANDARD" : `${activeCountry.name.toUpperCase()} STANDARD`}
+                        </TableHead>
+                        <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">BUST</TableHead>
+                        <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider">UNDERBUST</TableHead>
+                        <TableHead className="font-extrabold text-zinc-900 text-xs uppercase tracking-wider text-right">ACTION</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-zinc-100 text-xs font-medium">
+                      {chartData.map((row, idx) => {
+                        const isSelected = selectedSize === row.brandSize;
+                        const countryVal = row[getCountrySizeKey(activeTab)] || row.inSize;
+
+                        return (
+                          <TableRow
+                            key={idx}
+                            onClick={() => handleSelectRow(row.brandSize)}
+                            className={`cursor-pointer transition-colors ${
+                              isSelected
+                                ? "bg-zinc-900 text-white hover:bg-zinc-800 font-bold"
+                                : "hover:bg-zinc-50 text-zinc-800"
+                            }`}
+                          >
+                            <TableCell className="font-extrabold text-sm text-zinc-900">
+                              {row.brandSize}
+                            </TableCell>
+                            <TableCell className="font-bold text-zinc-700">{countryVal}</TableCell>
+                            <TableCell className={isSelected ? "text-zinc-200 font-bold" : "text-zinc-700 font-medium"}>
+                              {formatValue(row.bustCm)}
+                            </TableCell>
+                            <TableCell className={isSelected ? "text-zinc-200 font-bold" : "text-zinc-700 font-medium"}>
+                              {formatValue(row.underbustCm)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {isSelected ? (
+                                <span className="text-xs font-extrabold text-emerald-400 flex items-center justify-end gap-1">
+                                  <FiCheckCircle size={13} /> Selected
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectRow(row.brandSize);
+                                  }}
+                                  className="text-xs font-bold text-zinc-500 hover:text-zinc-900 underline underline-offset-2 cursor-pointer"
+                                >
+                                  Select
+                                </button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-3.5 border-t border-zinc-100 bg-zinc-50/70 flex items-center justify-between">
+          <div className="px-6 py-3.5 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between">
             <span className="text-xs text-zinc-600">
               Selected Size: <strong className="text-zinc-900 uppercase font-extrabold">{selectedSize || "S"}</strong>
             </span>

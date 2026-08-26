@@ -18,10 +18,13 @@ import { CustomerReviewsSection } from "../components/CustomerReviewsSection";
 import { RelatedProductsSection } from "../components/RelatedProductsSection";
 import { ProductColorVariation } from "../types/product";
 import { getLiveProductById, subscribeToProductStore } from "@/modules/core/lib/apiStore";
+import { useRecentlyViewed } from "../context/RecentlyViewedContext";
 
 export const ProductDetailsPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const [product, setProduct] = useState(() => getLiveProductById(id));
+  const { addRecentlyViewed } = useRecentlyViewed();
+
 
   const prodAny = product as any;
 
@@ -118,7 +121,11 @@ export const ProductDetailsPage: React.FC = () => {
     const updateProduct = () => {
       const live = getLiveProductById(id);
       setProduct(live);
+      if (live && live.id) {
+        addRecentlyViewed(live);
+      }
     };
+
 
     updateProduct();
     const unsubscribe = subscribeToProductStore(updateProduct);
@@ -175,15 +182,15 @@ export const ProductDetailsPage: React.FC = () => {
       <Navbar />
 
       {/* Main Content Container */}
-      <div className="pt-20 md:pt-24">
+      <div className="pt-10 md:pt-12">
         {/* Breadcrumb */}
         <ProductBreadcrumb productName={product.name} />
 
         {/* TOP PRODUCT HERO SECTION */}
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 md:py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Left Column: Image Gallery */}
-            <div className="lg:col-span-7 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
+            {/* Left Column: Image Gallery (50% Width on Tablet & Laptop) */}
+            <div className="w-full">
               <VerticalGallery
                 images={displayedVariation.images && displayedVariation.images.length > 0 ? displayedVariation.images : [
                   { id: "img-1", url: prodAny.image || "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=800", alt: product.name }
@@ -192,8 +199,8 @@ export const ProductDetailsPage: React.FC = () => {
               />
             </div>
 
-            {/* Right Column: Product Information */}
-            <div className="lg:col-span-5 w-full">
+            {/* Right Column: Product Information (50% Width on Tablet & Laptop) */}
+            <div className="w-full">
               <ProductInfo
                 product={product}
                 activeVariation={activeVariation}
@@ -227,6 +234,7 @@ export const ProductDetailsPage: React.FC = () => {
         {/* PRODUCT DESCRIPTION & FEATURE CARDS */}
         <ProductDescriptionSection
           cards={product.descriptionCards}
+          selectedColor={selectedColor}
           idealForPills={product.idealForPills}
           fullDescription={product.fullDescription}
           shortDescription={product.shortDescription}
@@ -235,16 +243,14 @@ export const ProductDetailsPage: React.FC = () => {
         {/* WASHING INSTRUCTIONS */}
         <WashingInstructionsSection instructions={product.washingInstructions} />
 
-        {/* MANUFACTURING DETAILS */}
-        <ManufacturingDetailsSection info={product.manufacturingInfo} />
-
+        
         {/* CUSTOMER REVIEWS */}
         <div id="customer-reviews">
           <CustomerReviewsSection />
         </div>
 
-        {/* RELATED PRODUCTS */}
-        <RelatedProductsSection />
+        {/* RELATED PRODUCTS / LOVED TOGETHER */}
+        <RelatedProductsSection currentProduct={product} />
       </div>
 
       {/* FLOATING STICKY CART */}
@@ -264,6 +270,7 @@ export const ProductDetailsPage: React.FC = () => {
         isOpen={isSizeChartOpen}
         onClose={() => setIsSizeChartOpen(false)}
         sizeChart={product.sizeChart}
+        sizeChartConfig={(product as any).sizeChart || product.sizeChartConfig}
         sizeGuide={product.sizeGuide}
         selectedSize={selectedSize}
         onSelectSize={setSelectedSize}

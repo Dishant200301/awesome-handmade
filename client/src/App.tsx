@@ -5,6 +5,8 @@ import ShopPage from "@/modules/product/pages/ShopPage";
 import HomePage from "@/modules/home/pages/HomePage";
 import WishlistPage from "@/modules/product/pages/WishlistPage";
 import CartPage from "@/modules/product/pages/CartPage";
+import CheckoutPage from "@/modules/checkout/pages/CheckoutPage";
+import OrderSuccessPage from "@/modules/checkout/pages/OrderSuccessPage";
 import AccountPage from "@/modules/user/pages/AccountPage";
 import ContactPage from "@/modules/contact/pages/ContactPage";
 import NotFound from "@/modules/core/components/NotFound";
@@ -13,9 +15,12 @@ import CartDrawer from "@/modules/core/components/CartDrawer";
 import AuthModal from "@/modules/core/components/AuthModal";
 import { CartProvider } from "@/modules/product/context/CartContext";
 import { WishlistProvider } from "@/modules/product/context/WishlistContext";
+import { RecentlyViewedProvider } from "@/modules/product/context/RecentlyViewedContext";
+import { CompareProvider } from "@/modules/product/context/CompareContext";
 import { AuthProvider } from "@/modules/core/context/AuthContext";
 import { QuickViewProvider } from "@/modules/product/context/QuickViewContext";
 import MobileProductQuickViewSheet from "@/modules/product/components/MobileProductQuickViewSheet";
+import DesktopProductQuickViewModal from "@/modules/product/components/DesktopProductQuickViewModal";
 import FloatingStickyCart from "@/modules/product/components/FloatingStickyCart";
 
 export default function App() {
@@ -23,34 +28,42 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
-          <QuickViewProvider>
-            <BrowserRouter>
-              <ScrollToTop />
-              <Toaster position="top-center" richColors />
-              <CartDrawer />
-              <AuthModal />
-              <MobileProductQuickViewSheet />
-              <FloatingStickyCart />
-              <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/categories" element={<ShopPage />} />
-              <Route path="/wishlist" element={<WishlistPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/login" element={<AccountPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/contact-us" element={<ContactPage />} />
-              <Route path="/product" element={<ProductDetailsPage />} />
-              <Route path="/product-details" element={<ProductDetailsPage />} />
-              <Route path="/product/:id" element={<ProductDetailsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </QuickViewProvider>
-      </WishlistProvider>
+          <RecentlyViewedProvider>
+            <CompareProvider>
+              <QuickViewProvider>
+                <BrowserRouter>
+                  <ScrollToTop />
+                  <Toaster position="top-center" richColors />
+                  <CartDrawer />
+                  <AuthModal />
+                  <MobileProductQuickViewSheet />
+                  <DesktopProductQuickViewModal />
+                  <FloatingStickyCart />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/categories" element={<ShopPage />} />
+                    <Route path="/wishlist" element={<WishlistPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                    <Route path="/account" element={<AccountPage />} />
+                    <Route path="/login" element={<AccountPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/contact-us" element={<ContactPage />} />
+                    <Route path="/product" element={<ProductDetailsPage />} />
+                    <Route path="/product-details" element={<ProductDetailsPage />} />
+                    <Route path="/product/:id" element={<ProductDetailsPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </QuickViewProvider>
+            </CompareProvider>
+          </RecentlyViewedProvider>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );
 }
+

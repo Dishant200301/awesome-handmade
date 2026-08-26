@@ -24,9 +24,6 @@ export const QuickViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const handleResize = () => {
       const isMobile = window.innerWidth < 1024;
       setIsMobileOrTablet(isMobile);
-      if (!isMobile) {
-        setIsOpen(false);
-      }
     };
 
     window.addEventListener("resize", handleResize);
@@ -34,9 +31,6 @@ export const QuickViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const openQuickView = useCallback((productId: string | number) => {
-    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-      return; // Do not open Quick View sheet on laptop/desktop
-    }
     setActiveProductId(productId);
     setIsOpen(true);
   }, []);
@@ -45,9 +39,9 @@ export const QuickViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsOpen(false);
   }, []);
 
-  // Listen to URL search param `quickview` for deep linking (only on mobile/tablet)
+  // Listen to URL search param `quickview` for deep linking
   useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth >= 1024) return;
+    if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const qv = urlParams.get("quickview");
     if (qv) {

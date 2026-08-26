@@ -10,12 +10,17 @@ export default defineConfig({
       ignored: ["**/public/images/**"],
     },
     proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
       "/admin": {
         target: "http://localhost:5174",
         changeOrigin: true,
         ws: true,
       },
     },
+
   },
   plugins: [
     react(),

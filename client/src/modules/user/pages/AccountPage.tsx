@@ -3,7 +3,6 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   FiUser,
   FiPackage,
-  FiHeart,
   FiMapPin,
   FiLogOut,
   FiCheck,
@@ -11,18 +10,22 @@ import {
   FiLock,
   FiMessageSquare,
   FiCornerDownRight,
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+  FiX,
 } from "react-icons/fi";
 import Navbar from "@/modules/core/components/Navbar";
 import Footer from "@/modules/core/components/Footer";
 import { useWishlist } from "@/modules/product/context/WishlistContext";
 import { useCart } from "@/modules/product/context/CartContext";
-import { useAuth } from "@/modules/core/context/AuthContext";
+import { useAuth, UserAddress } from "@/modules/core/context/AuthContext";
 import { MOCK_CONTACT_MESSAGES } from "../../../../../admin/src/data/mockAdminData";
 
 export const AccountPage: React.FC = () => {
   const { wishlistCount } = useWishlist();
   const { totalItemsCount } = useCart();
-  const { isLoggedIn, loading, user, orders, addresses, logout, updateProfile, openAuthModal } = useAuth();
+  const { isLoggedIn, loading, user, orders, addresses, logout, updateProfile, saveAddress, deleteAddress, openAuthModal } = useAuth();
   const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,7 +50,7 @@ export const AccountPage: React.FC = () => {
     }
   }, [tabParam]);
 
-  // Edit Profile Form
+  // Edit Profile Form State
   const [editName, setEditName] = useState(user?.name || "");
   const [editPhone, setEditPhone] = useState(user?.phone || "");
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -64,6 +67,67 @@ export const AccountPage: React.FC = () => {
     updateProfile({ name: editName, phone: editPhone });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  // Address Modal & Editing State
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
+  const [addrForm, setAddrForm] = useState({
+    name: "",
+    addressLine: "",
+    city: "",
+    state: "",
+    pincode: "",
+    phone: "",
+    country: "India",
+    isDefault: false,
+  });
+
+  const handleOpenAddAddress = () => {
+    setEditingAddress(null);
+    setAddrForm({
+      name: user?.name || "",
+      addressLine: "",
+      city: "",
+      state: "",
+      pincode: "",
+      phone: user?.phone || "",
+      country: "India",
+      isDefault: addresses.length === 0,
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleOpenEditAddress = (addr: UserAddress) => {
+    setEditingAddress(addr);
+    setAddrForm({
+      name: addr.name || "",
+      addressLine: addr.addressLine || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      pincode: addr.pincode || "",
+      phone: addr.phone || "",
+      country: addr.country || "India",
+      isDefault: !!addr.isDefault,
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleSaveAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newAddr: UserAddress = {
+      id: editingAddress ? editingAddress.id : `addr-${Date.now()}`,
+      name: addrForm.name,
+      addressLine: addrForm.addressLine,
+      city: addrForm.city,
+      state: addrForm.state,
+      pincode: addrForm.pincode,
+      phone: addrForm.phone,
+      country: addrForm.country,
+      isDefault: addrForm.isDefault,
+    };
+    saveAddress(newAddr);
+    setIsAddressModalOpen(false);
   };
 
   if (loading) {
@@ -92,7 +156,7 @@ export const AccountPage: React.FC = () => {
             Please sign in to access your orders, profile, saved addresses and settings.
           </p>
           <button
-            onClick={openAuthModal}
+            onClick={() => openAuthModal()}
             className="px-8 py-3.5 bg-zinc-900 hover:bg-black text-white text-xs font-extrabold rounded-full uppercase tracking-wider transition-all shadow-md cursor-pointer"
           >
             Sign In / Register
@@ -104,48 +168,28 @@ export const AccountPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-black selection:text-white flex flex-col">
+    <div className="min-h-screen bg-zinc-50 text-zinc-900 font-sans flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-1 pt-24 pb-16 px-4 md:px-8 max-w-[1400px] mx-auto w-full">
-        {/* LOGGED IN ACCOUNT DASHBOARD */}
-        <div className="space-y-8">
-          {/* Header profile card */}
-          <div className="p-6 md:p-8 rounded-3xl bg-[#f5f2ee] border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xs">
+      <main className="flex-1 pt-28 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        {/* Account Header Section */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-zinc-200 shadow-2xs mb-8 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-zinc-900 text-white flex items-center justify-center text-xl font-extrabold shadow-md shrink-0">
-                {user?.avatarInitials || "PS"}
+              <div className="w-16 h-16 rounded-2xl bg-zinc-900 text-white font-extrabold text-xl flex items-center justify-center shadow-md">
+                {user?.avatarInitials || "AU"}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-extrabold text-zinc-900">{user?.name || "Priya Sharma"}</h1>
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Verified VIP
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-500 font-medium mt-0.5">
-                  {user?.email || "priya.sharma@example.com"} • Member since {user?.memberSince || "Jan 2026"}
+                <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight">
+                  {user?.name || "AARAMLY Customer"}
+                </h1>
+                <p className="text-xs text-zinc-500 font-medium">
+                  {user?.email} • Member since {user?.memberSince || "2026"}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                to="/wishlist"
-                className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-full border border-zinc-200 text-xs font-bold text-zinc-900 hover:bg-zinc-100 transition-colors shadow-2xs"
-              >
-                <FiHeart className="text-[#bf5c30]" size={15} />
-                <span>Wishlist ({wishlistCount})</span>
-              </Link>
-
-              <Link
-                to="/cart"
-                className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-full border border-zinc-200 text-xs font-bold text-zinc-900 hover:bg-zinc-100 transition-colors shadow-2xs"
-              >
-                <FiPackage size={15} />
-                <span>Bag ({totalItemsCount})</span>
-              </Link>
-
+            <div className="flex items-center gap-3">
               <button
                 onClick={logout}
                 className="flex items-center gap-1.5 bg-rose-50 text-rose-700 px-4 py-2.5 rounded-full border border-rose-200 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer"
@@ -205,7 +249,7 @@ export const AccountPage: React.FC = () => {
               }`}
             >
               <FiMapPin size={16} />
-              <span>Saved Addresses</span>
+              <span>Saved Addresses ({addresses.length})</span>
             </button>
 
             <button
@@ -225,32 +269,84 @@ export const AccountPage: React.FC = () => {
           {/* TAB: MY ORDERS */}
           {activeTab === "orders" && (
             <div className="space-y-4">
-              {orders.map((ord) => (
-                <div key={ord.id} className="p-6 rounded-2xl bg-white border border-zinc-200 space-y-4 shadow-2xs hover:border-zinc-300 transition-colors">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
-                    <div>
-                      <span className="font-extrabold text-sm text-zinc-900">{ord.id}</span>
-                      <span className="text-xs text-zinc-400 ml-3">Placed on {ord.date}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 flex items-center gap-1">
-                        <FiCheck size={12} />
-                        <span>{ord.status}</span>
-                      </span>
-                      <span className="font-extrabold text-sm text-zinc-900">₹{ord.total.toLocaleString("en-IN")}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    {ord.items.map((item, idx) => (
-                      <p key={idx} className="text-xs text-zinc-700 font-medium flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#bf5c30]" />
-                        <span>{item}</span>
-                      </p>
-                    ))}
-                  </div>
+              {orders.length === 0 ? (
+                <div className="p-12 text-center bg-white rounded-3xl border border-zinc-200 space-y-3">
+                  <FiPackage size={36} className="mx-auto text-zinc-300 stroke-[1.5]" />
+                  <h3 className="text-base font-extrabold text-zinc-900">No Orders Yet</h3>
+                  <p className="text-xs text-zinc-500">You have not placed any orders yet.</p>
+                  <Link
+                    to="/shop"
+                    className="inline-block px-6 py-2.5 bg-zinc-900 text-white font-extrabold text-xs uppercase tracking-wider rounded-full hover:bg-black transition-colors"
+                  >
+                    Start Shopping
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                orders.map((ord) => (
+                  <div key={ord.id} className="p-6 rounded-2xl bg-white border border-zinc-200 space-y-4 shadow-2xs hover:border-zinc-300 transition-colors">
+                    {/* Header bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
+                      <div>
+                        <span className="font-extrabold text-sm text-zinc-900 uppercase">{ord.id}</span>
+                        <span className="text-xs text-zinc-400 ml-3">Placed on {ord.date}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 flex items-center gap-1">
+                          <FiCheck size={12} />
+                          <span>{ord.status}</span>
+                        </span>
+                        <span className="font-extrabold text-sm text-zinc-900">
+                          Rs. {ord.total.toLocaleString("en-IN")}.00
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Order Items Detailed List */}
+                    <div className="divide-y divide-zinc-100">
+                      {ord.items.map((item: any, idx: number) => {
+                        const isObj = typeof item === "object" && item !== null;
+                        const itemName = isObj ? (item.productName || item.name || "AARAMLY Product") : String(item);
+                        const itemPrice = isObj ? item.price : null;
+                        const itemQty = isObj ? item.quantity : 1;
+                        const itemImg = isObj ? (item.image || item.thumbnail) : null;
+                        const itemSize = isObj ? item.size : null;
+
+                        return (
+                          <div key={idx} className="py-3 first:pt-0 last:pb-0 flex items-center gap-4">
+                            {itemImg ? (
+                              <img
+                                src={itemImg}
+                                alt={itemName}
+                                className="w-14 h-16 object-cover rounded-xl bg-zinc-100 border border-zinc-200 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0 flex items-center justify-center text-zinc-400">
+                                <FiPackage size={20} />
+                              </div>
+                            )}
+
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs font-extrabold text-zinc-900 uppercase tracking-tight truncate">
+                                {itemName}
+                              </h4>
+                              <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                                {itemSize && <span>Size: {itemSize} • </span>}
+                                Qty: {itemQty}
+                              </p>
+                            </div>
+
+                            {itemPrice && (
+                              <span className="text-xs font-bold text-zinc-900 shrink-0">
+                                Rs. {(itemPrice * itemQty).toLocaleString("en-IN")}.00
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
@@ -365,23 +461,58 @@ export const AccountPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB: SAVED ADDRESSES */}
+          {/* TAB: SAVED ADDRESSES WITH EDIT ADDRESS FUNCTIONALITY */}
           {activeTab === "addresses" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {addresses.map((addr) => (
-                <div key={addr.id} className="p-6 rounded-3xl bg-white border border-zinc-200 space-y-3 relative shadow-2xs">
-                  {addr.isDefault && (
-                    <span className="px-3 py-1 rounded-full bg-zinc-900 text-white text-[10px] font-extrabold uppercase tracking-wider inline-block">
-                      Default Shipping Address
-                    </span>
-                  )}
-                  <h3 className="font-extrabold text-sm text-zinc-900">{addr.name}</h3>
-                  <p className="text-xs text-zinc-600 leading-relaxed">
-                    {addr.addressLine}, {addr.city}, {addr.state} - {addr.pincode}
-                  </p>
-                  <p className="text-xs font-mono font-bold text-zinc-800">Phone: {addr.phone}</p>
-                </div>
-              ))}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wider">
+                  Your Delivery Addresses
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleOpenAddAddress}
+                  className="flex items-center gap-1.5 bg-zinc-900 hover:bg-black text-white px-4 py-2 rounded-full text-xs font-extrabold transition-colors cursor-pointer"
+                >
+                  <FiPlus size={14} />
+                  <span>Add New Address</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {addresses.map((addr) => (
+                  <div key={addr.id} className="p-6 rounded-3xl bg-white border border-zinc-200 space-y-3 relative shadow-2xs flex flex-col justify-between">
+                    <div>
+                      {addr.isDefault && (
+                        <span className="px-3 py-1 rounded-full bg-zinc-900 text-white text-[10px] font-extrabold uppercase tracking-wider inline-block mb-2">
+                          Default Shipping Address
+                        </span>
+                      )}
+                      <h3 className="font-extrabold text-sm text-zinc-900">{addr.name}</h3>
+                      <p className="text-xs text-zinc-600 leading-relaxed mt-1">
+                        {addr.addressLine}, {addr.city}, {addr.state} - {addr.pincode} ({addr.country || "India"})
+                      </p>
+                      <p className="text-xs font-mono font-bold text-zinc-800 mt-2">Phone: {addr.phone}</p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditAddress(addr)}
+                        className="text-xs font-extrabold text-zinc-700 hover:text-zinc-900 flex items-center gap-1 cursor-pointer"
+                      >
+                        <FiEdit size={14} /> Edit Address
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteAddress(addr.id)}
+                        className="text-xs font-extrabold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <FiTrash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -423,6 +554,145 @@ export const AccountPage: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* EDIT / ADD ADDRESS MODAL */}
+      {isAddressModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
+          <div className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-zinc-200 space-y-6 relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 uppercase tracking-tight">
+                {editingAddress ? "Edit Shipping Address" : "Add New Shipping Address"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddressModalOpen(false)}
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-900 transition-colors"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAddressSubmit} className="space-y-4 text-xs font-bold">
+              <div>
+                <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                  Full Name / Recipient Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addrForm.name}
+                  onChange={(e) => setAddrForm({ ...addrForm, name: e.target.value })}
+                  placeholder="e.g. Priya Sharma"
+                  className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                />
+              </div>
+
+              <div>
+                <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                  Street Address / Flat / Building
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addrForm.addressLine}
+                  onChange={(e) => setAddrForm({ ...addrForm, addressLine: e.target.value })}
+                  placeholder="e.g. Flat 402, Royal Residency, CG Road"
+                  className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={addrForm.city}
+                    onChange={(e) => setAddrForm({ ...addrForm, city: e.target.value })}
+                    placeholder="Ahmedabad"
+                    className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={addrForm.state}
+                    onChange={(e) => setAddrForm({ ...addrForm, state: e.target.value })}
+                    placeholder="Gujarat"
+                    className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                    Pincode
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={addrForm.pincode}
+                    onChange={(e) => setAddrForm({ ...addrForm, pincode: e.target.value })}
+                    placeholder="380009"
+                    className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-zinc-500 uppercase text-[10px] tracking-wider block mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={addrForm.phone}
+                    onChange={(e) => setAddrForm({ ...addrForm, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className="w-full bg-zinc-50 text-zinc-900 p-3 rounded-2xl border border-zinc-200 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="addrDefaultToggle"
+                  checked={addrForm.isDefault}
+                  onChange={(e) => setAddrForm({ ...addrForm, isDefault: e.target.checked })}
+                  className="w-4 h-4 accent-zinc-900 cursor-pointer"
+                />
+                <label htmlFor="addrDefaultToggle" className="text-xs font-bold text-zinc-800 cursor-pointer">
+                  Set as Default Shipping Address
+                </label>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddressModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full border border-zinc-200 text-zinc-700 font-extrabold text-xs hover:bg-zinc-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-zinc-900 hover:bg-black text-white font-extrabold text-xs uppercase tracking-wider shadow-md transition-colors"
+                >
+                  Save Address
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

@@ -28,7 +28,8 @@ import {
   broadcastAdminProductChange,
   deleteAdminProduct,
   getAdminProducts,
-  fetchProductsFromBackend
+  fetchProductsFromBackend,
+  getAdminCategoriesAndSubcategories
 } from '../data/mockAdminData';
 import { Product, Variant, Attribute } from '../types/admin';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
@@ -45,23 +46,37 @@ interface ProductsPageProps {
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   // Product List State
   const [products, setProducts] = useState<Product[]>(() => getAdminProducts());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [masterVariants] = useState<Variant[]>(getGlobalVariantsList);
+
+  // Live Categories Data with Real-Time Event Sync
+  const [categoriesData, setCategoriesData] = useState(() => getAdminCategoriesAndSubcategories());
+
+  useEffect(() => {
+    const handleCategorySync = () => {
+      setCategoriesData(getAdminCategoriesAndSubcategories());
+    };
+    window.addEventListener('aaramly_category_sync', handleCategorySync);
+    return () => window.removeEventListener('aaramly_category_sync', handleCategorySync);
+  }, []);
 
   // Sync products in real-time from Express MySQL backend, localStorage & BroadcastChannel
   useEffect(() => {
-    const reload = async () => {
+    const reload = async (showSkeleton = false) => {
+      if (showSkeleton) setIsLoading(true);
       const live = await fetchProductsFromBackend();
       setProducts([...live]);
+      if (showSkeleton) setIsLoading(false);
     };
-    reload();
+    reload(true);
 
-    const handleCustomEvent = () => reload();
+    const handleCustomEvent = () => reload(false);
     window.addEventListener('aaramly_product_sync', handleCustomEvent);
 
     let channel: BroadcastChannel | null = null;
     try {
       channel = new BroadcastChannel('aaramly_product_sync');
-      channel.onmessage = () => reload();
+      channel.onmessage = () => reload(false);
     } catch (e) {}
 
     return () => {
@@ -122,6 +137,17 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
 
   const dynamicColors = colorAttr ? colorAttr.values.map((v) => v.value) : ['Black', 'White', 'Beige', 'Pink', 'Denim Blue'];
   const dynamicSizes = sizeAttr ? sizeAttr.values.map((v) => v.value) : ['XS', 'S', 'M', 'L', 'XL', '34B', '36B'];
+
+  const handleToggleProductStatus = (product: Product) => {
+    const isCurrentlyPublished = product.isPublished !== false && product.status !== 'Draft';
+    const updated: Product = {
+      ...product,
+      isPublished: !isCurrentlyPublished,
+      status: !isCurrentlyPublished ? 'Published' : 'Draft'
+    };
+    broadcastAdminProductChange(updated);
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? updated : p)));
+  };
 
   // Quick Add Category
   const handleQuickAddCategory = (e: React.FormEvent) => {
@@ -286,7 +312,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
 
   const handleEditProduct = (p: Product) => {
     if (onNavigate) {
-      onNavigate('add-product', p.id);
+      onNavigate('edit-product', p.id);
       return;
     }
     setEditingId(p.id);
@@ -342,25 +368,25 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-6 font-sans selection:bg-black selection:text-white">
       {/* CATALOG HEADER BAR WITH ADD NEW PRODUCT BUTTON */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-xl border border-neutral-200 shadow-2xs">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Package className="w-5 h-5 text-indigo-600" />
+          <h1 className="text-lg font-bold text-black tracking-tight flex items-center gap-2">
+            <Package className="w-5 h-5 text-black" />
             <span>All Products Catalog</span>
-            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+            <Badge variant="secondary" className="text-xs font-semibold bg-neutral-100 text-neutral-800 border-neutral-200">
               {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
-            </span>
+            </Badge>
           </h1>
-          <p className="text-xs font-semibold text-slate-500 mt-1">
+          <p className="text-xs text-neutral-500 font-normal mt-1">
             Manage inventory items, product variations, live store status, and pricing.
           </p>
         </div>
 
         <Button
           onClick={() => (onNavigate ? onNavigate('add-product', undefined) : null)}
-          className="bg-zinc-900 hover:bg-black text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-2 shrink-0"
+          className="bg-black hover:bg-neutral-800 text-white font-medium text-xs px-4 py-2 rounded-md transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 shrink-0"
         >
-          <Plus className="w-4 h-4 text-emerald-400" />
+          <Plus className="w-4 h-4 text-white" />
           <span>Add New Product</span>
         </Button>
       </div>
@@ -369,32 +395,32 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 className="text-sm font-bold text-black tracking-tight flex items-center gap-2">
               <span>Catalog Inventory Items</span>
             </h2>
-            <p className="text-xs text-slate-500 font-medium">Search and filter active store inventory.</p>
+            <p className="text-xs text-neutral-500 font-normal">Search and filter active store inventory.</p>
           </div>
 
           {/* Table Filters with shadcn Select */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-60">
               <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
+                className="pl-8 text-xs bg-white border-neutral-200"
               />
             </div>
 
-            <div className="w-44">
+            <div className="w-full sm:w-44">
               <Select
                 value={categoryFilter}
                 onValueChange={setCategoryFilter}
                 options={[
                   { value: 'ALL', label: 'All Categories' },
-                  ...MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name }))
+                  ...categoriesData.mainCategories.map((c: any) => ({ value: c.name, label: c.name }))
                 ]}
               />
             </div>
@@ -402,7 +428,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
         </div>
 
         {/* DATA TABLE */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-neutral-200">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -417,7 +444,28 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedProducts.map((p) => (
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="animate-pulse">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-md bg-neutral-200 shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3 bg-neutral-200 rounded w-36" />
+                          <div className="h-2.5 bg-neutral-200 rounded w-20" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-24" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-20" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-14" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-10" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-16" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-16" /></TableCell>
+                    <TableCell><div className="h-3 bg-neutral-200 rounded w-16 float-right" /></TableCell>
+                  </TableRow>
+                ))
+              ) : paginatedProducts.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -461,9 +509,26 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap">
-                    <Badge variant={p.isPublished ? "success" : "secondary"}>
-                      {p.isPublished ? 'Live' : 'Draft'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={p.isPublished !== false && p.status !== 'Draft'}
+                          onChange={() => handleToggleProductStatus(p)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-neutral-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                      </label>
+                      <Badge
+                        className={
+                          p.isPublished !== false && p.status !== 'Draft'
+                            ? 'bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5'
+                            : 'bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5'
+                        }
+                      >
+                        {p.isPublished !== false && p.status !== 'Draft' ? 'Published' : 'Draft'}
+                      </Badge>
+                    </div>
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap font-mono text-neutral-400 text-[11px]">
@@ -493,6 +558,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
               ))}
             </TableBody>
           </Table>
+          </div>
         </Card>
 
         {/* PAGINATION */}

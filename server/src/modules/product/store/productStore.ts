@@ -52,6 +52,7 @@ export interface ProductItem {
   idealForPills: string[];
   washingInstructions: any[];
   manufacturingInfo: any;
+  productAttributes?: any[];
   isFeatured?: boolean;
   isPublished?: boolean;
   status?: 'Published' | 'Draft' | 'Hidden' | 'Out of Stock';
@@ -89,6 +90,13 @@ export const INITIAL_PRODUCTS: ProductItem[] = [
     idealForPills: ["Everyday Wear", "Lounging"],
     washingInstructions: [],
     manufacturingInfo: { manufacturer: "AARAMLY Intimates", countryOfOrigin: "India" },
+    productAttributes: [
+      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "64% Nylon + 36% Spandex", showInHighlights: true, displayOrder: 1 },
+      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Contemporary Seamless", showInHighlights: true, displayOrder: 2 },
+      { attributeId: "attr-underwire", attributeName: "Underwire Type", attributeSlug: "underwire-type", type: "select", value: "Wire Free", showInHighlights: true, displayOrder: 3 },
+      { attributeId: "attr-padding", attributeName: "Padding", attributeSlug: "padding", type: "select", value: "CloudSoft Removable Pads", showInHighlights: true, displayOrder: 4 },
+      { attributeId: "attr-support", attributeName: "Support", attributeSlug: "support", type: "select", value: "High Support Contour Shaper", showInHighlights: true, displayOrder: 5 }
+    ],
     isFeatured: true,
     isPublished: true,
     status: "Published"
@@ -119,6 +127,13 @@ export const INITIAL_PRODUCTS: ProductItem[] = [
     idealForPills: ["Daily Comfort", "Office Wear"],
     washingInstructions: [],
     manufacturingInfo: { manufacturer: "AARAMLY Intimates", countryOfOrigin: "India" },
+    productAttributes: [
+      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "72% Nylon + 28% Elastane", showInHighlights: true, displayOrder: 1 },
+      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Wirefree Contour", showInHighlights: true, displayOrder: 2 },
+      { attributeId: "attr-underwire", attributeName: "Underwire Type", attributeSlug: "underwire-type", type: "select", value: "Wire Free", showInHighlights: true, displayOrder: 3 },
+      { attributeId: "attr-padding", attributeName: "Padding", attributeSlug: "padding", type: "select", value: "Fixed Moulded Contour Pads", showInHighlights: true, displayOrder: 4 },
+      { attributeId: "attr-support", attributeName: "Support", attributeSlug: "support", type: "select", value: "Medium Everyday Support", showInHighlights: true, displayOrder: 5 }
+    ],
     isFeatured: true,
     isPublished: true,
     status: "Published"
@@ -147,6 +162,10 @@ export const INITIAL_PRODUCTS: ProductItem[] = [
     idealForPills: ["Backless Tops", "Dresses"],
     washingInstructions: [],
     manufacturingInfo: { manufacturer: "AARAMLY Care", countryOfOrigin: "India" },
+    productAttributes: [
+      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "100% Medical-Grade Silicone", showInHighlights: true, displayOrder: 1 },
+      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Invisible Coverage", showInHighlights: true, displayOrder: 2 }
+    ],
     isFeatured: true,
     isPublished: true,
     status: "Published"
@@ -251,6 +270,7 @@ class ProductStore {
         countryOfOrigin: "India",
         material: "Microfiber Nylon Blend"
       },
+      productAttributes: productData.productAttributes || [],
       isFeatured: productData.isFeatured !== undefined ? productData.isFeatured : true,
       isPublished: isPublished,
       status: isPublished ? 'Published' : 'Draft'

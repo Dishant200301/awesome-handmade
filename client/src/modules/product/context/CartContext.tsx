@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from "react";
 import { CartItem } from "../types/product";
+import { useAuth } from "@/modules/core/context/AuthContext";
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -16,8 +17,13 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_KEY = "aaramly_cart_v1";
+const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
+  ? "http://localhost:5000/api/v1"
+  : "/api/v1";
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoggedIn, user } = useAuth();
+
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -31,7 +37,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const wasLoggedInRef = useRef(isLoggedIn);
 
+  // Local storage persistence (guest & logged-in cache)
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cartItems));
@@ -40,8 +48,53 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cartItems]);
 
+  // Logged in Sync & Guest Cart Merge logic
+  useEffect(() => {
+    const handleAuthSync = async () => {
+      if (isLoggedIn) {
+        // 1. If transitioning from logged-out to logged-in, merge local cart first
+        if (!wasLoggedInRef.current) {
+          try {
+            const savedLocal = localStorage.getItem(LOCAL_STORAGE_KEY);
+            const localItems: CartItem[] = savedLocal ? JSON.parse(savedLocal) : [];
+            if (localItems.length > 0) {
+              await fetch(`${API_BASE_URL}/cart/merge`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${user?.email || "token"}`,
+                },
+                body: JSON.stringify({ items: localItems }),
+              });
+            }
+          } catch (err) {
+            console.warn("Guest cart merge warning:", err);
+          }
+        }
+
+        // 2. Fetch authenticated user's database cart (only update if backend has non-empty items)
+        try {
+          const res = await fetch(`${API_BASE_URL}/cart`, {
+            headers: {
+              Authorization: `Bearer ${user?.email || "token"}`,
+            },
+          });
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setCartItems(json.data);
+          }
+        } catch (err) {
+          console.warn("Cart DB fetch warning:", err);
+        }
+      }
+      wasLoggedInRef.current = isLoggedIn;
+    };
+
+    handleAuthSync();
+  }, [isLoggedIn, user]);
+
   const addToCart = (newItem: Omit<CartItem, "id">) => {
-    const itemKey = `${newItem.productId}-${newItem.colorName}-${newItem.size}`;
+    const itemKey = `${newItem.productId}-${newItem.colorName || "default"}-${newItem.size || "default"}`;
 
     setCartItems((prev) => {
       const existingIndex = prev.findIndex((i) => i.id === itemKey);
@@ -56,10 +109,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return [...prev, { ...newItem, id: itemKey }];
       }
     });
+
+    // If logged in, sync mutation to backend API
+    if (isLoggedIn) {
+      fetch(`${API_BASE_URL}/cart/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.email || "token"}`,
+        },
+        body: JSON.stringify(newItem),
+      }).catch((e) => console.warn("Cart sync error:", e));
+    }
   };
 
   const removeFromCart = (id: string) => {
     setCartItems((prev) => prev.filter((i) => i.id !== id));
+
+    if (isLoggedIn) {
+      fetch(`${API_BASE_URL}/cart/item/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${user?.email || "token"}`,
+        },
+      }).catch((e) => console.warn("Cart delete error:", e));
+    }
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -70,10 +144,36 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCartItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item))
     );
+
+    if (isLoggedIn) {
+      const item = cartItems.find((i) => i.id === id);
+      if (item) {
+        fetch(`${API_BASE_URL}/cart/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.email || "token"}`,
+          },
+          body: JSON.stringify({ ...item, quantity: quantity - item.quantity }),
+        }).catch((e) => console.warn("Cart qty update error:", e));
+      }
+    }
   };
+
 
   const clearCart = () => {
     setCartItems([]);
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch (e) {}
+    if (isLoggedIn) {
+      fetch(`${API_BASE_URL}/cart/clear`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${user?.email || "token"}`,
+        },
+      }).catch((e) => console.warn("Cart clear error:", e));
+    }
   };
 
   const totalItemsCount = useMemo(() => {

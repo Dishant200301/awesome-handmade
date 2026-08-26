@@ -1,41 +1,6 @@
 import { ContactMessage } from "../../../types/admin.js";
 
-let contactMessages: ContactMessage[] = [
-  {
-    id: "cm-1",
-    name: "Priya Sharma",
-    email: "priya.s@example.com",
-    phone: "+91 98765 43210",
-    subject: "Size Guide Assistance Required",
-    message: "Hi AARAMLY team, I am confused between 32B and 34B for the Seamless Padded Bralette. Could you advise?",
-    status: "New",
-    date: "2026-08-01",
-    createdAt: "2026-08-01T09:30:00Z"
-  },
-  {
-    id: "cm-2",
-    name: "Ananya Roy",
-    email: "ananya.r@example.com",
-    phone: "+91 98111 22334",
-    subject: "Bulk Order Inquiry for Bridal Trousseau",
-    message: "Hello! Looking to order 15 sets from your Bridal Silk & Lace collection. Do you offer corporate/bridal discounts?",
-    status: "Read",
-    date: "2026-07-31",
-    createdAt: "2026-07-31T14:15:00Z"
-  },
-  {
-    id: "cm-3",
-    name: "Rohan Kapoor",
-    email: "rohan.k@example.com",
-    phone: "+91 97777 88899",
-    subject: "Gift Card Query",
-    message: "Can I buy a physical gift voucher for my spouse?",
-    status: "Replied",
-    replyText: "Hi Rohan! We offer e-gift cards sent instantly via Email/WhatsApp.",
-    date: "2026-07-30",
-    createdAt: "2026-07-30T11:00:00Z"
-  }
-];
+let contactMessages: ContactMessage[] = [];
 
 export const getContactMessagesStore = (filterStatus?: string, search?: string): ContactMessage[] => {
   let list = [...contactMessages];

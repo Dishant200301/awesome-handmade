@@ -237,14 +237,7 @@ export class AdminApiService {
     if (params?.search) query.append("search", params.search);
 
     const remote = await this.request<ContactMessage[]>(`/contacts?${query.toString()}`);
-    let list: ContactMessage[] = remote || [...MOCK_CONTACT_MESSAGES];
-
-    // Combine local mock messages if remote doesn't have them
-    if (remote && Array.isArray(remote)) {
-      const remoteIds = new Set(remote.map((m) => m.id));
-      const extraLocal = MOCK_CONTACT_MESSAGES.filter((m) => !remoteIds.has(m.id));
-      list = [...remote, ...extraLocal];
-    }
+    let list: ContactMessage[] = Array.isArray(remote) ? remote : [...MOCK_CONTACT_MESSAGES];
 
     if (params?.status && params.status.toUpperCase() !== 'ALL') {
       list = list.filter((m) => m.status.toLowerCase() === params.status!.toLowerCase());

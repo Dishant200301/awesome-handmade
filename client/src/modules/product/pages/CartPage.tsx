@@ -1,12 +1,23 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { X, Minus, Plus, ChevronRight } from "lucide-react";
-import Navbar from "@/modules/core/components/Navbar";
+import { Link, useNavigate } from "react-router-dom";
+import { X, Minus, Plus } from "lucide-react";
+import CheckoutHeader from "@/modules/checkout/components/CheckoutHeader";
 import Footer from "@/modules/core/components/Footer";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "@/modules/core/context/AuthContext";
 
 export const CartPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { isLoggedIn, openAuthModal } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, totalPrice } = useCart();
+
+  const handleProceedToCheckout = () => {
+    if (isLoggedIn) {
+      navigate("/checkout");
+    } else {
+      openAuthModal("/checkout");
+    }
+  };
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -31,20 +42,7 @@ export const CartPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans flex flex-col selection:bg-black selection:text-white">
-      <Navbar />
-
-      {/* Top Breadcrumb Section */}
-      <section className="pt-24 pb-4 bg-white border-b border-zinc-100">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            <Link to="/" className="hover:text-zinc-900 transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-zinc-400 stroke-[1.5]" />
-            <span className="text-zinc-900 font-bold">Cart</span>
-          </nav>
-        </div>
-      </section>
+      <CheckoutHeader activeStep={1} />
 
       {/* Main Cart Content */}
       <section className="bg-white py-12 sm:py-16 flex-1">
@@ -311,7 +309,7 @@ export const CartPage: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="button"
-                    onClick={() => alert("Proceeding to secure Razorpay checkout...")}
+                    onClick={handleProceedToCheckout}
                     className="w-full py-4 bg-zinc-900 hover:bg-black text-white text-xs font-bold tracking-[0.18em] uppercase cursor-pointer transition-all shadow-md rounded-md"
                   >
                     PROCEED TO CHECKOUT

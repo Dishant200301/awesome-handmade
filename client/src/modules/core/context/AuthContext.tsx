@@ -15,8 +15,8 @@ export interface UserOrder {
   id: string;
   date: string;
   total: number;
-  status: "Delivered" | "Processing" | "Shipped" | "Cancelled";
-  items: string[];
+  status: "Delivered" | "Processing" | "Shipped" | "Cancelled" | "Confirmed";
+  items: any[];
 }
 
 export interface UserAddress {
@@ -28,6 +28,7 @@ export interface UserAddress {
   state: string;
   pincode: string;
   phone: string;
+  country?: string;
 }
 
 export interface UserProfile {
@@ -47,14 +48,19 @@ interface AuthContextType {
   addresses: UserAddress[];
   isAuthModalOpen: boolean;
   loading: boolean;
+  postAuthRedirectUrl: string | null;
+  setPostAuthRedirectUrl: (url: string | null) => void;
   setIsAuthModalOpen: (open: boolean) => void;
-  openAuthModal: () => void;
+  openAuthModal: (redirectUrl?: string) => void;
   closeAuthModal: () => void;
   login: (email: string, pass: string) => Promise<void>;
   register: (fullName: string, email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => void;
+  addOrder: (order: UserOrder) => void;
+  saveAddress: (addr: UserAddress) => void;
+  deleteAddress: (id: string) => void;
 }
 
 const DEFAULT_ORDERS: UserOrder[] = [
@@ -63,14 +69,19 @@ const DEFAULT_ORDERS: UserOrder[] = [
     date: "2026-07-30",
     total: 1897,
     status: "Delivered",
-    items: ["Women's Seamless Padded Bralette (Black / S)", "Silicone Nipple Covers (Nude / Free Size)"],
+    items: [
+      { name: "Women's Seamless Padded Bralette - Black", size: "S", price: 999, quantity: 1 },
+      { name: "Silicone Nipple Covers - Nude", size: "Free Size", price: 898, quantity: 1 }
+    ],
   },
   {
     id: "#AAR-91042",
     date: "2026-06-14",
     total: 899,
     status: "Delivered",
-    items: ["Women's Contour Seamless Bra (Denim Blue / 34B)"],
+    items: [
+      { name: "Women's Contour Seamless Bra - Denim Blue", size: "34B", price: 899, quantity: 1 }
+    ],
   },
 ];
 
@@ -84,6 +95,7 @@ const DEFAULT_ADDRESSES: UserAddress[] = [
     state: "Gujarat",
     pincode: "380009",
     phone: "+91 98765 43210",
+    country: "India"
   },
 ];
 
@@ -119,9 +131,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!initialSession);
   const [loading, setLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [postAuthRedirectUrl, setPostAuthRedirectUrl] = useState<string | null>(null);
 
-  const [orders] = useState<UserOrder[]>(DEFAULT_ORDERS);
-  const [addresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
+  // Dynamic Orders State (combining default + user placed orders from localStorage)
+  const [orders, setOrders] = useState<UserOrder[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_ORDERS;
+    try {
+      const savedCheckoutOrders = localStorage.getItem("aaramly_orders_v1");
+      const userOrders = localStorage.getItem("aaramly_user_orders");
+
+      let merged: any[] = [];
+      if (savedCheckoutOrders) {
+        const parsed = JSON.parse(savedCheckoutOrders);
+        if (Array.isArray(parsed)) {
+          merged = parsed.map((o: any) => ({
+            id: o.orderId || o.id,
+            date: o.createdAt ? o.createdAt.slice(0, 10) : o.date || "2026-08-08",
+            total: o.grandTotal || o.total || 0,
+            status: o.status || "Confirmed",
+            items: o.items || []
+          }));
+        }
+      }
+
+      if (userOrders) {
+        const parsedUser = JSON.parse(userOrders);
+        if (Array.isArray(parsedUser)) {
+          merged = [...merged, ...parsedUser];
+        }
+      }
+
+      if (merged.length > 0) {
+        return merged;
+      }
+    } catch (e) {}
+    return DEFAULT_ORDERS;
+  });
+
+  // Dynamic Saved Addresses State
+  const [addresses, setAddresses] = useState<UserAddress[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_ADDRESSES;
+    try {
+      const saved = localStorage.getItem("aaramly_user_addresses");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_ADDRESSES;
+  });
+
+  // Persist orders to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("aaramly_user_orders", JSON.stringify(orders));
+      } catch (e) {}
+    }
+  }, [orders]);
+
+  // Persist addresses to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("aaramly_user_addresses", JSON.stringify(addresses));
+      } catch (e) {}
+    }
+  }, [addresses]);
+
+  // Add order helper
+  const addOrder = (newOrder: UserOrder) => {
+    setOrders((prev) => [newOrder, ...prev]);
+  };
+
+  // Save / Update Address helper
+  const saveAddress = (targetAddr: UserAddress) => {
+    setAddresses((prev) => {
+      const existsIndex = prev.findIndex((a) => a.id === targetAddr.id);
+      let updatedList = [...prev];
+
+      if (targetAddr.isDefault) {
+        updatedList = updatedList.map((a) => ({ ...a, isDefault: false }));
+      }
+
+      if (existsIndex > -1) {
+        updatedList[existsIndex] = targetAddr;
+      } else {
+        updatedList.unshift(targetAddr);
+      }
+
+      return updatedList;
+    });
+  };
+
+  // Delete Address helper
+  const deleteAddress = (addrId: string) => {
+    setAddresses((prev) => prev.filter((a) => a.id !== addrId));
+  };
 
   // Sync Firebase Auth state reactively with persistent fallback
   useEffect(() => {
@@ -165,8 +271,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const openAuthModal = () => setIsAuthModalOpen(true);
+  const openAuthModal = (redirectUrl?: string) => {
+    if (redirectUrl) {
+      setPostAuthRedirectUrl(redirectUrl);
+    }
+    setIsAuthModalOpen(true);
+  };
   const closeAuthModal = () => setIsAuthModalOpen(false);
+
+  const handlePostAuthRedirect = () => {
+    setIsAuthModalOpen(false);
+    if (postAuthRedirectUrl) {
+      const target = postAuthRedirectUrl;
+      setPostAuthRedirectUrl(null);
+      if (typeof window !== "undefined") {
+        window.location.href = target;
+      }
+    }
+  };
 
   // Firebase Email/Password Sign In
   const login = async (emailInput: string, passInput: string) => {
@@ -192,10 +314,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(profile);
       setIsLoggedIn(true);
       saveSessionUser(profile);
-      setIsAuthModalOpen(false);
+      handlePostAuthRedirect();
     } catch (err: any) {
       console.error("Firebase Login Error:", err);
-      // Fallback local session for demo email login
       const displayName = emailInput.split("@")[0] || "AARAMLY User";
       const initials = displayName
         .split(" ")
@@ -215,7 +336,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(profile);
       setIsLoggedIn(true);
       saveSessionUser(profile);
-      setIsAuthModalOpen(false);
+      handlePostAuthRedirect();
     }
   };
 
@@ -246,7 +367,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(profile);
       setIsLoggedIn(true);
       saveSessionUser(profile);
-      setIsAuthModalOpen(false);
+      handlePostAuthRedirect();
     } catch (err: any) {
       console.error("Firebase Registration Error:", err);
       const initials = fullName
@@ -267,7 +388,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(profile);
       setIsLoggedIn(true);
       saveSessionUser(profile);
-      setIsAuthModalOpen(false);
+      handlePostAuthRedirect();
     }
   };
 
@@ -295,7 +416,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(profile);
       setIsLoggedIn(true);
       saveSessionUser(profile);
-      setIsAuthModalOpen(false);
+      handlePostAuthRedirect();
     } catch (err: any) {
       console.error("Firebase Google Sign-In Error:", err);
       if (err.code !== "auth/popup-closed-by-user") {
@@ -340,6 +461,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addresses,
         isAuthModalOpen,
         loading,
+        postAuthRedirectUrl,
+        setPostAuthRedirectUrl,
         setIsAuthModalOpen,
         openAuthModal,
         closeAuthModal,
@@ -348,6 +471,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         logout,
         updateProfile,
+        addOrder,
+        saveAddress,
+        deleteAddress,
       }}
     >
       {children}

@@ -9,7 +9,10 @@ import sizeGuideRoutes from "./modules/product/routes/sizeGuide.routes.js";
 import taxonomyRoutes from "./modules/product/routes/taxonomy.routes.js";
 import contactRoutes from "./modules/product/routes/contact.routes.js";
 import analyticsRoutes from "./modules/product/routes/analytics.routes.js";
+import attributeRoutes from "./modules/product/routes/attribute.routes.js";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
+import cartRoutes from "./modules/cart/routes/cart.routes.js";
+import wishlistRoutes from "./modules/wishlist/routes/wishlist.routes.js";
 import { connectDB } from "./database/index.js";
 
 const app: Express = express();
@@ -25,12 +28,16 @@ app.use(morgan("dev"));
 
 // API Routes
 app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/attributes", attributeRoutes);
 app.use("/api/v1/filters", filterRoutes);
 app.use("/api/v1/size-guides", sizeGuideRoutes);
 app.use("/api/v1/taxonomies", taxonomyRoutes);
 app.use("/api/v1/contacts", contactRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/wishlist", wishlistRoutes);
+
 
 // Browser Extension Fallback (Fatkun / Chrome Extensions)
 app.use("/api/ext", (_req, res) => {

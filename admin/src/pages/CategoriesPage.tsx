@@ -1,349 +1,592 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FolderTree, Trash2, Edit2, CheckCircle2, XCircle, Search, Upload, Check } from 'lucide-react';
-import { MOCK_CATEGORIES } from '../data/mockAdminData';
+import { 
+  Plus, 
+  FolderTree, 
+  Trash2, 
+  Edit2, 
+  CheckCircle2, 
+  XCircle, 
+  Search, 
+  ChevronRight, 
+  Layers, 
+  ArrowLeft,
+  Check,
+  Tag
+} from 'lucide-react';
+import { MOCK_CATEGORIES, MOCK_SUBCATEGORIES } from '../data/mockAdminData';
 import { Category } from '../types/admin';
+import { Select } from '../components/ui/select';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 
-const PRESET_IMAGES = [
-  { name: 'Bralette 1', url: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=600' },
-  { name: 'Seamless 2', url: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?q=80&w=600' },
-  { name: 'Accessories', url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600' },
-  { name: 'Lingerie GIF 1', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpucmtscTFic3dpZG96a3Vrdmx0OHptM2Z2ZXQyeGRoazNwdWV1cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlHFRbmaZtBRhXG/giphy.gif' },
-  { name: 'Lingerie GIF 2', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVqNzRreTByZ2xpaGoxOXAxa3Ftbmdzb3B2eGV3ZnFsY2x5eDZvOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT0xeJpnrWC4XWblEk/giphy.gif' }
-];
+export interface EnhancedCategory extends Category {
+  type?: 'parent' | 'sub';
+  parentId?: string;
+  parentName?: string;
+}
 
-export const CategoriesPage: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('aaramly_categories');
-    return saved ? JSON.parse(saved) : MOCK_CATEGORIES;
+interface CategoriesPageProps {
+  initialTab?: string;
+}
+
+export const CategoriesPage: React.FC<CategoriesPageProps> = ({ initialTab = 'all-categories' }) => {
+  // Main Categories State with LocalStorage Persistence
+  const [categories, setCategories] = useState<EnhancedCategory[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('aaramly_categories');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Default Seed from MOCK_CATEGORIES & MOCK_SUBCATEGORIES
+    const mainList: EnhancedCategory[] = MOCK_CATEGORIES.map((c) => ({
+      ...c,
+      type: 'parent' as const
+    }));
+
+    const subList: EnhancedCategory[] = MOCK_SUBCATEGORIES.map((s) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      type: 'sub' as const,
+      parentId: s.categoryId,
+      parentName: s.categoryName,
+      productCount: 12,
+      isActive: true
+    }));
+
+    return [...mainList, ...subList];
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  // Navigation & View Mode: 'all' | 'add' | 'edit'
+  const [subView, setSubView] = useState<'all' | 'add' | 'edit'>(() => {
+    return initialTab === 'add-category' ? 'add' : 'all';
+  });
 
-  // Form states
+  // Sync subView if initialTab changes
+  useEffect(() => {
+    if (initialTab === 'add-category') {
+      setSubView('add');
+    } else if (initialTab === 'all-categories' || initialTab === 'categories') {
+      setSubView('all');
+    }
+  }, [initialTab]);
+
+  // Separate Filter Tab: 'ALL' | 'MAIN' | 'SUB'
+  const [filterType, setFilterType] = useState<'ALL' | 'MAIN' | 'SUB'>('ALL');
+
+  // Search Query
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Form State
+  const [editingCategory, setEditingCategory] = useState<EnhancedCategory | null>(null);
+  const [categoryType, setCategoryType] = useState<'parent' | 'sub'>('parent');
+  const [selectedParentId, setSelectedParentId] = useState<string>('');
   const [categoryName, setCategoryName] = useState('');
   const [categorySlug, setCategorySlug] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [isActive, setIsActive] = useState(true);
 
+  // Sync to LocalStorage & Dispatch Sync Event
   useEffect(() => {
-    localStorage.setItem('aaramly_categories', JSON.stringify(categories));
+    try {
+      localStorage.setItem('aaramly_categories', JSON.stringify(categories));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('aaramly_category_sync'));
+      }
+    } catch (e) {}
   }, [categories]);
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    setCategoryName(name);
-    if (!editingCategory) {
-      setCategorySlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+  // Main Categories list for parent selection
+  const mainCategoriesList = categories.filter((c) => c.type !== 'sub');
+  const subCategoriesList = categories.filter((c) => c.type === 'sub');
+
+  // Helper to find parent slug for URL display
+  const getParentSlug = (parentId?: string, parentName?: string) => {
+    if (parentId) {
+      const parent = categories.find((c) => c.id === parentId);
+      if (parent) return parent.slug;
     }
+    if (parentName) {
+      return parentName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
+    return '';
   };
 
-  // Local File Upload Handler (Image or GIF)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImageUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const openAddModal = () => {
+  // Open Add View
+  const handleOpenAddView = (defaultType: 'parent' | 'sub' = 'parent') => {
     setEditingCategory(null);
+    setCategoryType(defaultType);
+    setSelectedParentId(mainCategoriesList[0]?.id || '');
     setCategoryName('');
     setCategorySlug('');
-    setDescription('');
-    setImageUrl(PRESET_IMAGES[0].url);
     setIsActive(true);
-    setShowAddModal(true);
+    setSubView('add');
   };
 
-  const openEditModal = (cat: Category) => {
+  // Open Edit View
+  const handleOpenEditView = (cat: EnhancedCategory) => {
     setEditingCategory(cat);
+    const type = cat.type || (cat.parentId ? 'sub' : 'parent');
+    setCategoryType(type);
+    setSelectedParentId(cat.parentId || mainCategoriesList[0]?.id || '');
     setCategoryName(cat.name);
     setCategorySlug(cat.slug);
-    setDescription((cat as any).description || '');
-    setImageUrl((cat as any).imageUrl || PRESET_IMAGES[0].url);
     setIsActive(cat.isActive ?? true);
-    setShowAddModal(true);
+    setSubView('edit');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Handle Name Input Change & Auto-generate Slug
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setCategoryName(val);
+    if (!editingCategory) {
+      setCategorySlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+    }
+  };
+
+  // Save Category or Subcategory
   const handleSaveCategory = (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
 
     const slugToSave = categorySlug.trim() || categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const parentObj = categoryType === 'sub' ? mainCategoriesList.find((c) => c.id === selectedParentId) : undefined;
 
     if (editingCategory) {
-      setCategories(categories.map(c => c.id === editingCategory.id ? {
-        ...c,
-        name: categoryName.trim(),
-        slug: slugToSave,
-        isActive,
-        description,
-        imageUrl: imageUrl || PRESET_IMAGES[0].url
-      } as any : c));
+      // UPDATE EXISTING
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === editingCategory.id
+            ? {
+                ...c,
+                name: categoryName.trim(),
+                slug: slugToSave,
+                type: categoryType,
+                parentId: categoryType === 'sub' ? selectedParentId : undefined,
+                parentName: parentObj ? parentObj.name : undefined,
+                isActive
+              }
+            : c
+        )
+      );
     } else {
-      const newCat: any = {
-        id: `cat-${Date.now()}`,
+      // CREATE NEW
+      const newCat: EnhancedCategory = {
+        id: categoryType === 'sub' ? `sub-${Date.now()}` : `cat-${Date.now()}`,
         name: categoryName.trim(),
         slug: slugToSave,
+        type: categoryType,
+        parentId: categoryType === 'sub' ? selectedParentId : undefined,
+        parentName: parentObj ? parentObj.name : undefined,
         productCount: 0,
-        isActive,
-        description,
-        imageUrl: imageUrl || PRESET_IMAGES[0].url
+        isActive
       };
-      setCategories([newCat, ...categories]);
+      setCategories((prev) => [newCat, ...prev]);
     }
 
-    setShowAddModal(false);
+    setSubView('all');
+    setEditingCategory(null);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      setCategories(categories.filter(c => c.id !== id));
+  // Delete Category
+  const handleDeleteCategory = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this category? Subcategories or assigned products may be affected.')) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      if (editingCategory?.id === id) {
+        setSubView('all');
+        setEditingCategory(null);
+      }
     }
   };
 
+  // Toggle Active Status
   const toggleStatus = (id: string) => {
-    setCategories(categories.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c));
+    setCategories((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c))
+    );
   };
 
-  const filteredCategories = categories.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter categories based on search term & separate category filter tab
+  const filteredCategories = categories.filter((c) => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.parentName && c.parentName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesFilterType =
+      filterType === 'ALL'
+        ? true
+        : filterType === 'MAIN'
+        ? c.type !== 'sub'
+        : c.type === 'sub';
+
+    return matchesSearch && matchesFilterType;
+  });
 
   return (
-    <div className="space-y-6 font-sans">
-      {/* HEADER & ACTION BAR */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="relative w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search categories..."
-            className="w-full bg-white text-xs text-slate-800 pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 shadow-xs font-medium"
-          />
+    <div className="space-y-6 font-sans selection:bg-black selection:text-white pb-16">
+      {/* HEADER WITH ACTION BUTTONS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-xl border border-neutral-200 shadow-2xs">
+        <div>
+          <h1 className="text-lg font-bold text-black tracking-tight flex items-center gap-2">
+            <FolderTree className="w-5 h-5 text-black" />
+            <span>All Categories &amp; Subcategories</span>
+            <Badge variant="secondary" className="text-xs font-semibold bg-neutral-100 text-neutral-800 border-neutral-200">
+              {categories.length} Total
+            </Badge>
+          </h1>
+          <p className="text-xs text-neutral-500 font-normal mt-1">
+            Organize products into Main Categories &amp; Subcategories without image bloat.
+          </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Category</span>
-        </button>
+        {/* SUB-VIEW NAVIGATION */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            onClick={() => setSubView('all')}
+            variant={subView === 'all' ? 'default' : 'outline'}
+            size="sm"
+            className={`text-xs font-medium ${subView === 'all' ? 'bg-black text-white hover:bg-neutral-800' : 'text-black border-neutral-200 hover:bg-neutral-50'}`}
+          >
+            All List ({categories.length})
+          </Button>
+
+          <Button
+            onClick={() => handleOpenAddView('parent')}
+            variant={subView === 'add' ? 'default' : 'outline'}
+            size="sm"
+            className={`text-xs font-medium flex items-center gap-1.5 ${subView === 'add' ? 'bg-black text-white hover:bg-neutral-800' : 'text-black border-neutral-200 hover:bg-neutral-50'}`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Category &amp; Subcategory</span>
+          </Button>
+        </div>
       </div>
 
-      {/* CATEGORIES GRID */}
-      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-            <FolderTree className="w-5 h-5 text-rose-500" />
-            <span>Category & Taxonomy Management ({filteredCategories.length})</span>
-          </h3>
-        </div>
-
-        {filteredCategories.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs">
-            No categories found. Click "Add New Category" to create one.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCategories.map((cat) => (
-              <div 
-                key={cat.id} 
-                className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
-                  cat.isActive ? 'bg-slate-50 border-slate-200' : 'bg-slate-100/60 border-slate-200 opacity-75'
+      {/* ========================================================================= */}
+      {/* SUB-VIEW 1: ALL CATEGORIES & SUBCATEGORIES LISTING */}
+      {/* ========================================================================= */}
+      {subView === 'all' && (
+        <div className="space-y-6">
+          {/* SEARCH & SEPARATE FILTER TABS (MAIN VS SUB) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Filter Tabs: ALL | MAIN CATEGORIES | SUBCATEGORIES */}
+            <div className="flex items-center gap-1.5 bg-neutral-100 p-1 rounded-lg border border-neutral-200 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setFilterType('ALL')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  filterType === 'ALL' ? 'bg-black text-white shadow-2xs' : 'text-neutral-600 hover:text-black'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={(cat as any).imageUrl || PRESET_IMAGES[0].url} 
-                      alt={cat.name} 
-                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 bg-white"
-                    />
-                    <div>
-                      <p className="font-extrabold text-slate-900 text-sm">{cat.name}</p>
-                      <p className="text-[10px] text-slate-500 font-mono">/category/{cat.slug}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => toggleStatus(cat.id)}
-                    title={cat.isActive ? "Deactivate category" : "Activate category"}
-                    className="cursor-pointer"
-                  >
-                    {cat.isActive ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Active</span>
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200 text-slate-600 border border-slate-300 flex items-center gap-1">
-                        <XCircle className="w-3 h-3" />
-                        <span>Inactive</span>
-                      </span>
-                    )}
-                  </button>
-                </div>
-
-                {(cat as any).description && (
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                    {(cat as any).description}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between border-t border-slate-200/60 pt-3 text-xs">
-                  <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-                    {cat.productCount} Products
-                  </span>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => openEditModal(cat)}
-                      title="Edit Category"
-                      className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(cat.id)}
-                      title="Delete Category"
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ADD / EDIT CATEGORY MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-slate-900 text-base">
-                {editingCategory ? 'Edit Category' : 'Create New Category'}
-              </h3>
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="text-xs font-bold text-slate-500 hover:text-black px-2.5 py-1 bg-slate-100 rounded-lg cursor-pointer"
+                All ({categories.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('MAIN')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  filterType === 'MAIN' ? 'bg-black text-white shadow-2xs' : 'text-neutral-600 hover:text-black'
+                }`}
               >
-                Cancel
+                Main Categories ({mainCategoriesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('SUB')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  filterType === 'SUB' ? 'bg-black text-white shadow-2xs' : 'text-neutral-600 hover:text-black'
+                }`}
+              >
+                Subcategories ({subCategoriesList.length})
               </button>
             </div>
 
-            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Category Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={categoryName}
-                  onChange={handleNameChange}
-                  placeholder="e.g. Sports Bras & Bralettes"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:border-rose-500 focus:bg-white"
-                />
-              </div>
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search category or subcategory name..."
+                className="pl-8 text-xs bg-white border-neutral-200"
+              />
+            </div>
+          </div>
 
+          {/* CATEGORIES & SUBCATEGORIES GRID CARDS */}
+          {filteredCategories.length === 0 ? (
+            <Card className="p-12 text-center space-y-3 bg-white border-neutral-200">
+              <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
+                <FolderTree className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-black">No Categories Found</h4>
+              <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                No category matches "{searchTerm}". Click "Add Category &amp; Subcategory" to create one.
+              </p>
+              <Button onClick={() => handleOpenAddView('parent')} size="sm" className="bg-black text-white hover:bg-neutral-800 text-xs font-medium mt-2">
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add New Category</span>
+              </Button>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCategories.map((cat) => (
+                <Card
+                  key={cat.id}
+                  className={`p-5 bg-white border border-neutral-200 shadow-2xs rounded-xl flex flex-col justify-between hover:border-neutral-300 transition-all ${
+                    !cat.isActive ? 'opacity-70 bg-neutral-50/50' : ''
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* TYPE BADGE & ACTIVE STATUS TOGGLE */}
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] uppercase font-semibold border ${
+                          cat.type === 'sub'
+                            ? 'bg-neutral-100 text-neutral-800 border-neutral-300'
+                            : 'bg-black text-white border-black'
+                        }`}
+                      >
+                        {cat.type === 'sub' ? 'Subcategory' : 'Main Category'}
+                      </Badge>
+
+                      <button
+                        onClick={() => toggleStatus(cat.id)}
+                        title={cat.isActive ? "Deactivate category" : "Activate category"}
+                        className="cursor-pointer shrink-0"
+                      >
+                        {cat.isActive ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Active</span>
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-600 border border-neutral-200 flex items-center gap-1">
+                            <XCircle className="w-3 h-3" />
+                            <span>Inactive</span>
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* NAME & PARENT BREADCRUMB */}
+                    <div>
+                      {cat.type === 'sub' && (cat.parentName || cat.parentId) && (
+                        <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block flex items-center gap-1 mb-0.5">
+                          <span>{cat.parentName || 'Main Category'}</span>
+                          <ChevronRight className="w-3 h-3 text-neutral-400" />
+                        </span>
+                      )}
+                      <h3 className="font-bold text-black text-base tracking-tight">{cat.name}</h3>
+                      <span className="text-[11px] text-neutral-400 font-mono">
+                        /{cat.type === 'sub' && getParentSlug(cat.parentId, cat.parentName) ? `${getParentSlug(cat.parentId, cat.parentName)}/` : ''}{cat.slug}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* BOTTOM ACTIONS */}
+                  <div className="pt-4 border-t border-neutral-100 mt-4 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-neutral-400 font-normal">
+                      ID: <span className="font-mono text-neutral-600">{cat.id}</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={() => handleOpenEditView(cat)}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8 px-2.5 font-medium text-black border-neutral-200 hover:bg-neutral-100"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-8 px-2 text-neutral-400 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUB-VIEW 2 & 3: FULL PAGE CREATE / EDIT FORM */}
+      {/* ========================================================================= */}
+      {(subView === 'add' || subView === 'edit') && (
+        <Card className="p-6 sm:p-8 bg-white border border-neutral-200 shadow-2xs rounded-xl max-w-2xl mx-auto space-y-6 font-sans">
+          {/* FORM TOP BAR */}
+          <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSubView('all')}
+                className="text-xs border-neutral-200 text-neutral-700 hover:bg-neutral-100"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to All Categories</span>
+              </Button>
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Category Slug</label>
+                <h2 className="text-base font-bold text-black tracking-tight">
+                  {subView === 'edit' ? `Edit Category: ${categoryName}` : 'Add Category & Subcategory'}
+                </h2>
+                <p className="text-xs text-neutral-500 font-normal">
+                  Configure name, category type, and parent main category.
+                </p>
+              </div>
+            </div>
+
+            {subView === 'edit' && editingCategory && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDeleteCategory(editingCategory.id)}
+                className="text-xs border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </Button>
+            )}
+          </div>
+
+          <form onSubmit={handleSaveCategory} className="space-y-5 text-xs">
+            {/* CATEGORY TYPE TOGGLE (MAIN CATEGORY VS SUBCATEGORY) */}
+            <div>
+              <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
+                Select Classification *
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-100 rounded-lg border border-neutral-200">
+                <button
+                  type="button"
+                  onClick={() => setCategoryType('parent')}
+                  className={`py-2 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    categoryType === 'parent' ? 'bg-black text-white shadow-2xs' : 'text-neutral-600 hover:text-black'
+                  }`}
+                >
+                  Main Category
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryType('sub')}
+                  className={`py-2 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    categoryType === 'sub' ? 'bg-black text-white shadow-2xs' : 'text-neutral-600 hover:text-black'
+                  }`}
+                >
+                  Subcategory
+                </button>
+              </div>
+            </div>
+
+            {/* IF SUBCATEGORY: SELECT PARENT MAIN CATEGORY */}
+            {categoryType === 'sub' && (
+              <div>
+                <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
+                  Select Parent Main Category *
+                </label>
+                <Select
+                  value={selectedParentId || mainCategoriesList[0]?.id || ''}
+                  onValueChange={setSelectedParentId}
+                  options={mainCategoriesList.map((p) => ({ value: p.id, label: p.name }))}
+                />
+                <span className="text-[10px] text-neutral-400 mt-1 block">
+                  This subcategory will be grouped under the selected Main Category.
+                </span>
+              </div>
+            )}
+
+            {/* CATEGORY / SUBCATEGORY NAME */}
+            <div>
+              <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
+                {categoryType === 'sub' ? 'Subcategory Name *' : 'Main Category Name *'}
+              </label>
+              <Input
+                type="text"
+                required
+                placeholder={categoryType === 'sub' ? 'e.g. Seamless Padded Bralettes, Lace Undies' : 'e.g. Bralettes, Panties, Accessories'}
+                value={categoryName}
+                onChange={handleNameChange}
+                className="bg-white border-neutral-200 text-xs text-black font-medium"
+              />
+            </div>
+
+            {/* URL SLUG */}
+            <div>
+              <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
+                URL Slug (Auto-generated)
+              </label>
+              <div className="flex items-center gap-2 bg-neutral-50 p-2.5 rounded-lg border border-neutral-200 text-xs font-mono overflow-x-auto">
+                <span className="text-neutral-400 text-[11px] shrink-0">
+                  /{categoryType === 'sub' && (mainCategoriesList.find(c => c.id === selectedParentId)?.slug || getParentSlug(selectedParentId)) ? `${mainCategoriesList.find(c => c.id === selectedParentId)?.slug || getParentSlug(selectedParentId)}/` : ''}
+                </span>
                 <input
                   type="text"
                   value={categorySlug}
                   onChange={(e) => setCategorySlug(e.target.value)}
-                  placeholder="e.g. sports-bras-bralettes"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-mono text-xs focus:outline-none focus:border-rose-500 focus:bg-white"
+                  className="flex-1 bg-transparent text-black font-bold focus:outline-none min-w-[120px]"
                 />
               </div>
+            </div>
 
-              {/* IMAGE / GIF SELECTOR & FILE UPLOAD */}
-              <div className="space-y-2">
-                <label className="block text-slate-700 font-bold">Category Image *</label>
-                
-                {/* PREVIEW BOX */}
-                <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                  <img 
-                    src={imageUrl || PRESET_IMAGES[0].url} 
-                    alt="Category Preview" 
-                    className="w-16 h-16 rounded-xl object-cover border border-slate-300 bg-white"
-                  />
-                  <div className="flex-1 space-y-1.5">
-                    <p className="text-[11px] font-bold text-slate-800">Upload Image / GIF file or pick a preset below:</p>
-                    <label className="inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-all">
-                      <Upload className="w-3.5 h-3.5 text-rose-400" />
-                      <span>Upload Local File / GIF</span>
-                      <input 
-                        type="file" 
-                        accept="image/*,.gif" 
-                        onChange={handleFileUpload} 
-                        className="hidden" 
-                      />
-                    </label>
-                  </div>
-                </div>
-
-               
-              </div>
-
+            {/* STATUS TOGGLE */}
+            <div className="flex items-center justify-between p-3.5 bg-neutral-50 rounded-lg border border-neutral-200">
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Short description of products inside this category..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-medium focus:outline-none focus:border-rose-500 focus:bg-white"
-                />
+                <span className="text-xs font-bold text-black block">Status Pipeline</span>
+                <span className="text-[11px] text-neutral-400 font-normal block">Enable or disable visibility on storefront website</span>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="cat-active"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 text-rose-500 rounded border-slate-300 focus:ring-rose-500"
-                />
-                <label htmlFor="cat-active" className="text-slate-800 font-bold cursor-pointer">
-                  Active (Visible on website store navigation)
-                </label>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsActive(!isActive)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
+                  isActive ? 'bg-black text-white border-black' : 'bg-white text-neutral-600 border-neutral-200'
+                }`}
+              >
+                {isActive ? '✓ Active' : 'Inactive'}
+              </button>
+            </div>
 
-              <div className="flex justify-end pt-3 border-t border-slate-100 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-zinc-900 hover:bg-black text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md cursor-pointer"
-                >
-                  {editingCategory ? 'Update Category' : 'Save Category'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            {/* FORM ACTION BUTTONS */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSubView('all')}
+                className="text-xs border-neutral-200 text-neutral-700 hover:bg-neutral-100 font-medium"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                className="bg-black hover:bg-neutral-800 text-white font-semibold text-xs px-6 py-2 rounded-md shadow-2xs transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>{subView === 'edit' ? 'Update Category' : 'Save Category'}</span>
+              </Button>
+            </div>
+          </form>
+        </Card>
       )}
     </div>
   );
 };
+
+export default CategoriesPage;

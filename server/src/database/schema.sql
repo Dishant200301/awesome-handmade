@@ -93,19 +93,45 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 7. ATTRIBUTES (Color, Size, Material)
+-- 7. ATTRIBUTES MASTER (Product & Variant Attribute Templates)
 CREATE TABLE IF NOT EXISTS attributes (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    display_type VARCHAR(50) DEFAULT 'select' -- swatch, button, select
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    type VARCHAR(50) NOT NULL DEFAULT 'text', -- text, textarea, select, multi_select, number, boolean, color
+    usage VARCHAR(20) NOT NULL DEFAULT 'PRODUCT', -- PRODUCT, VARIANT
+    show_in_highlights BOOLEAN DEFAULT TRUE,
+    is_required BOOLEAN DEFAULT FALSE,
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 8. ATTRIBUTE VALUES (Black, White, S, M, L)
-CREATE TABLE IF NOT EXISTS attribute_values (
+-- 8. ATTRIBUTE OPTIONS (Values for Select / Multi Select / Swatch)
+CREATE TABLE IF NOT EXISTS attribute_options (
     id VARCHAR(36) PRIMARY KEY,
     attribute_id VARCHAR(36) NOT NULL,
-    value VARCHAR(100) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
     hex_code VARCHAR(10),
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (attribute_id) REFERENCES attributes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 8b. PRODUCT ATTRIBUTE VALUES (Product Specific Assigned Attributes)
+CREATE TABLE IF NOT EXISTS product_attribute_values (
+    id VARCHAR(36) PRIMARY KEY,
+    product_id VARCHAR(36) NOT NULL,
+    attribute_id VARCHAR(36) NOT NULL,
+    value TEXT NOT NULL,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (attribute_id) REFERENCES attributes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -287,6 +313,30 @@ CREATE TABLE IF NOT EXISTS size_guide_mappings (
     category_id VARCHAR(36),
     sub_category_id VARCHAR(36),
     FOREIGN KEY (size_guide_id) REFERENCES size_guides(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 24. CART ITEMS
+CREATE TABLE IF NOT EXISTS cart_items (
+    id VARCHAR(36) PRIMARY KEY,
+    customer_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    color_name VARCHAR(100),
+    size VARCHAR(50),
+    quantity INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 25. WISHLIST ITEMS
+CREATE TABLE IF NOT EXISTS wishlist_items (
+    id VARCHAR(36) PRIMARY KEY,
+    customer_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- =========================================================

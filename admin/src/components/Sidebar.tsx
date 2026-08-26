@@ -1,426 +1,401 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   ShoppingBag,
   PlusCircle,
-  Eye,
+  Edit,
   Tag,
-  Award,
   Sliders,
-  Layers,
-  Warehouse,
   ShoppingCart,
-  SlidersHorizontal,
-  Image as ImageIcon,
-  FileText,
-  BookOpen,
-  HelpCircle,
-  Settings,
+  Mail,
   ChevronDown,
-  ChevronRight
+  X,
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react';
+import { Tooltip } from './ui/tooltip';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onNavigate?: (tab: string, productId?: string) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (open: boolean) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onNavigate }) => {
-  // State for collapsible parent menus
-  const [isProductsExpanded, setIsProductsExpanded] = useState(true);
-  const [isContentExpanded, setIsContentExpanded] = useState(false);
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  setActiveTab,
+  onNavigate,
+  isCollapsed,
+  setIsCollapsed,
+  isMobileOpen,
+  setIsMobileOpen
+}) => {
+  // Dropdown expansion states
+  const [isProductsOpen, setIsProductsOpen] = useState(() => {
+    return ['all-products', 'add-product', 'edit-product', 'product-details', 'products'].includes(activeTab);
+  });
 
-  const isProductsChildActive = [
-    'all-products',
-    'add-product',
-    'product-details',
-    'categories',
-    'brands',
-    'attributes',
-    'filters',
-    'variants',
-    'inventory',
-    'products',
-    'product-management'
-  ].includes(activeTab);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(() => {
+    return ['categories', 'all-categories', 'add-category', 'brands'].includes(activeTab);
+  });
 
-  const isContentChildActive = [
-    'hero-slider',
-    'homepage-banners',
-    'content-pages',
-    'content-blog',
-    'content-faq'
-  ].includes(activeTab);
+  const [isAttributesOpen, setIsAttributesOpen] = useState(() => {
+    return ['attributes', 'all-attributes', 'add-attribute'].includes(activeTab);
+  });
 
-  return (
-    <aside className="w-64 bg-white border-r border-slate-200 h-screen sticky top-0 flex flex-col justify-between z-30 font-sans selection:bg-black selection:text-white shrink-0">
-      <div>
-        {/* LOGO HEADER */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img src={`${import.meta.env.BASE_URL}images/home/logo.png`.replace(/\/+/g, '/')} alt="Aaramly Logo" className="h-7 w-auto object-contain" />
-            <img src={`${import.meta.env.BASE_URL}images/home/aaramly_text_logo.png`.replace(/\/+/g, '/')} alt="AARAMLY" className="h-5 w-auto object-contain" />
-            <span className="text-[10px] font-extrabold tracking-wider uppercase text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 ml-1">
-              Admin
-            </span>
+  // Handle ESC key and body scroll locking for mobile drawer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileOpen, setIsMobileOpen]);
+
+  const handleItemClick = (tab: string, productId?: string) => {
+    if (onNavigate) {
+      onNavigate(tab, productId);
+    } else {
+      setActiveTab(tab);
+    }
+    if (isMobileOpen) {
+      setIsMobileOpen(false);
+    }
+  };
+
+  const renderNavContent = (isMobile = false) => {
+    const collapsed = isMobile ? false : isCollapsed;
+
+    return (
+      <div className="flex flex-col h-full bg-white border-r border-neutral-200 selection:bg-black selection:text-white font-sans">
+        {/* SIDEBAR HEADER & BRAND LOGO */}
+        <div className="h-14 px-3.5 border-b border-neutral-200 flex items-center justify-between shrink-0 bg-white">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <img
+              src={`${import.meta.env.BASE_URL}images/home/logo.png`.replace(/\/+/g, '/')}
+              alt="Aaramly Logo"
+              className="h-7 w-auto object-contain shrink-0"
+            />
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 overflow-hidden whitespace-nowrap"
+              >
+                <img
+                  src={`${import.meta.env.BASE_URL}images/home/aaramly_text_logo.png`.replace(/\/+/g, '/')}
+                  alt="AARAMLY"
+                  className="h-5 w-auto object-contain"
+                />
+              </motion.div>
+            )}
           </div>
+
+          {/* Desktop Collapse Toggle */}
+         
+          {/* Mobile Close Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(false)}
+            className="md:hidden p-1.5 rounded-md text-neutral-400 hover:text-black hover:bg-neutral-100 transition-colors cursor-pointer"
+            aria-label="Close sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* NAVIGATION TREE */}
-        <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)] text-xs font-semibold">
-          {/* 1. DASHBOARD */}
-          <button
-            type="button"
-            onClick={() => {
-              if (onNavigate) onNavigate('dashboard');
-              else setActiveTab('dashboard');
-            }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-zinc-900 text-white font-extrabold shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <LayoutDashboard className={`w-4 h-4 ${activeTab === 'dashboard' ? 'text-rose-400' : 'text-slate-400'}`} />
-            <span>Dashboard</span>
-          </button>
-
-          {/* 2. PRODUCTS PARENT MENU (EXPANDABLE) */}
-          <div className="space-y-1">
+        <div className="flex-1 overflow-y-auto px-2.5 py-4 space-y-1 text-xs font-sans scrollbar-thin">
+          {/* DASHBOARD */}
+          <Tooltip content="Dashboard" disabled={!collapsed}>
             <button
               type="button"
-              onClick={() => setIsProductsExpanded(!isProductsExpanded)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-                isProductsChildActive && !isProductsExpanded
-                  ? 'bg-slate-100 text-slate-900 font-extrabold'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 font-bold'
+              onClick={() => handleItemClick('dashboard')}
+              className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-black text-white shadow-xs font-semibold'
+                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="w-4 h-4 text-indigo-600" />
-                <span>Products</span>
+              <div className="flex items-center gap-2.5">
+                <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'dashboard' ? 'text-white' : 'text-neutral-500'}`} />
+                {!collapsed && <span className="truncate">Dashboard</span>}
               </div>
-              {isProductsExpanded ? (
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              )}
             </button>
+          </Tooltip>
 
-            {/* PRODUCTS SUBMENU ITEMS */}
-            {isProductsExpanded && (
-              <div className="pl-4 space-y-0.5 border-l-2 border-slate-100 ml-4 py-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onNavigate) onNavigate('all-products');
-                    else setActiveTab('all-products');
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'all-products' || activeTab === 'products'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <ShoppingBag className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>All Products</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onNavigate) onNavigate('add-product', undefined);
-                    else setActiveTab('add-product');
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'add-product'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Add Product</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('product-details')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'product-details'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Eye className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Product Details</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('categories')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'categories'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Tag className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Categories</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('brands')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'brands'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Award className="w-3.5 h-3.5 text-purple-600" />
-                  <span>Brands</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('attributes')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'attributes'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Sliders className="w-3.5 h-3.5 text-sky-500" />
-                  <span>Attributes</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('filters')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'filters'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#bf5c30]" />
-                  <span>Dynamic Filters</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('variants')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'variants'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Variants</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('inventory')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'inventory'
-                      ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Warehouse className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Inventory</span>
-                </button>
-
-                {/* EXPANDABLE SIZE GUIDES MENU */}
-                <div className="pt-1">
-                  <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50/60 rounded-md mb-1 flex items-center justify-between">
-                    <span>Size Guides</span>
-                    <span className="text-[9px] bg-indigo-200 text-indigo-900 px-1 rounded">Dynamic</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('all-size-guides')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      activeTab === 'all-size-guides' || activeTab === 'size-guides'
-                        ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>• All Size Guides</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('add-size-guide')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      activeTab === 'add-size-guide'
-                        ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>• Add Size Guide</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('size-guide-templates')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      activeTab === 'size-guide-templates'
-                        ? 'bg-indigo-50 text-indigo-700 font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>• Templates &amp; Matrix</span>
-                  </button>
+          {/* PRODUCTS DROPDOWN */}
+          <div className="space-y-0.5">
+            <Tooltip content="Products" disabled={!collapsed}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsed) {
+                    setIsCollapsed(false);
+                    setIsProductsOpen(true);
+                  } else {
+                    setIsProductsOpen(!isProductsOpen);
+                  }
+                }}
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  ['all-products', 'add-product', 'edit-product', 'product-details', 'products'].includes(activeTab) && !isProductsOpen
+                    ? 'bg-neutral-100 text-black font-semibold'
+                    : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-neutral-700 shrink-0" />
+                  {!collapsed && <span>Products</span>}
                 </div>
-              </div>
-            )}
-          </div>
+                {!collapsed && (
+                  <motion.div animate={{ rotate: isProductsOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </motion.div>
+                )}
+              </button>
+            </Tooltip>
 
-          {/* 3. ORDERS */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('orders')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'orders'
-                ? 'bg-zinc-900 text-white font-extrabold shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <ShoppingCart className={`w-4 h-4 ${activeTab === 'orders' ? 'text-emerald-400' : 'text-slate-400'}`} />
-              <span>Orders</span>
-            </div>
-            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-              New
-            </span>
-          </button>
+            {/* PRODUCTS SUBMENU */}
+            <AnimatePresence initial={false}>
+              {isProductsOpen && !collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden pl-2 ml-4 border-l border-neutral-200 space-y-0.5 pt-1"
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('all-products')}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      activeTab === 'all-products' || activeTab === 'products'
+                        ? 'bg-black text-white font-semibold'
+                        : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>All Products</span>
+                  </button>
 
-          {/* 4. CONTENT PARENT MENU (EXPANDABLE) */}
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={() => setIsContentExpanded(!isContentExpanded)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-                isContentChildActive && !isContentExpanded
-                  ? 'bg-slate-100 text-slate-900 font-extrabold'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 font-bold'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <ImageIcon className="w-4 h-4 text-purple-600" />
-                <span>Content</span>
-              </div>
-              {isContentExpanded ? (
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('add-product')}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      activeTab === 'add-product'
+                        ? 'bg-black text-white font-semibold'
+                        : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    }`}
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>Add Product</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('edit-product')}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      activeTab === 'edit-product' || activeTab === 'product-details'
+                        ? 'bg-black text-white font-semibold'
+                        : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    }`}
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit Product</span>
+                  </button>
+                </motion.div>
               )}
-            </button>
-
-            {/* CONTENT SUBMENU ITEMS */}
-            {isContentExpanded && (
-              <div className="pl-4 space-y-0.5 border-l-2 border-slate-100 ml-4 py-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('hero-slider')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'hero-slider'
-                      ? 'bg-purple-50 text-purple-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-purple-500" />
-                  <span>Hero Slider</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('homepage-banners')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'homepage-banners'
-                      ? 'bg-purple-50 text-purple-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <ImageIcon className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Homepage Banners</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('content-pages')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'content-pages'
-                      ? 'bg-purple-50 text-purple-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Pages</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('content-blog')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'content-blog'
-                      ? 'bg-purple-50 text-purple-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Blog</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('content-faq')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    activeTab === 'content-faq'
-                      ? 'bg-purple-50 text-purple-700 font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>FAQ</span>
-                </button>
-              </div>
-            )}
+            </AnimatePresence>
           </div>
 
-          {/* 5. SETTINGS */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'settings'
-                ? 'bg-zinc-900 text-white font-extrabold shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-amber-400' : 'text-slate-400'}`} />
-            <span>Settings</span>
-          </button>
-        </nav>
-      </div>
+          {/* CATEGORIES DROPDOWN */}
+          <div className="space-y-0.5">
+            <Tooltip content="Categories" disabled={!collapsed}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsed) {
+                    setIsCollapsed(false);
+                    setIsCategoriesOpen(true);
+                  } else {
+                    setIsCategoriesOpen(!isCategoriesOpen);
+                  }
+                }}
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  ['categories', 'all-categories', 'add-category', 'brands'].includes(activeTab) && !isCategoriesOpen
+                    ? 'bg-neutral-100 text-black font-semibold'
+                    : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Tag className="w-4 h-4 text-neutral-700 shrink-0" />
+                  {!collapsed && <span>Categories</span>}
+                </div>
+                {!collapsed && (
+                  <motion.div animate={{ rotate: isCategoriesOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </motion.div>
+                )}
+              </button>
+            </Tooltip>
 
-      {/* FOOTER STATUS */}
-      <div className="p-3 border-t border-slate-200 bg-slate-50/50">
-        <div className="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <div>
-              <p className="text-[11px] font-extrabold text-slate-900">Database API Sync</p>
-              <p className="text-[10px] text-slate-500 font-semibold">Express MySQL Active</p>
-            </div>
+            {/* CATEGORIES SUBMENU */}
+            <AnimatePresence initial={false}>
+              {isCategoriesOpen && !collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden pl-2 ml-4 border-l border-neutral-200 space-y-0.5 pt-1"
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('all-categories')}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      activeTab === 'categories' || activeTab === 'all-categories'
+                        ? 'bg-black text-white font-semibold'
+                        : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    }`}
+                  >
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>All Categories &amp; Subcategories</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('add-category')}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      activeTab === 'add-category'
+                        ? 'bg-black text-white font-semibold'
+                        : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    }`}
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>Add Category &amp; Subcategory</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ATTRIBUTES DIRECT MENU */}
+          <div className="space-y-0.5">
+            <Tooltip content="Attributes" disabled={!collapsed}>
+              <button
+                type="button"
+                onClick={() => handleItemClick('attributes')}
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  ['attributes', 'all-attributes', 'add-attribute'].includes(activeTab)
+                    ? 'bg-black text-white font-semibold shadow-xs'
+                    : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sliders className={`w-4 h-4 shrink-0 ${['attributes', 'all-attributes', 'add-attribute'].includes(activeTab) ? 'text-white' : 'text-neutral-700'}`} />
+                  {!collapsed && <span>Attributes</span>}
+                </div>
+              </button>
+            </Tooltip>
+          </div>
+
+          {/* ORDERS */}
+          {/* <div className="space-y-0.5">
+            <Tooltip content="Orders" disabled={!collapsed}>
+              <button
+                type="button"
+                onClick={() => handleItemClick('orders')}
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  activeTab === 'orders' || activeTab === 'all-orders'
+                    ? 'bg-black text-white font-semibold shadow-xs'
+                    : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShoppingCart className={`w-4 h-4 shrink-0 ${activeTab === 'orders' || activeTab === 'all-orders' ? 'text-white' : 'text-neutral-700'}`} />
+                  {!collapsed && <span>Orders</span>}
+                </div>
+              </button>
+            </Tooltip>
+          </div> */}
+
+          {/* INQUIRIES MENU */}
+          <div className="space-y-0.5">
+            <Tooltip content="Inquiries" disabled={!collapsed}>
+              <button
+                type="button"
+                onClick={() => handleItemClick('contact-messages')}
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-2.5'} py-2 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  activeTab === 'contact-messages'
+                    ? 'bg-black text-white font-semibold shadow-xs'
+                    : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Mail className={`w-4 h-4 shrink-0 ${activeTab === 'contact-messages' ? 'text-white' : 'text-neutral-700'}`} />
+                  {!collapsed && <span>Inquiries</span>}
+                </div>
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
-    </aside>
+    );
+  };
+
+  return (
+    <>
+      {/* DESKTOP STICKY SIDEBAR (Sleek 60px collapsed width) */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isCollapsed ? 60 : 280 }}
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        className="hidden md:block h-screen sticky top-0 z-30 shrink-0 select-none overflow-hidden"
+      >
+        {renderNavContent(false)}
+      </motion.aside>
+
+      {/* MOBILE OFF-CANVAS DRAWER (Always full 280px expanded layout with text labels) */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileOpen(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[85vw] shadow-2xl z-50"
+            >
+              {renderNavContent(true)}
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getGlobalVariantsList, MOCK_PRODUCTS } from '../data/mockAdminData';
 import { Variant } from '../types/admin';
+import { Select } from '../components/ui/select';
 
 interface ProductVariantsPageProps {
   onNavigate: (tab: string, productId?: string) => void;
@@ -30,6 +31,9 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
 
   // Edit Modal State
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+  const [editTitle, setEditTitle] = useState<string>('');
+  const [editProductInfo, setEditProductInfo] = useState<string>('');
+  const [editImage, setEditImage] = useState<string>('');
   const [editPrice, setEditPrice] = useState<number>(0);
   const [editOriginalPrice, setEditOriginalPrice] = useState<number>(0);
   const [editCostPrice, setEditCostPrice] = useState<number>(0);
@@ -69,8 +73,8 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
 
   // Unique lists for filters
   const uniqueParents = MOCK_PRODUCTS.filter((p) => p.type === 'Variable');
-  const uniqueColors = Array.from(new Set(variantsList.map((v) => v.color).filter(Boolean)));
-  const uniqueSizes = Array.from(new Set(variantsList.map((v) => v.size).filter(Boolean)));
+  const uniqueColors = Array.from(new Set(variantsList.map((v) => v.color).filter((c): c is string => Boolean(c))));
+  const uniqueSizes = Array.from(new Set(variantsList.map((v) => v.size).filter((s): s is string => Boolean(s))));
 
   // Save Inline Edit
   const handleSaveVariantEdit = (e: React.FormEvent) => {
@@ -79,6 +83,9 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
 
     const updatedVariant: Variant = {
       ...editingVariant,
+      title: editTitle.trim() || editingVariant.title,
+      productInfo: editProductInfo.trim(),
+      image: editImage.trim() || editingVariant.image,
       price: editPrice,
       originalPrice: editOriginalPrice,
       costPrice: editCostPrice,
@@ -148,61 +155,57 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
           />
         </div>
 
-        {/* Filter Badges */}
+        {/* Filter Dropdowns */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Parent Filter */}
-          <select
-            value={parentFilter}
-            onChange={(e) => setParentFilter(e.target.value)}
-            className="bg-slate-50 text-xs font-bold text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 cursor-pointer"
-          >
-            <option value="ALL">All Parent Products</option>
-            {uniqueParents.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-44">
+            <Select
+              value={parentFilter}
+              onValueChange={setParentFilter}
+              options={[
+                { value: 'ALL', label: 'All Parent Products' },
+                ...uniqueParents.map((p) => ({ value: p.id, label: p.name }))
+              ]}
+            />
+          </div>
 
           {/* Color Filter */}
-          <select
-            value={colorFilter}
-            onChange={(e) => setColorFilter(e.target.value)}
-            className="bg-slate-50 text-xs font-bold text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 cursor-pointer"
-          >
-            <option value="ALL">All Colors</option>
-            {uniqueColors.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className="w-36">
+            <Select
+              value={colorFilter}
+              onValueChange={setColorFilter}
+              options={[
+                { value: 'ALL', label: 'All Colors' },
+                ...uniqueColors.map((c) => ({ value: c, label: c }))
+              ]}
+            />
+          </div>
 
           {/* Size Filter */}
-          <select
-            value={sizeFilter}
-            onChange={(e) => setSizeFilter(e.target.value)}
-            className="bg-slate-50 text-xs font-bold text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 cursor-pointer"
-          >
-            <option value="ALL">All Sizes</option>
-            {uniqueSizes.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <div className="w-32">
+            <Select
+              value={sizeFilter}
+              onValueChange={setSizeFilter}
+              options={[
+                { value: 'ALL', label: 'All Sizes' },
+                ...uniqueSizes.map((s) => ({ value: s, label: s }))
+              ]}
+            />
+          </div>
 
           {/* Stock Filter */}
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="bg-slate-50 text-xs font-bold text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 cursor-pointer"
-          >
-            <option value="ALL">All Stock Levels</option>
-            <option value="IN_STOCK">In Stock (&gt;10)</option>
-            <option value="LOW_STOCK">Low Stock (1-10)</option>
-            <option value="OUT_OF_STOCK">Out of Stock (0)</option>
-          </select>
+          <div className="w-36">
+            <Select
+              value={stockFilter}
+              onValueChange={setStockFilter}
+              options={[
+                { value: 'ALL', label: 'All Stock Levels' },
+                { value: 'IN_STOCK', label: 'In Stock (>10)' },
+                { value: 'LOW_STOCK', label: 'Low Stock (1-10)' },
+                { value: 'OUT_OF_STOCK', label: 'Out of Stock (0)' }
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -315,6 +318,9 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
                       <button
                         onClick={() => {
                           setEditingVariant(variant);
+                          setEditTitle(variant.title || `${variant.parentProductName || ''} ${variant.color || ''} ${variant.size || ''}`.trim());
+                          setEditProductInfo(variant.productInfo || '');
+                          setEditImage(variant.image || '');
                           setEditPrice(variant.price);
                           setEditOriginalPrice(variant.originalPrice);
                           setEditCostPrice(variant.costPrice || 0);
@@ -365,6 +371,32 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
             </div>
 
             <form onSubmit={handleSaveVariantEdit} className="space-y-4 text-xs">
+              <div>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider block mb-1">
+                  Variant Specific Title *
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="Custom variant title..."
+                  className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-slate-900"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider block mb-1">
+                  Variant Image URL
+                </label>
+                <input
+                  type="text"
+                  value={editImage}
+                  onChange={(e) => setEditImage(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-medium text-slate-900"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="font-extrabold text-slate-800 uppercase tracking-wider block mb-1">
@@ -450,16 +482,29 @@ export const ProductVariantsPage: React.FC<ProductVariantsPageProps> = ({ onNavi
                   <label className="font-extrabold text-slate-800 uppercase tracking-wider block mb-1">
                     Variant Status *
                   </label>
-                  <select
+                  <Select
                     value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value as any)}
-                    className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-slate-800 cursor-pointer"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Out of Stock">Out of Stock</option>
-                  </select>
+                    onValueChange={(val) => setEditStatus(val as any)}
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' },
+                      { value: 'Out of Stock', label: 'Out of Stock' }
+                    ]}
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider block mb-1">
+                  Variant Specific Product Info / Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={editProductInfo}
+                  onChange={(e) => setEditProductInfo(e.target.value)}
+                  placeholder="Custom product description for this variant..."
+                  className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-black"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

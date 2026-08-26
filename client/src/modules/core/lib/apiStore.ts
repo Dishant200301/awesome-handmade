@@ -150,7 +150,7 @@ if (typeof window !== "undefined") {
           parsed.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
         }
         if (Array.isArray(parsed.products)) {
-          liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)));
+          liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
           notifyListeners();
         }
       }
@@ -166,7 +166,7 @@ if (typeof window !== "undefined") {
         parsed.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
       }
       if (Array.isArray(parsed.products)) {
-        liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)));
+        liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
       }
     }
   } catch (e) {}

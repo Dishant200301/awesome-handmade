@@ -32,23 +32,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
     setSelectedIndex(0);
   }, [images]);
 
-  // Infinite vertical thumbnail auto-scroll (Bottom -> Top loop)
-  useEffect(() => {
-    if (isHoverPaused || !thumbScrollRef.current) return;
-
-    const interval = setInterval(() => {
-      if (thumbScrollRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = thumbScrollRef.current;
-        if (scrollTop + clientHeight >= scrollHeight - 5) {
-          thumbScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
-        } else {
-          thumbScrollRef.current.scrollBy({ top: 90, behavior: "smooth" });
-        }
-      }
-    }, 2800);
-
-    return () => clearInterval(interval);
-  }, [isHoverPaused]);
+  // Infinite vertical thumbnail auto-scroll disabled per user request
 
   // Handle keyboard navigation for main preview and lightbox
   useEffect(() => {
@@ -98,7 +82,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
     <div className="w-full flex flex-col lg:flex-row gap-4 select-none">
       {/* DESKTOP VERTICAL THUMBNAIL GALLERY (Left Column matching reference image) */}
       <div
-        className="hidden lg:flex flex-col items-center gap-1.5 relative w-20 shrink-0 select-none"
+        className="hidden lg:flex flex-col items-center gap-1.5 relative w-20 shrink-0 select-none max-h-[660px]"
         onMouseEnter={() => setIsHoverPaused(true)}
         onMouseLeave={() => setIsHoverPaused(false)}
       >
@@ -106,10 +90,10 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
         <button
           onClick={() => {
             if (thumbScrollRef.current) {
-              thumbScrollRef.current.scrollBy({ top: -100, behavior: "smooth" });
+              thumbScrollRef.current.scrollBy({ top: -120, behavior: "smooth" });
             }
           }}
-          className="w-16 h-7 rounded-md bg-zinc-200/80 hover:bg-zinc-800 hover:text-white flex items-center justify-center text-zinc-700 transition-colors shadow-2xs z-10 cursor-pointer"
+          className="w-16 h-7 rounded-md bg-zinc-200/80 hover:bg-zinc-800 hover:text-white flex items-center justify-center text-zinc-700 transition-colors shadow-2xs z-10 cursor-pointer shrink-0"
           aria-label="Scroll thumbnails up"
         >
           <FiChevronUp size={18} />
@@ -118,7 +102,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
         {/* Thumbnails Vertical Column */}
         <div
           ref={thumbScrollRef}
-          className="w-full max-h-[520px] overflow-y-auto scrollbar-none flex flex-col gap-2.5 py-0.5 px-0.5 transition-all"
+          className="w-full flex-1 max-h-[660px] overflow-y-auto scrollbar-none flex flex-col gap-2.5 py-0.5 px-0.5 transition-all"
           style={{ scrollBehavior: "smooth" }}
         >
           {images.map((img, idx) => {

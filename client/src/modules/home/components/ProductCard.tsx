@@ -1,8 +1,11 @@
 import React from "react";
-import { FiHeart, FiShoppingBag } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { FiHeart, FiShoppingBag, FiEye } from "react-icons/fi";
+import { Plus, Minus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useWishlist } from "@/modules/product/context/WishlistContext";
 import { useCart } from "@/modules/product/context/CartContext";
+import { useQuickView } from "@/modules/product/context/QuickViewContext";
+import ProductHoverSlider from "@/modules/product/components/ProductHoverSlider";
 
 export type Product = {
   id: string | number;
@@ -21,20 +24,21 @@ export type Product = {
   defaultSku?: string;
 };
 
-import { useQuickView } from "@/modules/product/context/QuickViewContext";
-
 export default function ProductCard({ p }: { p: any }) {
+  const navigate = useNavigate();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { cartItems, addToCart, updateQuantity } = useCart();
-  const { openQuickView, isMobileOrTablet } = useQuickView();
+  const { openQuickView } = useQuickView();
 
   const cartItem = cartItems.find((item) => String(item.productId) === String(p.id));
   const itemQuantity = cartItem ? cartItem.quantity : 0;
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (isMobileOrTablet || window.innerWidth < 1024) {
+  const handleImageClick = (e: React.MouseEvent) => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
       e.preventDefault();
       openQuickView(p.id);
+    } else {
+      navigate(`/product/${p.id}`);
     }
   };
 
@@ -76,50 +80,41 @@ export default function ProductCard({ p }: { p: any }) {
   };
 
   return (
-    <Link to={`/product/${p.id}`} onClick={handleCardClick} className="group flex flex-col bg-transparent cursor-pointer select-none">
-      {/* Image Wrapper */}
-      <div className="relative aspect-[3/3.8] w-full overflow-hidden rounded-[18px] bg-[#f5f2ee]">
-        {/* Main Image */}
-        <img
-          src={mainImg}
+    <div className="group flex flex-col bg-transparent cursor-pointer select-none">
+      {/* Image Wrapper with Smooth Right-to-Left Gallery Auto-Slider on Hover */}
+      <div onClick={handleImageClick} className="cursor-pointer">
+        <ProductHoverSlider
+          product={p}
           alt={p.name}
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500 group-hover:opacity-0"
-        />
-
-        {/* Hover Alternative Image */}
-        <img
-          src={hoverImg}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        />
-
-        {/* Wishlist Heart Icon */}
-        <button
-          type="button"
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          className={`absolute right-3.5 top-3.5 z-10 grid h-8.5 w-8.5 place-items-center rounded-full backdrop-blur-xs transition-all duration-300 shadow-xs cursor-pointer ${
-            wishlisted
-              ? "bg-rose-500 text-white shadow-rose-500/20"
-              : "bg-white/90 text-zinc-800 hover:bg-black hover:text-white"
-          }`}
-          onClick={handleWishlistClick}
+          className="relative aspect-[3/3.8] w-full overflow-hidden rounded-[18px] bg-[#f5f2ee]"
         >
-          <FiHeart size={14} className={`stroke-[2.5] ${wishlisted ? "fill-current" : ""}`} />
-        </button>
+          {/* Wishlist Heart Icon */}
+          <button
+            type="button"
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            className={`absolute right-3.5 top-3.5 z-20 grid h-8.5 w-8.5 place-items-center rounded-full backdrop-blur-xs transition-all duration-300 shadow-xs cursor-pointer ${
+              wishlisted
+                ? "bg-rose-500 text-white shadow-rose-500/20"
+                : "bg-white/90 text-zinc-800 hover:bg-black hover:text-white"
+            }`}
+            onClick={handleWishlistClick}
+          >
+            <FiHeart size={14} className={`stroke-[2.5] ${wishlisted ? "fill-current" : ""}`} />
+          </button>
+        </ProductHoverSlider>
       </div>
 
       {/* Info Content */}
       <div className="flex flex-1 flex-col pt-3 px-0.5">
-        {/* SKU Number */}
-        <p className="text-[11px] font-bold text-zinc-400 tracking-wider uppercase">{sku}</p>
+        <Link to={`/product/${p.id}`} className="hover:text-[#80a17d] transition-colors">
+          {/* SKU Number */}
+          <p className="text-[11px] font-bold text-zinc-400 tracking-wider uppercase">{sku}</p>
 
-        {/* Product Title */}
-        <h3 className="mt-1 text-sm sm:text-base font-bold text-zinc-900 line-clamp-2 leading-snug">
-          {p.name}
-        </h3>
+          {/* Product Title */}
+          <h3 className="mt-1 text-sm sm:text-base font-bold text-zinc-900 line-clamp-2 leading-snug">
+            {p.name}
+          </h3>
+        </Link>
 
         {/* Price & Add To Bag Button / Quantity Stepper */}
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -129,7 +124,7 @@ export default function ProductCard({ p }: { p: any }) {
 
           {itemQuantity > 0 ? (
             <div
-              className="inline-flex items-center justify-between bg-[#15803d] text-white px-3 py-2 rounded-full shadow-md gap-2.5 font-extrabold text-xs"
+              className="inline-flex items-center justify-between bg-[#1c1c1e] text-white px-3 py-2 rounded-full shadow-md gap-2.5 font-extrabold text-xs border border-zinc-800"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -142,10 +137,10 @@ export default function ProductCard({ p }: { p: any }) {
                   e.stopPropagation();
                   if (cartItem) updateQuantity(cartItem.id, cartItem.quantity - 1);
                 }}
-                className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors font-black text-sm cursor-pointer active:scale-90"
+                className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors cursor-pointer active:scale-90"
                 aria-label="Decrease quantity"
               >
-                −
+                <Minus className="w-3 h-3 stroke-[2.5]" />
               </button>
               <span className="text-xs font-black px-1 min-w-[14px] text-center">{itemQuantity}</span>
               <button
@@ -155,10 +150,10 @@ export default function ProductCard({ p }: { p: any }) {
                   e.stopPropagation();
                   if (cartItem) updateQuantity(cartItem.id, cartItem.quantity + 1);
                 }}
-                className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors font-black text-sm cursor-pointer active:scale-90"
+                className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors cursor-pointer active:scale-90"
                 aria-label="Increase quantity"
               >
-                +
+                <Plus className="w-3 h-3 stroke-[2.5]" />
               </button>
             </div>
           ) : (
@@ -172,6 +167,6 @@ export default function ProductCard({ p }: { p: any }) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

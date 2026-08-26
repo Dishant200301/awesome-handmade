@@ -213,38 +213,7 @@ export const broadcastAdminProductChange = (updatedProduct?: Product) => {
   }
 };
 
-export const MOCK_CONTACT_MESSAGES: ContactMessage[] = [
-  {
-    id: 'msg-101',
-    name: 'Meera Kapoor',
-    email: 'meera.k@example.com',
-    phone: '+91 98234 11223',
-    subject: 'Sizing Query for Seamless Bralettes',
-    message: 'Hi AARAMLY team! I normally wear 34C. Should I go with size M or L for the seamless padded bralette for the best contour fit?',
-    date: '2026-07-31 09:30',
-    status: 'New'
-  },
-  {
-    id: 'msg-102',
-    name: 'Rohan Mehta',
-    email: 'rohan.m@example.com',
-    phone: '+91 97112 88990',
-    subject: 'Bulk Corporate Gifting Inquiry',
-    message: 'Hello, we are looking to place a bulk order of 50 reusable silicone cover gift sets for an upcoming wellness event in Mumbai.',
-    date: '2026-07-30 16:45',
-    status: 'Read'
-  },
-  {
-    id: 'msg-103',
-    name: 'Shweta Roy',
-    email: 'shweta.roy@example.com',
-    phone: '+91 99001 55443',
-    subject: 'Exchange Request #AAR-98214',
-    message: 'Received my order today! Love the fabric quality, but need to exchange size S for size M in White. Please assist.',
-    date: '2026-07-29 11:15',
-    status: 'Replied'
-  }
-];
+export const MOCK_CONTACT_MESSAGES: ContactMessage[] = [];
 
 if (typeof window !== 'undefined') {
   try {
@@ -313,3 +282,29 @@ export const MOCK_ATTRIBUTES: Attribute[] = [
 export const MOCK_CUSTOMERS: Customer[] = [
   { id: 'cust-1', name: 'Priya Sharma', email: 'priya.sharma@example.com', phone: '+91 98765 43210', ordersCount: 4, totalSpent: 4890, status: 'Active', joinedDate: '2026-01-15' }
 ];
+
+export const getAdminCategoriesAndSubcategories = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('aaramly_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const mainCats = parsed.filter((c: any) => c.type !== 'sub' && (c.isActive ?? true));
+          const subCats = parsed.filter((c: any) => c.type === 'sub' && (c.isActive ?? true));
+          return { mainCategories: mainCats, subcategories: subCats };
+        }
+      }
+    } catch (e) {}
+  }
+  const mainCats = MOCK_CATEGORIES.map((c) => ({ ...c, type: 'parent' }));
+  const subCats = MOCK_SUBCATEGORIES.map((s) => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+    type: 'sub',
+    parentId: s.categoryId,
+    parentName: s.categoryName
+  }));
+  return { mainCategories: mainCats, subcategories: subCats };
+};

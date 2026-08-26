@@ -5,6 +5,7 @@ import { DescriptionCard } from "../types/product";
 
 interface ProductDescriptionSectionProps {
   cards: DescriptionCard[];
+  selectedColor?: string;
   idealForPills: string[];
   fullDescription?: string;
   shortDescription?: string;
@@ -12,12 +13,21 @@ interface ProductDescriptionSectionProps {
 
 export const ProductDescriptionSection: React.FC<ProductDescriptionSectionProps> = ({
   cards,
+  selectedColor,
   idealForPills,
   fullDescription,
   shortDescription,
 }) => {
   const [activePill, setActivePill] = useState("Everyday Wear");
   const descriptionText = fullDescription || shortDescription || "Super Combed Cotton Elastane Stretch Fabric | Fabric Composition : Cotton and Elastane | Full Coverage Bra with Contoured Shaper Panels | Wirefree and Non-Padded | Broad Fabric Strap at Front for Added Comfort | Contoured Shaper Panel for Extra Support | Label Free for All Day Comfort | Based on the Size Band Of the Bra, the Number Of Hook and Eye Varies for Better Support";
+
+  const displayCards = (cards || []).filter((card) => {
+    if (!card.colorName || card.colorName === 'All' || card.colorName.toLowerCase() === 'all' || card.colorName.toLowerCase() === 'general') {
+      return true;
+    }
+    if (!selectedColor) return true;
+    return card.colorName.toLowerCase() === selectedColor.toLowerCase();
+  });
 
   return (
     <section id="product-description" className="w-full py-12 px-4 md:px-8 max-w-[1400px] mx-auto space-y-8 scroll-mt-24 font-sans">
@@ -31,7 +41,7 @@ export const ProductDescriptionSection: React.FC<ProductDescriptionSectionProps>
 
       {/* 4 Feature Image Cards Grid: Horizontal Scroll Row on Mobile, Grid on Tablet & Laptop */}
       <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible">
-        {cards.map((card, idx) => (
+        {displayCards.map((card, idx) => (
           <motion.div
             key={card.id}
             initial={{ opacity: 0, y: 20 }}

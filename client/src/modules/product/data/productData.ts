@@ -267,17 +267,6 @@ export const SAMPLE_PRODUCT: ProductDetails = {
   relatedProducts: [],
 };
 
-export const CLIENT_CONTACT_MESSAGES: any[] = [
-  {
-    id: 'msg-101',
-    name: 'Meera Kapoor',
-    email: 'meera.k@example.com',
-    phone: '+91 98234 11223',
-    subject: 'Sizing Query for Seamless Bralettes',
-    message: 'Hi AARAMLY team! I normally wear 34C. Should I go with size M or L for the seamless padded bralette for the best contour fit?',
-    date: '2026-07-31 09:30',
-    status: 'New'
-  }
-];
+export const CLIENT_CONTACT_MESSAGES: any[] = [];
 
 export const CLIENT_SHOP_PRODUCTS: any[] = [];

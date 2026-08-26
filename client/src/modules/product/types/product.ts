@@ -79,6 +79,18 @@ export interface SizeGuide {
   rows: SizeGuideRow[];
 }
 
+export interface ProductAttributeAssignment {
+  id?: string;
+  productId?: string;
+  attributeId: string;
+  attributeName: string;
+  attributeSlug: string;
+  type: string;
+  value: any;
+  showInHighlights: boolean;
+  displayOrder: number;
+}
+
 export interface FeatureHighlight {
   id?: string;
   label: string;
@@ -94,6 +106,7 @@ export interface DescriptionCard {
   description?: string;
   image: string;
   sortOrder?: number;
+  colorName?: string; // Optional color assignment (e.g., "Black", "Beige", "All")
 }
 
 export interface WashingInstruction {
@@ -137,6 +150,27 @@ export interface RelatedProduct {
   isWishlisted?: boolean;
 }
 
+export interface SizeChartColumn {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export interface SizeChartRow {
+  id: string;
+  size: string;
+  sortOrder: number;
+  measurements: Record<string, string>;
+}
+
+export interface ProductSizeChartConfig {
+  enabled: boolean;
+  title: string;
+  unit: string;
+  columns: SizeChartColumn[];
+  rows: SizeChartRow[];
+}
+
 export interface ProductDetails {
   id: string;
   type?: 'Simple' | 'Variable';
@@ -154,8 +188,12 @@ export interface ProductDetails {
   variations: ProductColorVariation[];
   availableSizes: string[];
   sizeChart: SizeChartEntry[];
+  sizeChartConfig?: ProductSizeChartConfig;
   sizeGuide?: SizeGuide;
   highlights: FeatureHighlight[];
+  productAttributes?: ProductAttributeAssignment[];
+  productType?: 'simple' | 'variant';
+  colorMediaConfigs?: { colorValueId?: string; colorName: string; colorCode?: string; mainImage: string; gallery: string[] }[];
   extendedDetails: {
     description: string;
     specifications: Record<string, string>;
@@ -251,4 +289,7 @@ export interface ClientContactMessage {
   date: string;
   status: 'New' | 'Read' | 'Replied';
 }
+
+export type Product = ProductDetails | ClientShopProduct | Record<string, any>;
+
 

@@ -9,13 +9,14 @@ import {
   FiHeart,
   FiShare2,
   FiZap,
-  FiPlus,
-  FiMinus,
 } from "react-icons/fi";
+import { Plus, Minus } from "lucide-react";
 import { ProductColorVariation, ProductDetails } from "../types/product";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 import { ShareModal } from "./ShareModal";
 import { DynamicLucideIcon } from "../../core/components/DynamicLucideIcon";
+
 
 interface ProductInfoProps {
   product: ProductDetails;
@@ -142,19 +143,33 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
   onOpenSizeChart,
 }) => {
   const { cartItems, addToCart, updateQuantity, setIsCartOpen } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
   const [isAddedAnimation, setIsAddedAnimation] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const wishlisted = isWishlisted(product.id);
 
-  // Check if current variant is already in cart
-  const cartItemId = `${product.id}-${activeVariation.colorName}-${selectedSize}`;
-  const cartItem = cartItems.find((i) => i.id === cartItemId);
-  const inCartQuantity = cartItem ? cartItem.quantity : 0;
+
+  // Check if current variant (selected color & size) is in cart
+  const productCartItems = cartItems.filter((i) => String(i.productId) === String(product.id));
+  const exactVariantItem = productCartItems.find(
+    (i) =>
+      (i.colorName || "").toLowerCase() === (activeVariation.colorName || "").toLowerCase() &&
+      (i.size || "").toLowerCase() === selectedSize.toLowerCase()
+  );
+  const activeCartItem = exactVariantItem;
+  const cartItemId = activeCartItem ? activeCartItem.id : `${product.id}-${activeVariation.colorName}-${selectedSize}`;
+  const inCartQuantity = exactVariantItem ? exactVariantItem.quantity : 0;
+
 
   const handleAddToCart = () => {
+    let formattedTitle = product.name;
+    if (activeVariation?.colorName && activeVariation.colorName !== "Default" && !formattedTitle.toLowerCase().includes(activeVariation.colorName.toLowerCase())) {
+      formattedTitle = `${product.name} - ${activeVariation.colorName}`;
+    }
+
     addToCart({
       productId: product.id,
-      productName: product.name,
+      productName: formattedTitle,
       brand: product.brand,
       colorName: activeVariation.colorName,
       colorHex: activeVariation.colorHex,
@@ -255,21 +270,25 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-montserrat font-600 tracking-[0.25em] text-[#798A7A]">
-            Brand: <strong className="text-zinc-900 font-bold">{product.brand}</strong>
+            {/* Brand: <strong className="text-zinc-900 font-bold">{product.brand}</strong> */}
           </span>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              className={`p-2.5 rounded-full border transition-all cursor-pointer ${isWishlisted
-                  ? "border-[#80a17d] bg-[#80a17d]/10 text-[#80a17d]"
-                  : "border-zinc-200 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900 bg-white shadow-2xs"
-                }`}
-              title="Add to Wishlist"
+              type="button"
+              onClick={() => toggleWishlist(product.id)}
+              className={`p-2.5 rounded-full transition-all duration-300 cursor-pointer shadow-xs ${
+                wishlisted
+                  ? "bg-rose-500 text-white border border-rose-500 shadow-rose-500/20"
+                  : "bg-white text-zinc-800 border border-zinc-200 hover:bg-black hover:text-white hover:border-black"
+              }`}
+              title={wishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
               aria-label="Wishlist"
             >
-              <FiHeart size={16} className={isWishlisted ? "fill-[#80a17d]" : ""} />
+              <FiHeart size={16} className={`stroke-[2.5] ${wishlisted ? "fill-current" : ""}`} />
             </button>
+
+
             <button
               onClick={() => setIsShareModalOpen(true)}
               className="p-2.5 rounded-full border border-zinc-200 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900 bg-white transition-all shadow-2xs cursor-pointer"
@@ -363,7 +382,8 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
                 {uniqueColorVariations.map((v) => {
                   const isActive = v.colorName.toLowerCase() === activeVariation.colorName.toLowerCase();
                   const colorObj = (product.colors || []).find((c) => c.colorName.toLowerCase() === v.colorName.toLowerCase());
-                  const displayImg = (v as any).displayImage || colorObj?.displayImage || v.thumbnail || (v.images && v.images[0] ? v.images[0].url : "");
+                  const colorMedia = (product.colorMediaConfigs || []).find((cm: any) => cm.colorName.toLowerCase() === v.colorName.toLowerCase());
+                  const displayImg = colorMedia?.mainImage || (v as any).displayImage || colorObj?.displayImage || v.thumbnail || (v.images && v.images[0] ? v.images[0].url : "");
 
                   return (
                     <motion.button
@@ -465,21 +485,42 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
           <span>Top Highlights</span>
         </div>
 
-        {/* Highlight key-values list */}
+        {/* Dynamic Highlight key-values list */}
         <div className="space-y-2.5 text-xs">
-          {(product.highlights || []).slice(0, 5).map((h, idx) => (
-            <div key={idx} className="flex items-center gap-3">
-              <DynamicLucideIcon name={h.iconName || (h as any).icon || "Sparkles"} className="w-4 h-4 text-zinc-700 shrink-0" />
-              <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-28 shrink-0">{h.label || h.title}:</span>
-              <span className="text-zinc-900 font-semibold">{h.value}</span>
-            </div>
-          ))}
+          {(() => {
+            const hasProductAttributes = product.productAttributes && Array.isArray(product.productAttributes) && product.productAttributes.length > 0;
+            
+            if (hasProductAttributes) {
+              const activeHighlights = product.productAttributes!
+                .filter((pa) => pa.showInHighlights && pa.value !== undefined && pa.value !== null && pa.value !== '')
+                .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+              return activeHighlights.map((pa, idx) => {
+                const formattedVal = Array.isArray(pa.value) ? pa.value.join(', ') : String(pa.value);
+                return (
+                  <div key={pa.attributeId || idx} className="flex items-center gap-3">
+                    <DynamicLucideIcon name="Sparkles" className="w-4 h-4 text-zinc-700 shrink-0" />
+                    <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-36 shrink-0">{pa.attributeName}:</span>
+                    <span className="text-zinc-900 font-semibold">{formattedVal}</span>
+                  </div>
+                );
+              });
+            }
+
+            return (product.highlights || []).slice(0, 5).map((h, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <DynamicLucideIcon name={h.iconName || (h as any).icon || "Sparkles"} className="w-4 h-4 text-zinc-700 shrink-0" />
+                <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-36 shrink-0">{h.label || h.title}:</span>
+                <span className="text-zinc-900 font-semibold">{h.value}</span>
+              </div>
+            ));
+          })()}
         </div>
 
         {/* View More button */}
         <button
           onClick={() => {
-            const descEl = document.getElementById("product-description");
+            const descEl = document.getElementById("product-description") || document.getElementById("manufacturing-details");
             if (descEl) {
               descEl.scrollIntoView({ behavior: "smooth" });
             }
@@ -500,39 +541,39 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
             Out of Stock
           </button>
         ) : inCartQuantity > 0 ? (
-          /* Interactive In-Cart Quantity Counter replacing Add To Bag */
-          <div className="w-full py-2 px-4 rounded-full bg-[#1c1c1e] text-[#ffffff] flex items-center justify-between shadow-md border border-zinc-800">
+          /* Interactive In-Cart Quantity Counter matching Product Card style 1:1 */
+          <div className="w-full py-3 px-6 rounded-full bg-[#1c1c1e] text-white flex items-center justify-between shadow-md border border-zinc-800 font-sans transition-all">
             <button
+              type="button"
               onClick={() => updateQuantity(cartItemId, inCartQuantity - 1)}
-              className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95"
-              aria-label="Decrease quantity in cart"
+              className="w-6 h-6 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors cursor-pointer active:scale-90"
+              aria-label="Decrease quantity"
             >
-              <FiMinus size={16} />
+              <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
-            <div className="flex items-center gap-2.5 px-4">
-              <FiShoppingBag size={18} className="text-[#798A7A]" />
-              <span className="text-sm font-bold tracking-wider">
-                {inCartQuantity} in Bag
-              </span>
-            </div>
+            <span className="text-xs sm:text-sm font-semibold px-1 min-w-[20px] text-center tracking-wider">
+              {inCartQuantity}
+            </span>
             <button
+              type="button"
               onClick={() => updateQuantity(cartItemId, inCartQuantity + 1)}
-              className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95"
-              aria-label="Increase quantity in cart"
+              className="w-6 h-6 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors cursor-pointer active:scale-90"
+              aria-label="Increase quantity"
             >
-              <FiPlus size={16} />
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
           </div>
         ) : (
-          /* Default Full Width ADD TO BAG Button */
+          /* Default Full Width Add To Bag Button matching Product Card style 1:1 */
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleAddToCart}
-            className={`w-full py-4 px-6 rounded-full font-bold text-xs tracking-[0.2em] flex items-center justify-center gap-2.5 transition-all duration-300 shadow-md cursor-pointer ${isAddedAnimation
+            className={`w-full py-3.5 px-6 rounded-full font-bold text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 transition-all duration-300 shadow-xs cursor-pointer active:scale-95 ${
+              isAddedAnimation
                 ? "bg-emerald-700 text-white shadow-emerald-700/30"
                 : "bg-[#1c1c1e] hover:bg-black text-white shadow-zinc-900/20"
-              }`}
+            }`}
           >
             {isAddedAnimation ? (
               <>
@@ -541,12 +582,13 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
               </>
             ) : (
               <>
-                <FiShoppingBag size={16} className="stroke-[2.5]" />
-                <span>ADD TO BAG</span>
+                <FiShoppingBag size={14} className="stroke-[2.5]" />
+                <span>Add To Bag</span>
               </>
             )}
           </motion.button>
         )}
+
       </div>
 
       {/* Social Share Modal */}

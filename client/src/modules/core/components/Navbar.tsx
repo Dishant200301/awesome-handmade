@@ -81,7 +81,8 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const { wishlistCount } = useWishlist();
   const { totalItemsCount, totalPrice, setIsCartOpen } = useCart();
-  const { isLoggedIn, openAuthModal } = useAuth();
+  const { isLoggedIn, user, openAuthModal } = useAuth();
+  const firstName = user?.name ? user.name.split(" ")[0] : "Account";
   const allProducts = getLiveProductsList();
 
   // Close overlays on navigation
@@ -212,10 +213,15 @@ export default function Navbar() {
               <button
                 onClick={handleAccountClick}
                 aria-label="Account"
-                className="flex items-center cursor-pointer text-zinc-800 hover:text-[#80a17d] transition-colors p-1"
-                title={isLoggedIn ? "My Account" : "Sign In / Register"}
+                className="flex items-center gap-1.5 cursor-pointer text-zinc-800 hover:text-[#80a17d] transition-colors p-1"
+                title={isLoggedIn ? `Logged in as ${user?.name || "User"}` : "Sign In / Register"}
               >
                 <User className="h-5.5 w-5.5 stroke-[1.5]" />
+                {isLoggedIn && (
+                  <span className="text-xs font-bold text-zinc-900 tracking-tight max-w-[100px] truncate">
+                    {firstName}
+                  </span>
+                )}
               </button>
 
               {/* Search Icon */}
@@ -285,10 +291,15 @@ export default function Navbar() {
               <button
                 onClick={handleAccountClick}
                 aria-label="Account"
-                className="flex items-center cursor-pointer text-zinc-800 hover:text-[#80a17d] transition-colors p-1"
-                title={isLoggedIn ? "My Account" : "Sign In / Register"}
+                className="flex items-center gap-1.5 cursor-pointer text-zinc-800 hover:text-[#80a17d] transition-colors p-1"
+                title={isLoggedIn ? `Logged in as ${user?.name || "User"}` : "Sign In / Register"}
               >
                 <User className="h-5.5 w-5.5 lg:h-6 lg:w-6 stroke-[1.5]" />
+                {isLoggedIn && (
+                  <span className="text-xs font-bold text-zinc-900 tracking-tight max-w-[110px] truncate">
+                    {firstName}
+                  </span>
+                )}
               </button>
 
               {/* Search Icon */}
@@ -476,7 +487,7 @@ export default function Navbar() {
                 >
                   <div className="flex items-center gap-3">
                     <User className="h-4.5 w-4.5 text-[#80a17d] stroke-[1.5]" />
-                    <span>{isLoggedIn ? "My Account" : "Sign In / Register"}</span>
+                    <span>{isLoggedIn ? `My Account (${firstName})` : "Sign In / Register"}</span>
                   </div>
                   <ChevronRight className="h-4 w-4 text-[#80a17d] stroke-[1.5]" />
                 </button>

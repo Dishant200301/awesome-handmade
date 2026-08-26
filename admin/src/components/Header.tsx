@@ -1,14 +1,62 @@
-import React from 'react';
-import { Search, Bell, ExternalLink, LogOut, User, ChevronDown, Shield, Sliders } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Bell,
+  ExternalLink,
+  LogOut,
+  User,
+  ChevronDown,
+  Menu,
+  PanelLeft,
+  Plus,
+  ShoppingCart,
+  MessageSquare,
+  AlertTriangle
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DropdownMenu } from './ui/DropdownMenu';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AdminApiService } from '../services/adminApi';
+import { ContactMessage } from '../types/admin';
 
 interface HeaderProps {
   title: string;
+  isCollapsed?: boolean;
+  setIsCollapsed?: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
+  onOpenMobileDrawer?: () => void;
+  onNavigate?: (tab: string, productId?: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title }) => {
+export const Header: React.FC<HeaderProps> = ({
+  title,
+  isCollapsed = false,
+  setIsCollapsed,
+  onOpenMobileDrawer,
+  onNavigate
+}) => {
   const { user, logout } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState<ContactMessage[]>([]);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      const msgs = await AdminApiService.getContactMessages({ status: 'NEW' });
+      setUnreadMessages(msgs || []);
+    };
+    fetchUnread();
+
+    const handleSync = () => fetchUnread();
+    window.addEventListener("aaramly_contact_sync", handleSync);
+    window.addEventListener("storage", handleSync);
+    window.addEventListener("focus", handleSync);
+    return () => {
+      window.removeEventListener("aaramly_contact_sync", handleSync);
+      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("focus", handleSync);
+    };
+  }, []);
 
   const userInitials = user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD';
 
@@ -33,47 +81,109 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
   ];
 
   return (
-    <header className="h-14 bg-white border-b border-neutral-200 px-6 flex items-center justify-between sticky top-0 z-20 font-sans">
-      {/* Vercel Title / Breadcrumb */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-neutral-400 font-medium hidden sm:inline">aaramly</span>
-        <span className="text-xs text-neutral-300 hidden sm:inline">/</span>
-        <h2 className="text-sm font-semibold text-black capitalize tracking-tight flex items-center gap-2">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-neutral-200 bg-white/90 px-4 sm:px-6 backdrop-blur-md font-sans">
+      {/* LEFT SECTION: Toggle Sidebar button & Title */}
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Drawer Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenMobileDrawer}
+          className="lg:hidden text-neutral-600 hover:text-black"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
+
+        {/* Desktop Sidebar Collapse Toggle Button */}
+        {setIsCollapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            className="hidden lg:flex text-neutral-500 hover:text-black transition-colors"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <PanelLeft className="w-4 h-4" />
+          </Button>
+        )}
+
+        <h1 className="text-base font-semibold tracking-tight text-black flex items-center gap-2">
           {title}
-        </h2>
+        </h1>
       </div>
 
-      {/* Right controls */}
-      <div className="flex items-center gap-3">
-        {/* Global Search with Vercel / Shortcut badge */}
-        <div className="relative w-60 hidden md:block">
-          <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search catalog..."
-            className="w-full bg-neutral-50 hover:bg-neutral-100/80 text-xs text-black pl-8 pr-8 py-1.5 rounded-md border border-neutral-200 focus:outline-none focus:border-black focus:bg-white transition-all placeholder:text-neutral-400 font-normal"
-          />
-          <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-neutral-400 bg-white border border-neutral-200 px-1.5 py-0.5 rounded shadow-2xs">
-            /
-          </kbd>
+      {/* RIGHT SECTION: Quick Actions, Notifications & Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Quick Add Product Button */}
+        {onNavigate && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => onNavigate('add-product')}
+            className="hidden sm:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-medium text-xs rounded-md shadow-2xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Product</span>
+          </Button>
+        )}
+
+        {/* Notification Bell Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative p-1.5 text-neutral-600 hover:text-black rounded-md hover:bg-neutral-100 transition-colors cursor-pointer"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadMessages.length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-rose-600 absolute top-1 right-1 ring-2 ring-white"></span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 mt-2 w-80 bg-white border border-neutral-200 rounded-xl shadow-xl z-50 overflow-hidden text-xs"
+              >
+                <div className="p-3 border-b border-neutral-100 flex items-center justify-between bg-neutral-50">
+                  <span className="font-semibold text-black">Inquiry Notifications</span>
+                  <Badge variant={unreadMessages.length > 0 ? "default" : "secondary"} className="text-[10px]">
+                    {unreadMessages.length} New Unread
+                  </Badge>
+                </div>
+                <div className="p-3 space-y-2 max-h-60 overflow-y-auto">
+                  {unreadMessages.length === 0 ? (
+                    <div className="p-4 text-center text-neutral-400 text-xs">
+                      No new unread inquiries
+                    </div>
+                  ) : (
+                    unreadMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        onClick={() => {
+                          setShowNotifications(false);
+                          if (onNavigate) onNavigate('contact-messages');
+                        }}
+                        className="p-2 rounded-lg bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 cursor-pointer transition-colors"
+                      >
+                        <p className="font-semibold text-black flex items-center gap-1.5">
+                          <MessageSquare className="w-3 h-3 text-black shrink-0" />
+                          <span className="truncate">{msg.subject}</span>
+                        </p>
+                        <p className="text-[11px] text-neutral-500 truncate mt-0.5">
+                          From: {msg.name} ({msg.email})
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-
-        {/* View Store Live Button */}
-        <a
-          href="http://localhost:5173"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1.5 text-xs font-medium text-black bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-md transition-all border border-neutral-200 shadow-2xs"
-        >
-          <span>View Storefront</span>
-          <ExternalLink className="w-3 h-3 text-neutral-500" />
-        </a>
-
-        {/* Notifications */}
-        <button className="relative p-1.5 text-neutral-600 hover:text-black rounded-md hover:bg-neutral-100 transition-colors cursor-pointer">
-          <Bell className="w-4 h-4" />
-          <span className="w-1.5 h-1.5 rounded-full bg-black absolute top-1.5 right-1.5 ring-2 ring-white"></span>
-        </button>
 
         {/* User Profile & Dropdown Menu */}
         <div className="pl-2 border-l border-neutral-200">
@@ -82,11 +192,11 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
             items={dropdownItems}
             trigger={
               <button className="flex items-center gap-2 hover:bg-neutral-100 p-1.5 rounded-md transition-colors cursor-pointer group">
-                <div className="w-6 h-6 rounded-full bg-neutral-900 text-white font-semibold text-[10px] flex items-center justify-center border border-neutral-800">
+                <div className="w-6 h-6 rounded-full bg-neutral-900 text-white font-semibold text-[10px] flex items-center justify-center border border-neutral-800 shrink-0">
                   {userInitials}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-xs font-medium text-black leading-none">{user?.name || 'Admin'}</p>
+                  <p className="text-xs font-medium text-black leading-none">{user?.name || 'Admin User'}</p>
                 </div>
                 <ChevronDown className="w-3 h-3 text-neutral-400 group-hover:text-black transition-colors" />
               </button>
