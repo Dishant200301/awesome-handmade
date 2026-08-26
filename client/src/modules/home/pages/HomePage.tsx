@@ -36,7 +36,7 @@ export default function HomePage() {
     <main className="bg-white text-black overflow-hidden">
       <Navbar />
       <HeroSection />
-      <CuratedEditSection />
+      {/* <CuratedEditSection /> */}
       <FeaturedCategoriesSection onSelectCategory={(cat) => setActiveTab(cat)} />
       <ExplainerSection />
       <FeaturedProductsSection activeTab={activeTab} setActiveTab={setActiveTab} />

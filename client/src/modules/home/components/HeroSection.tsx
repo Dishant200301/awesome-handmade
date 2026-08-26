@@ -1,476 +1,366 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { Feather, Cloud, Heart, Leaf, Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-interface SlideFeature {
-  icon: "feather" | "cloud" | "heart" | "leaf";
-  text: string;
-}
-
-interface BulletPoint {
-  icon: "leaf" | "layers" | "cloud";
-  text: string;
-}
-
-interface Slide {
-  img: string;
-  mobileImg?: string;
+export interface HeroSlideData {
+  id: string;
+  image: string;
+  mobileImage?: string;
   eyebrow: string;
-  mobileEyebrow?: string;
   title: string;
-  mobileTitle?: string;
-  titleHighlight?: string;
-  titleFontClass?: string;
-  titleHighlightClass?: string;
-  descColorClass?: string;
-  showDividerUnderTitle?: boolean;
+  highlightText?: string;
   subtitle: string;
-  mobileSubtitle?: string;
-  align: "left" | "center" | "right";
-  textColor: string;
-  objectPosition: string;
-  bgColor?: string;
-  showUnderline?: boolean;
-  btnText?: string;
-  btnClass?: string;
-  showArrow?: boolean;
-  showLeafDivider?: boolean;
-  features?: SlideFeature[];
-  bulletPoints?: BulletPoint[];
+  buttonText: string;
+  link: string;
+  tag?: string;
 }
 
-const HERO_SLIDES: Slide[] = [
+const HERO_SLIDES: HeroSlideData[] = [
   {
-    img: "/images/home/hero/Gemini_Generated_Image_7wkeg47wkeg47wke.webp",
-    mobileImg: "/images/home/hero/hero-moble-1.png",
-    eyebrow: "AARAMLY CLASSIC",
-    mobileEyebrow: "EVERYDAY ESSENTIALS",
-    title: "DESIGNED TO\nDISAPPEAR",
-    mobileTitle: "Comfort\nFor You",
-    subtitle: "Experience zero-feel comfort. A lightweight, wireless fit that goes unnoticed under any outfit.",
-    mobileSubtitle: "Experience seamless support with an ultra-soft fit.",
-    align: "left",
-    textColor: "text-[#2d221b]",
-    objectPosition: "object-[80%_top] lg:object-top",
-    features: [
-      { icon: "leaf", text: "ULTRA SOFT" },
-      { icon: "cloud", text: "WIRELESS" },
-      { icon: "feather", text: "LIGHTWEIGHT" }
-    ]
+    id: "slide-1",
+    image: "/images/home/hero/hero-1.webp",
+    mobileImage: "/images/home/hero/hero-moble-1.png",
+    eyebrow: "Aaramly Classic",
+    title: "Designed To\nDisappear",
+    highlightText: "Zero-Feel Comfort",
+    subtitle: "Experience wire-free freedom. A lightweight, seamless fit that goes unnoticed under any outfit.",
+    buttonText: "EXPLORE COLLECTION",
+    link: "#featured",
+    tag: "EVERYDAY ESSENTIALS",
   },
   {
-    img: "/images/home/hero/Gemini_Generated_Image_nz0j0jnz0j0jnz0j.webp",
-    mobileImg: "/images/home/hero/hero-moble-2.png",
-    eyebrow: "NEWLY LAUNCHED",
-    mobileEyebrow: "SIGNATURE COLLECTION",
-    title: "SUPPORT WITHOUT\nTHE POKE",
-    mobileTitle: "Comfort\nFor You",
-    subtitle: "PERFECT COVERAGE BRA  |  SOFT COVERAGE T-SHIRT BRA",
-    mobileSubtitle: "Experience seamless support with an ultra-soft fit.",
-    align: "center",
-    textColor: "text-[#3b2a1c]",
-    objectPosition: "object-[0%_top] lg:object-top",
-    features: [
-      { icon: "feather", text: "Wire-free feel" },
-      { icon: "cloud", text: "Soft coverage" },
-      { icon: "heart", text: "Everyday comfort" }
-    ]
+    id: "slide-2",
+    image: "/images/home/hero/hero-2.webp",
+    mobileImage: "/images/home/hero/hero-moble-2.png",
+    eyebrow: "Signature Edit",
+    title: "Support Without\nThe Poke",
+    highlightText: "Ultra-Soft CloudFit",
+    subtitle: "Perfect full-coverage wirefree bras with breathable mesh and cloud-like removable pads.",
+    buttonText: "SHOP BEST SELLERS",
+    link: "#featured",
+    tag: "NEWLY LAUNCHED",
   },
   {
-    img: "/images/home/hero/Gemini_Generated_Image_sp6vp3sp6vp3sp6v.webp",
-    mobileImg: "/images/home/hero/hero-moble-3.png",
-    eyebrow: "AARAMLY COMFORT",
-    mobileEyebrow: "PREMIUM COLLECTION",
-    title: "COMFORT IS NON\nNEGOTIABLE.",
-    mobileTitle: "Comfort\nFor You",
-    subtitle: "Invisible support and perfect coverage for backless, strapless, or everyday looks.",
-    mobileSubtitle: "Experience seamless support with an ultra-soft fit.",
-    align: "right",
-    textColor: "text-[#302117]",
-    objectPosition: "object-[30%_top] lg:object-top",
-    features: [
-      { icon: "leaf", text: "Wire-free" },
-      { icon: "cloud", text: "Seamless fit" },
-      { icon: "feather", text: "All-day comfort" }
-    ],
-    bulletPoints: [
-      { icon: "leaf", text: "Wire-free" },
-      { icon: "layers", text: "Seamless fit" },
-      { icon: "cloud", text: "All-day comfort" }
-    ]
-  }
+    id: "slide-3",
+    image: "/images/home/hero/hero-3.webp",
+    mobileImage: "/images/home/hero/hero-moble-3.png",
+    eyebrow: "Premium Studio",
+    title: "Comfort Is Non\nNegotiable",
+    highlightText: "Invisible Confidence",
+    subtitle: "Invisible support and perfect coverage for backless, strapless, and plunge necklines.",
+    buttonText: "DISCOVER INTIMATES",
+    link: "#featured",
+    tag: "SIGNATURE EDIT",
+  },
+  {
+    id: "slide-4",
+    image: "/images/home/hero/hero-4.webp",
+    mobileImage: "/images/home/hero/hero-moble-2.png",
+    eyebrow: "Active Athleisure",
+    title: "Moves With\nEvery Step",
+    highlightText: "Flexible 4-Way Stretch",
+    subtitle: "High-performance sports bras and seamless leggings engineered for workouts and everyday lounging.",
+    buttonText: "SHOP ATHLEISURE",
+    link: "#featured",
+    tag: "TRENDING NOW",
+  },
+  {
+    id: "slide-5",
+    image: "/images/home/hero/hero-5.webp",
+    mobileImage: "/images/home/hero/hero-moble-1.png",
+    eyebrow: "Seamless Sculpt",
+    title: "Flawless Silhouette\nAll Day Long",
+    highlightText: "Targeted Tummy Control",
+    subtitle: "Ultra-thin, breathable shapewear that contours smoothly under bodycon dresses and sarees.",
+    buttonText: "VIEW SHAPEWEAR",
+    link: "#featured",
+    tag: "SCULPT & SMOOTH",
+  },
 ];
 
 export default function HeroSection() {
-  const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState(0); // 1 for next, -1 for prev
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
-  const next = useCallback(() => {
-    setDirection(1);
-    setCurrent((p) => (p + 1) % HERO_SLIDES.length);
-  }, []);
+  const isDragging = useRef<boolean>(false);
+  const dragStartX = useRef<number>(0);
+  const hasMoved = useRef<boolean>(false);
 
-  const prev = useCallback(() => {
-    setDirection(-1);
-    setCurrent((p) => (p - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  }, []);
+  const totalSlides = HERO_SLIDES.length;
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      next();
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [next, current]);
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    setDragOffset(0);
+  }, [totalSlides]);
 
-  // Animation variants for the slides
-  const slideVariants = {
-    enter: (dir: number) => ({
-      opacity: 0,
-    }),
-    center: {
-      opacity: 1,
-    },
-    exit: (dir: number) => ({
-      opacity: 0,
-    }),
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    setDragOffset(0);
+  }, [totalSlides]);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    setDragOffset(0);
   };
 
-  const contentVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.15,
-        duration: 0.7,
-        ease: [0.215, 0.61, 0.355, 1] as [number, number, number, number] // premium cubic-bezier for smooth entrance
+  // Auto-play timer (5 seconds)
+  useEffect(() => {
+    if (isPaused || isDraggingState) return;
+
+    const timer = setInterval(() => {
+      nextSlide();
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [isPaused, isDraggingState, nextSlide]);
+
+  // Touch Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    hasMoved.current = false;
+    dragStartX.current = e.touches[0].clientX;
+    setIsDraggingState(true);
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const diff = e.touches[0].clientX - dragStartX.current;
+    if (Math.abs(diff) > 5) {
+      hasMoved.current = true;
+    }
+    setDragOffset(diff);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setIsDraggingState(false);
+    setIsPaused(false);
+
+    if (dragOffset < -50) {
+      nextSlide();
+    } else if (dragOffset > 50) {
+      prevSlide();
+    }
+    setDragOffset(0);
+  };
+
+  // Mouse Handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    hasMoved.current = false;
+    dragStartX.current = e.clientX;
+    setIsDraggingState(true);
+    setIsPaused(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const diff = e.clientX - dragStartX.current;
+    if (Math.abs(diff) > 5) {
+      hasMoved.current = true;
+    }
+    setDragOffset(diff);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setIsDraggingState(false);
+    setIsPaused(false);
+
+    if (dragOffset < -50) {
+      nextSlide();
+    } else if (dragOffset > 50) {
+      prevSlide();
+    }
+    setDragOffset(0);
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging.current) {
+      handleMouseUp();
+    }
+    setIsPaused(false);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, href: string) => {
+    if (hasMoved.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const el = document.getElementById(href.replace("#", ""));
+      if (el) {
+        const headerOffset = 90;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       }
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1] as [number, number, number, number] } }
-  };
-
-  const s = HERO_SLIDES[current];
-
   return (
-    <section id="home" className="relative h-svh mt-0 w-full overflow-hidden bg-white">
-      {/* MOBILE ONLY LAYOUT (lg:hidden) */}
-      <div className="lg:hidden relative w-full h-full flex flex-col justify-between px-8 pt-28 pb-8 overflow-hidden z-10">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={current}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              opacity: { duration: 0.8, ease: "easeInOut" },
-            }}
-            className="absolute inset-0 h-full w-full flex flex-col justify-between px-2 pt-28 pb-8"
-          >
-            {/* Background Warm Beige Gradient & Soft Glowing Effects */}
-            <div className={`absolute inset-0 transition-all duration-1000 bg-gradient-to-b ${current === 0
-                ? "from-[#FCFAF7] via-[#F3EFE9] to-[#E4DDD3]"
-                : current === 1
-                  ? "from-[#FCFAF7] via-[#F4E2D3] to-[#EAD5C3]"
-                  : "from-[#FBFBFA] via-[#EFEFEA] to-[#E2E2DC]"
-              }`} />
-
-            {/* Glowing Accent */}
-            <div className="absolute top-[20%] right-[-15%] w-[340px] h-[340px] rounded-full bg-white/35 blur-[95px]" />
-            <div className="absolute bottom-[15%] left-[-15%] w-[270px] h-[270px] rounded-full bg-white/20 blur-[75px]" />
-
-
-            {/* Model Image on Right - dominant size & right-aligned */}
-            {s.mobileImg && (
-              <div className="absolute bottom-0 right-[-10%] md:right-[4%] w-[80vw] md:w-[80vw] h-[88vh] md:h-[82vh] z-10 select-none pointer-events-none flex items-end justify-end overflow-visible translate-x-[7%] md:translate-x-[2%]">
-                <motion.img
-                  key={`img-${current}`}
-                  initial={{ opacity: 0, x: 60 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -30 }}
-                  transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                  src={s.mobileImg}
-                  alt={s.title.replace("\n", " ")}
-                  className="w-[115%] h-[118%] object-contain object-bottom object-right scale-[1.08] md:scale-[1.18] translate-y-[2%] origin-bottom"
-                />
-              </div>
-            )}
-
-            {/* Content Container (Left Side) with spacious padding */}
-            <div className="relative z-20 flex flex-col justify-center h-full max-w-[50%] select-none pl-4">
-              <motion.div
-                key={`content-mob-${current}`}
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                className="flex flex-col items-start text-left"
-              >
-                {/* Eyebrow Label & Divider */}
-                <motion.div variants={itemVariants} className="mb-7">
-                  <span className="text-[10px] min-[375px]:text-[11px] font-montserrat font-600 tracking-[0.25em] text-[#798A7A] uppercase whitespace-nowrap">
-                    {s.mobileEyebrow || "SIGNATURE COLLECTION"}
-                  </span>
-                  <div className="h-[1px] bg-[#798A7A]/40 w-10 mt-2" />
-                </motion.div>
-
-                {/* Main Heading (Serif Font) */}
-                <motion.h1
-                  variants={itemVariants}
-                  className="text-[30px] min-[375px]:text-[34px] min-[410px]:text-[38px] leading-[1.15] font-garamond font-600 text-[#352923] tracking-wide uppercase whitespace-pre-line mb-7"
-                >
-                  {s.mobileTitle || "Comfort\nFor You"}
-                </motion.h1>
-
-                {/* Description */}
-                <motion.p
-                  variants={itemVariants}
-                  className="text-[11.5px] min-[400px]:text-[12.5px] font-montserrat font-400 leading-relaxed text-[#5C4D44] max-w-[170px] min-[375px]:max-w-[205px] whitespace-pre-line mb-8"
-                >
-                  {s.mobileSubtitle || s.subtitle}
-                </motion.p>
-
-                {/* CTA Button */}
-                <motion.div variants={itemVariants}>
-                  <a
-                    href="#featured"
-                    className="inline-flex items-center justify-center h-12 px-8.5 text-[10px] min-[375px]:text-[11px] font-montserrat font-600 tracking-[0.22em] uppercase text-white bg-[#798A7A] hover:bg-[#687769] active:scale-95 transition-all duration-300 rounded-full shadow-[0_4px_16px_rgba(121,138,122,0.35)] cursor-pointer"
-                  >
-                    {s.btnText || "SHOP NOW"}
-                  </a>
-                </motion.div>
-              </motion.div>
-            </div>
-
-            {/* Bottom Section: Slider Navigation & Floating Feature Card */}
-            <div className="relative z-30 flex flex-col w-full items-center gap-6 mt-auto">
-              {/* Slider Navigation Dots */}
-              <div className="flex items-center justify-center gap-3 py-1">
-                {HERO_SLIDES.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setDirection(i > current ? 1 : -1);
-                      setCurrent(i);
-                    }}
-                    className={`rounded-full transition-all duration-300 ${i === current
-                        ? "w-2.5 h-2.5 bg-[#798A7A] scale-110"
-                        : "w-2 h-2 bg-[#798A7A]/30"
-                      }`}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Floating Feature Card (Glassmorphic) */}
-              {s.features && (
-                <div className="w-full md:max-w-md md:mx-auto bg-white/55 backdrop-blur-md border border-white/50 rounded-2xl py-4.5 px-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.03)] flex justify-between items-center">
-                  {s.features.map((f, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center text-center gap-1.5 relative px-1">
-                      <div className="text-[#798A7A]">
-                        {f.icon === "leaf" && <Leaf className="w-5 h-5 stroke-[1.25]" />}
-                        {f.icon === "feather" && <Feather className="w-5 h-5 stroke-[1.25]" />}
-                        {f.icon === "cloud" && <Cloud className="w-5 h-5 stroke-[1.25]" />}
-                        {f.icon === "heart" && <Heart className="w-5 h-5 stroke-[1.25]" />}
-                      </div>
-                      <span className="text-[9px] min-[375px]:text-[10px] min-[410px]:text-[10.5px] font-montserrat font-500 text-[#352923] tracking-wide leading-tight">
-                        {f.text}
-                      </span>
-                      {s.features && idx < s.features.length - 1 && (
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#352923]/12" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* DESKTOP ONLY LAYOUT (hidden lg:block) */}
-      <div className="hidden lg:block relative w-full h-full">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={current}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              opacity: { duration: 1.0, ease: "easeInOut" }, // elegant slow cross-fade
-            }}
-            className="absolute inset-0 h-full w-full"
-          >
-            <div className="relative h-full w-full">
-              <picture className="absolute inset-0 h-full w-full">
-                {s.mobileImg && (
-                  <source media="(max-width: 767px)" srcSet={s.mobileImg} />
+    <section
+      id="home"
+      aria-label="Aaramly Hero Showcase"
+      className="relative w-full overflow-hidden select-none bg-[#FAF8F4]"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Interactive Carousel Track Container */}
+      <div
+        className={`relative w-full min-h-[460px] sm:min-h-[520px] md:min-h-[600px] lg:min-h-[660px] aspect-[16/9] md:aspect-[21/9] max-h-[760px] overflow-hidden bg-zinc-100 select-none ${
+          isDraggingState ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Sliding Track */}
+        <div
+          className="flex w-full h-full"
+          style={{
+            transform: `translateX(calc(-${currentSlide * 100}% + ${dragOffset}px))`,
+            transition: isDraggingState ? "none" : "transform 600ms cubic-bezier(0.25, 1, 0.5, 1)",
+          }}
+        >
+          {HERO_SLIDES.map((slide, index) => (
+            <div
+              key={slide.id}
+              className="relative w-full h-full shrink-0 select-none overflow-hidden"
+            >
+              {/* Image / Picture */}
+              <picture className="absolute inset-0 w-full h-full">
+                {slide.mobileImage && (
+                  <source media="(max-width: 640px)" srcSet={slide.mobileImage} />
                 )}
                 <img
-                  src={s.img}
-                  alt={s.title.replace("\n", " ")}
-                  className={`absolute inset-0 h-full w-full object-cover scale-[1.12] lg:scale-100 origin-[60%_top] lg:origin-center ${s.objectPosition || "object-top"}`}
+                  src={slide.image}
+                  alt={slide.title.replace("\n", " ")}
+                  className="w-full h-full object-cover object-top select-none pointer-events-none transition-transform duration-1000 scale-100"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  draggable={false}
                 />
               </picture>
 
-              <div className="relative z-10 flex h-full items-end pb-16 md:items-end md:pb-10 lg:items-center lg:pb-0">
-                {/* Padding matches Navbar px-5 md:px-8 exactly to align along the header grid */}
-                <div className="mx-auto max-w-[1400px] w-full px-5 md:px-8">
-                  <div className={`flex w-full ${s.align === "left" ? "justify-start text-left lg:justify-start lg:text-left" :
-                      s.align === "right" ? "justify-end text-left md:justify-start md:text-left lg:justify-end lg:text-left" :
-                        "justify-center text-center md:justify-start md:text-left lg:justify-center lg:text-center"
-                    }`}>
-                    <motion.div
-                      variants={contentVariants}
-                      initial="hidden"
-                      animate="visible"
-                      key={`content-${current}`}
-                      className={`max-w-xl ${s.align === "left" ? "text-left" :
-                          s.align === "right" ? "text-left" :
-                            "text-center md:text-left lg:text-center"
-                        }`}
-                    >
-                      <motion.div variants={itemVariants} className="hidden lg:block">
-                        {s.eyebrow && (
-                          <>
-                            <p className="text-xs md:text-sm font-montserrat font-500 tracking-[0.35em] uppercase text-black">
-                              {s.eyebrow}
-                            </p>
-                            {s.showUnderline && (
-                              <div className="h-[2px] bg-[#798A7A] w-12 mt-2" />
-                            )}
-                          </>
-                        )}
-                      </motion.div>
+              {/* Gradient Overlays for Readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent sm:from-black/75 sm:via-black/40 pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
 
-                      <motion.h1
-                        variants={itemVariants}
-                        className={`mt-4 text-2xl min-[360px]:text-3xl md:text-5xl lg:text-6.5xl leading-[1.08] tracking-tight uppercase whitespace-pre-line ${s.titleFontClass || "font-sans font-800"} ${s.textColor}`}
+              {/* Slide Content Overlay */}
+              <div className="relative z-10 flex h-full items-center">
+                <div className="mx-auto max-w-[1400px] w-full px-5 sm:px-8 md:px-12 py-10 md:py-16">
+                  <div className="max-w-xl text-left text-white">
+                    
+                    {/* Eyebrow Tag */}
+                    {slide.eyebrow && (
+                      <div className="inline-flex items-center gap-2 mb-2 sm:mb-3 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20">
+                        <Sparkles className="w-3.5 h-3.5 text-[#80a17d] animate-pulse" />
+                        <span className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase text-white/95">
+                          {slide.eyebrow}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Main Title */}
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12] uppercase whitespace-pre-line drop-shadow-md">
+                      {slide.title}
+                    </h1>
+
+                    {/* Highlight Text */}
+                    {slide.highlightText && (
+                      <p className="mt-1.5 sm:mt-2 text-sm sm:text-lg md:text-xl font-medium text-[#a2c39f] drop-shadow-sm">
+                        🌿 {slide.highlightText}
+                      </p>
+                    )}
+
+                    {/* Subtitle */}
+                    <p className="mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-white/90 font-light leading-relaxed max-w-md line-clamp-3 sm:line-clamp-none drop-shadow-sm">
+                      {slide.subtitle}
+                    </p>
+
+                    {/* CTA Button */}
+                    <div className="mt-6 sm:mt-8 flex items-center gap-3.5">
+                      <a
+                        href={slide.link}
+                        onClick={(e) => handleButtonClick(e, slide.link)}
+                        className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#2e5d4e] hover:bg-[#23483c] text-white text-xs sm:text-sm font-bold tracking-wider uppercase transition-all duration-300 shadow-lg hover:shadow-[#2e5d4e]/40 hover:scale-105 active:scale-95 cursor-pointer border border-white/20"
                       >
-                        {s.title}
-                        {s.titleHighlight && (
-                          <span className={`block mt-1 ${s.titleHighlightClass || "text-[#798A7A]"}`}>
-                            {s.titleHighlight}
-                          </span>
-                        )}
-                      </motion.h1>
-
-                      {s.showDividerUnderTitle && (
-                        <div className="hidden lg:block h-[2.5px] bg-[#798A7A] w-14 mt-4 mb-2" />
-                      )}
-
-                      {s.showLeafDivider && (
-                        <div className={`hidden lg:flex items-center gap-4 my-5 ${s.align === "left" ? "justify-start" :
-                            s.align === "right" ? "justify-start" :
-                              "justify-center md:justify-start lg:justify-center"
-                          }`}>
-                          <div className="h-[1px] bg-neutral-300 w-16" />
-                          <Leaf className="w-4 h-4 text-[#798A7A]" />
-                          <div className="h-[1px] bg-neutral-300 w-16" />
-                        </div>
-                      )}
-
-                      <motion.p
-                        variants={itemVariants}
-                        className={`mt-4 text-sm md:text-base font-500 max-w-[400px] ${s.descColorClass || "text-black"} ${s.align === "left" ? "ml-0 mr-auto" :
-                            s.align === "right" ? "ml-0 mr-auto" :
-                              "mx-auto md:ml-0 md:mr-auto lg:mx-auto"
-                          }`}
-                      >
-                        {s.subtitle}
-                      </motion.p>
-
-
-                      <motion.div
-                        variants={itemVariants}
-                        className={`mt-8 flex gap-4 ${s.align === "left" ? "justify-start" :
-                            s.align === "right" ? "justify-start" :
-                              "justify-center md:justify-start lg:justify-center"
-                          }`}
-                      >
-                        <a
-                          href="#featured"
-                          className={s.btnClass || "inline-flex items-center gap-2 px-8 py-3.5 text-[10px] md:text-xs font-600 tracking-[0.2em] uppercase transition-all duration-300 shadow-sm bg-black text-white hover:bg-zinc-800 border border-black cursor-pointer"}
-                        >
-                          {s.btnText || "EXPLORE NOW"}
-                          {s.showArrow && <span className="ml-1.5">→</span>}
-                        </a>
-                      </motion.div>
-                    </motion.div>
+                        <span>{slide.buttonText}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
 
             </div>
-          </motion.div>
-        </AnimatePresence>
+          ))}
+        </div>
 
-        {/* Side Chevron Navigation Arrows */}
+        {/* Left Navigation Arrow */}
         <button
-          onClick={prev}
-          className="hidden lg:grid absolute left-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 place-items-center text-black/35 hover:text-black hover:scale-110 transition-all duration-300 cursor-pointer"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            prevSlide();
+          }}
+          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-[#2e5d4e] text-white flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-md hover:scale-110 active:scale-95 cursor-pointer border border-white/20"
           aria-label="Previous Slide"
         >
-          <FiChevronLeft className="w-12 h-12" strokeWidth={1} />
-        </button>
-        <button
-          onClick={next}
-          className="hidden lg:grid absolute right-8 top-1/2 -translate-y-1/2 z-20 h-12 w-12 place-items-center text-black/35 hover:text-black hover:scale-110 transition-all duration-300 cursor-pointer"
-          aria-label="Next Slide"
-        >
-          <FiChevronRight className="w-12 h-12" strokeWidth={1} />
+          <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
         </button>
 
-        {/* Center Pagination with Animated Circular Progress */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 md:bottom-10 md:left-auto md:right-8 md:translate-x-0 lg:left-1/2 lg:-translate-x-1/2 lg:right-auto flex items-center gap-6 z-20">
-          {HERO_SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setDirection(i > current ? 1 : -1);
-                setCurrent(i);
-              }}
-              className="group relative w-6 h-6 flex items-center justify-center cursor-pointer"
-              aria-label={`Go to slide ${i + 1}`}
-            >
-              {/* Circular Progress Path - absolute centered */}
-              <svg className="absolute inset-0 m-auto w-[18px] h-[18px] -rotate-90">
-                <circle
-                  cx="9"
-                  cy="9"
-                  r="7.5"
-                  stroke="black"
-                  strokeWidth="0.8"
-                  fill="transparent"
-                  className="opacity-15"
-                />
-                {i === current && (
-                  <motion.circle
-                    cx="9"
-                    cy="9"
-                    r="7.5"
-                    stroke="black"
-                    strokeWidth="0.8"
-                    fill="transparent"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 5, ease: "linear" }}
-                    key={`progress-${current}`}
-                  />
+        {/* Right Navigation Arrow */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            nextSlide();
+          }}
+          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-[#2e5d4e] text-white flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-md hover:scale-110 active:scale-95 cursor-pointer border border-white/20"
+          aria-label="Next Slide"
+        >
+          <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
+        </button>
+
+        {/* Bottom Pagination Dots */}
+        <div className="absolute bottom-3 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 sm:gap-3.5 pointer-events-auto bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15">
+          {HERO_SLIDES.map((_, index) => {
+            const isActive = index === currentSlide;
+            return (
+              <button
+                key={index}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToSlide(index);
+                }}
+                className="relative flex items-center justify-center focus:outline-none transition-all duration-300 cursor-pointer p-0.5"
+                aria-label={`Go to slide ${index + 1}`}
+              >
+                {isActive ? (
+                  <div className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full border-2 border-[#80a17d] transition-all duration-300 scale-110">
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-white shadow-sm" />
+                  </div>
+                ) : (
+                  <div className="flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center">
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-white/50 hover:bg-white transition-colors" />
+                  </div>
                 )}
-              </svg>
-              {/* Inner Dot - absolute centered */}
-              <div className={`absolute inset-0 m-auto w-[6px] h-[6px] rounded-full transition-all duration-300 bg-black ${i === current ? "opacity-100 scale-100" : "opacity-35 scale-75 group-hover:opacity-60"}`} />
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
