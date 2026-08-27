@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node -e \"if (process.platform === 'linux') { try { require('@rollup/rollup-linux-x64-gnu'); } catch (e) { try { require('child_process').execSync('npm install --no-save @rollup/rollup-linux-x64-gnu', {stdio: 'inherit'}); } catch(err){} } }\"",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -32,10 +33,6 @@
     "tailwindcss": "^4.2.1",
     "typescript": "^5.8.3",
     "vite": "^6.2.0"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.34.8",
-    "@rollup/rollup-linux-x64-musl": "^4.34.8"
   },
   "engines": {
     "node": ">=22.0.0"
