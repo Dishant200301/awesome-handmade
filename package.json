@@ -15,6 +15,8 @@
     "db:init": "npm --prefix server run db:init",
     "build:client": "npm --prefix client run build",
     "build:server": "npm --prefix server run build",
-    "build:admin": "npm --prefix admin run build"
+    "build:admin": "npm --prefix admin run build",
+    "build:all": "npm run build:client && npm run build:admin && npm run build:server",
+    "build": "npm run build:all"
   }
 }
