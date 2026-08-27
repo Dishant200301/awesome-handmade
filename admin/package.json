@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node -e \"if (process.platform === 'linux') { try { require('@rollup/rollup-linux-x64-gnu'); } catch (e) { try { require('child_process').execSync('npm install --no-save @rollup/rollup-linux-x64-gnu', {stdio: 'inherit'}); } catch(err){} } }\"",
-    "build": "tsc && vite build",
+    "build": "node -e \"if (process.platform === 'linux') { try { require('@rollup/rollup-linux-x64-gnu'); } catch (e) { try { require('child_process').execSync('npm install --no-save @rollup/rollup-linux-x64-gnu', {stdio: 'inherit'}); } catch(err){} } }\" && tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

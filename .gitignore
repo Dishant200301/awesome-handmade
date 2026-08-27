@@ -31,3 +31,6 @@ dist-ssr/
 # Database & Runtime Data
 server/products_db.json
 products_db.json
+
+# Lockfiles
+package-lock.json
