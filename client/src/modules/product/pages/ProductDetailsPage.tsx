@@ -62,7 +62,7 @@ export const ProductDetailsPage: React.FC = () => {
         price: prodAny.price || 799,
         originalPrice: prodAny.originalPrice || 1299,
         discountPercentage: 38,
-        sku: product.defaultSku || "AAR-SKU-100",
+        sku: product.defaultSku || "AWH-SKU-100",
         stock: 50,
         images: colorImages.length > 0 ? colorImages : (Array.isArray(prodAny.images) && prodAny.images.length > 0 ? prodAny.images.map((u: string, i: number) => ({ id: `img-${i}`, url: u, alt: product.name })) : [])
       };

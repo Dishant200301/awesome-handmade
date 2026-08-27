@@ -15,7 +15,7 @@ import WatchShopSection from "../components/WatchShopSection";
 import WhyChooseUsSection from "../components/WhyChooseUsSection";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState("bras");
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
@@ -33,14 +33,14 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="bg-white text-black overflow-hidden">
+    <main className="bg-white text-black">
       <Navbar />
       <HeroSection />
       {/* <CuratedEditSection /> */}
       <FeaturedCategoriesSection onSelectCategory={(cat) => setActiveTab(cat)} />
       <ExplainerSection />
       <FeaturedProductsSection activeTab={activeTab} setActiveTab={setActiveTab} />
-      <PromoBannerSection />
+      {/* <PromoBannerSection /> */}
       <BestSellingSection />
       <PopularCategoriesSection />
       <WatchShopSection />

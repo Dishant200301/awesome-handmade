@@ -129,9 +129,9 @@ export function ContactPage() {
               {isSubmitted ? (
                 <div className="border border-zinc-200 bg-zinc-50/50 p-8 sm:p-12 text-center rounded-2xl space-y-4">
                   <CheckCircle2 className="w-12 h-12 text-[#80a17d] mx-auto animate-bounce" />
-                  <h3 className="text-2xl font-serif text-zinc-900">Message Received!</h3>
+                  <h3 className="text-2xl font-heading text-brand-maroon">Message Received!</h3>
                   <p className="text-sm text-zinc-600 max-w-md mx-auto">
-                    Thank you for reaching out to AARAMLY. Your inquiry has been forwarded directly to our support team.
+                    Thank you for reaching out to Awesome Handmade. Your inquiry has been forwarded directly to our artisan support team.
                   </p>
                 </div>
               ) : (
@@ -146,7 +146,7 @@ export function ContactPage() {
                       placeholder="Full Name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-[#80a17d] focus:ring-1 focus:ring-[#80a17d] transition-colors rounded-lg bg-white"
+                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon transition-colors rounded-lg bg-white"
                     />
                   </div>
 
@@ -161,7 +161,7 @@ export function ContactPage() {
                         placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-[#80a17d] focus:ring-1 focus:ring-[#80a17d] transition-colors rounded-lg bg-white"
+                        className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon transition-colors rounded-lg bg-white"
                       />
                     </div>
 
@@ -173,13 +173,13 @@ export function ContactPage() {
                         type="tel"
                         maxLength={10}
                         pattern="[0-9]*"
-                        placeholder="98000 00000"
+                        placeholder="98243 02072"
                         value={phone}
                         onChange={(e) => {
                           const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 10);
                           setPhone(onlyDigits);
                         }}
-                        className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-[#80a17d] focus:ring-1 focus:ring-[#80a17d] transition-colors rounded-lg bg-white"
+                        className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon transition-colors rounded-lg bg-white"
                       />
                     </div>
                   </div>
@@ -190,10 +190,10 @@ export function ContactPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="Order Query, Sizing Help, Bulk Inquiry, etc."
+                      placeholder="Bridal Latkan Customization, Order Query, Bulk Festive Gifts, etc."
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-[#80a17d] focus:ring-1 focus:ring-[#80a17d] transition-colors rounded-lg bg-white"
+                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon transition-colors rounded-lg bg-white"
                     />
                   </div>
 
@@ -207,7 +207,7 @@ export function ContactPage() {
                       placeholder="Write your message here…"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-[#80a17d] focus:ring-1 focus:ring-[#80a17d] transition-colors rounded-lg bg-white resize-y"
+                      className="w-full border border-zinc-300 px-4 py-3.5 text-sm text-zinc-900 outline-none focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon transition-colors rounded-lg bg-white resize-y"
                     />
                   </div>
 
@@ -215,9 +215,9 @@ export function ContactPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-[0.2em] transition-all rounded-md shadow-sm cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-brand-maroon hover:bg-black text-white text-xs font-bold uppercase tracking-[0.2em] transition-all rounded-md shadow-sm cursor-pointer disabled:opacity-50"
                     >
-                      <span>{isSubmitting ? "SENDING..." : "SUBMIT"}</span>
+                      <span>{isSubmitting ? "SENDING..." : "SUBMIT MESSAGE"}</span>
                       <Send className="w-3.5 h-3.5 stroke-[2]" />
                     </button>
                   </div>
@@ -225,50 +225,53 @@ export function ContactPage() {
               )}
             </div>
 
-            {/* Get in Touch Info Container (Order-1 on mobile/tablet, Order-2 on laptop/desktop) */}
+            {/* Get in Touch Info Container */}
             <div className="order-1 lg:order-2 lg:col-span-5 w-full text-center lg:text-left lg:border-l lg:border-zinc-200 lg:pl-16 flex flex-col">
-              <h2 className="font-sans text-3xl sm:text-4xl text-zinc-900 font-normal">
+              <h2 className="font-heading text-3xl sm:text-4xl text-brand-maroon font-bold">
                 Get in Touch
               </h2>
               
               <div className="mt-8 sm:mt-10 space-y-8">
                 <div>
-                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-[#80a17d]">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-brand-gold">
                     <MapPin className="w-4 h-4" />
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-zinc-500">
-                      LOCATION
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-maroon">
+                      ARTISAN STUDIO LOCATION
                     </p>
                   </div>
                   <p className="text-sm sm:text-base text-zinc-900 font-sans leading-relaxed max-w-xs mx-auto lg:mx-0">
-                    AARAMLY Headquarters, 104 Silk & Satin Tower, Fashion District, Bandra West, Mumbai, Maharashtra 400050
+                    Awesome Handmade, Shop-5, Soham Arcade, Pal Gam, Surat, Gujarat 395009, India
                   </p>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-[#80a17d]">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-brand-gold">
                     <Phone className="w-4 h-4" />
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-zinc-500">
-                      CONTACT
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-maroon">
+                      PHONE & WHATSAPP
                     </p>
                   </div>
-                  <a
-                    href="tel:+919800000000"
-                    className="block text-sm sm:text-base text-zinc-900 font-sans hover:text-[#80a17d] transition-colors mb-1"
-                  >
-                    +91 98000 00000
-                  </a>
-                  <a
-                    href="mailto:support@aaramly.com"
-                    className="block text-sm sm:text-base text-zinc-900 font-sans hover:text-[#80a17d] transition-colors"
-                  >
-                    support@aaramly.com
+                  <a href="tel:+919824302072" className="text-sm sm:text-base text-brand-maroon font-bold hover:underline">
+                    +91 98243 02072
                   </a>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-[#80a17d]">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-brand-gold">
+                    <Mail className="w-4 h-4" />
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-maroon">
+                      EMAIL ADDRESS
+                    </p>
+                  </div>
+                  <a href="mailto:hello@awesomehandmade.com" className="text-sm sm:text-base text-zinc-900 hover:text-brand-maroon transition-colors">
+                    hello@awesomehandmade.com
+                  </a>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 text-brand-gold">
                     <Clock className="w-4 h-4" />
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-zinc-500">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-maroon">
                       BUSINESS HOURS
                     </p>
                   </div>

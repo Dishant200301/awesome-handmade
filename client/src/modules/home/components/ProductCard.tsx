@@ -24,13 +24,19 @@ export type Product = {
   defaultSku?: string;
 };
 
-export default function ProductCard({ p }: { p: any }) {
+export default function ProductCard(props: { p?: any; [key: string]: any }) {
+  const p = props.p || props;
   const navigate = useNavigate();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { cartItems, addToCart, updateQuantity } = useCart();
   const { openQuickView } = useQuickView();
 
-  const cartItem = cartItems.find((item) => String(item.productId) === String(p.id));
+  if (!p || p.id == null) return null;
+
+  const productId = String(p.id);
+  const cartItem = (cartItems || []).find(
+    (item) => item && (String(item.productId) === productId || String(item.id) === productId)
+  );
   const itemQuantity = cartItem ? cartItem.quantity : 0;
 
   const handleImageClick = (e: React.MouseEvent) => {
@@ -67,8 +73,8 @@ export default function ProductCard({ p }: { p: any }) {
     addToCart({
       productId: String(p.id),
       productName: p.name,
-      brand: p.brand || "AARAMLY",
-      colorName: "Classic Black",
+      brand: p.brand || "Awesome Handmade",
+      colorName: "Standard",
       colorHex: "#000000",
       size: (p.sizes && p.sizes[0]) || "S",
       price: p.price,

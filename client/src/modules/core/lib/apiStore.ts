@@ -1,5 +1,6 @@
 import { ProductDetails, ProductColorVariation } from "@/modules/product/types/product";
 import { SAMPLE_PRODUCT, CLIENT_SHOP_PRODUCTS } from "@/modules/product/data/productData";
+import { categories as CATALOG_CATEGORIES } from "@/data/catalog";
 
 const API_BASE_URL = "http://localhost:5000/api/v1";
 
@@ -7,7 +8,7 @@ const API_BASE_URL = "http://localhost:5000/api/v1";
 type Listener = () => void;
 const listeners: Set<Listener> = new Set();
 
-const DEFAULT_CATALOG_PRODUCTS: any[] = [];
+const DEFAULT_CATALOG_PRODUCTS: any[] = [...CLIENT_SHOP_PRODUCTS];
 
 let liveProducts: any[] = [...DEFAULT_CATALOG_PRODUCTS];
 let isLoaded = false;
@@ -432,7 +433,7 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
     ...SAMPLE_PRODUCT,
     id: found.id,
     type: (found.type as any) || (mappedVariations.length > 1 && mappedVariations[0]?.colorName !== 'Standard' ? 'Variable' : 'Simple'),
-    brand: found.brand || "AARAMLY",
+    brand: found.brand || "Awesome Handmade",
     name: found.name || SAMPLE_PRODUCT.name,
     subtitle: found.subtitle || found.shortDescription || SAMPLE_PRODUCT.subtitle,
     shortDescription: found.shortDescription || found.subtitle || "",
@@ -441,7 +442,7 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
     originalPrice: Number(found.originalPrice) || SAMPLE_PRODUCT.originalPrice,
     rating: Number(found.rating) || 4.8,
     reviewCount: Number(found.reviewCount || found.salesCount) || 120,
-    defaultSku: found.defaultSku || found.sku || "AAR-SKU-100",
+    defaultSku: found.defaultSku || found.sku || "AWH-SKU-100",
     colors: found.colors || [],
     variations: mappedVariations,
     availableSizes: found.availableSizes || (found.sizes ? found.sizes : ["S", "M", "L", "XL"]),
@@ -482,21 +483,20 @@ export const getLiveProductsList = () => {
 
 // DYNAMIC FILTER STORE
 const DEFAULT_FILTER_CONFIG = {
-  categories: [
-    { name: 'BRALETTES', key: 'Bralettes', count: 10 },
-    { name: 'EVERYDAY BRAS', key: 'Everyday Bras', count: 8 },
-    { name: 'SEAMLESS PANTIES', key: 'Seamless Panties', count: 8 },
-    { name: 'SILICONE COVERS', key: 'Accessories', count: 7 },
-    { name: 'CONTOUR SHAPEWEAR', key: 'Shapewear', count: 7 },
-  ],
+  categories: CATALOG_CATEGORIES.map(c => ({
+    name: c.name.toUpperCase(),
+    key: c.name,
+    count: 12,
+  })),
   colors: [
-    { name: 'Black', hex: '#000000' },
-    { name: 'Nude Beige', hex: '#F5F5DC' },
-    { name: 'Classic White', hex: '#FFFFFF' },
-    { name: 'Blush Pink', hex: '#FFB6C1' },
-    { name: 'Dusty Rose', hex: '#D8A7B1' },
+    { name: 'Maroon', hex: '#520618' },
+    { name: 'Royal Gold', hex: '#C89B3C' },
+    { name: 'Emerald Green', hex: '#1A5235' },
+    { name: 'Peacock Blue', hex: '#004F7A' },
+    { name: 'Blush Pink', hex: '#E1306C' },
+    { name: 'Pure White', hex: '#FFFFFF' },
   ],
-  sizes: ['S', 'M', 'L', 'XL', '32B', '34B', '36B', '36C'],
+  sizes: ['Free Size', 'Standard', '2-3 Y', '4-5 Y', '6-7 Y', '8-9 Y', '10-12 Y', 'XS', 'S', 'M', 'L', 'XL'],
   maxPrice: 3000,
 };
 

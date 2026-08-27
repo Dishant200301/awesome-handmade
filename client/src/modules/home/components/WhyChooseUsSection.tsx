@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { FiTruck, FiUsers, FiRotateCcw, FiShield, FiAward } from "react-icons/fi";
+import { FiTruck, FiShield, FiAward, FiHeart, FiPhoneCall } from "react-icons/fi";
 
 const WHY = [
-  { icon: FiTruck, title: "Free Shipping", desc: "Free shipping on orders over INR 1500" },
-  { icon: FiUsers, title: "Support", desc: "Working hours: 9 am to 6pm, Mon to Fri." },
-  { icon: FiRotateCcw, title: "Return Policy", desc: "For detailed returned policy please read our document" },
-  { icon: FiShield, title: "100% Payment Secure", desc: "We ensure secure payment gateway for all our customers" },
-  { icon: FiAward, title: "High Quality", desc: "Designed to stand out, built to last—quality that speaks for itself." },
+  { icon: FiTruck, title: "Free Delivery", desc: "Free delivery on pre-paid orders above ₹999" },
+  { icon: FiHeart, title: "100% Handcrafted", desc: "Authentic Gujarati heritage craft made with love in Surat" },
+  { icon: FiAward, title: "Artisan Quality", desc: "Premium glass mirrors, zari embroidery & anti-tarnish beads" },
+  { icon: FiShield, title: "Secure Checkout", desc: "100% safe & verified payments across all cards & UPI" },
+  { icon: FiPhoneCall, title: "Custom Orders", desc: "Direct WhatsApp support & bespoke bridal customization" },
 ];
 
 export default function WhyChooseUsSection() {
@@ -24,21 +24,18 @@ export default function WhyChooseUsSection() {
   }, []);
 
   return (
-    <section ref={ref} className="bg-[#faf7f2] py-20 md:py-28 border-t border-aaramly-line">
+    <section ref={ref} className="bg-[#FAF8F4] py-16 md:py-24 border-t border-[#EDE5DA]">
       <div className="mx-auto max-w-[1400px] px-5 md:px-8">
         {/* MOBILE & TABLET VIEW (infinite marquee scroll) */}
         <div className="lg:hidden overflow-hidden w-full relative">
           <div className="flex w-max aaramly-marquee gap-6 pb-2">
             {[...WHY, ...WHY].map((w, i) => (
               <div key={i} className="why-card flex flex-col items-center text-center select-none flex-shrink-0 w-[55vw] md:w-[30vw]">
-                {/* Thin outline circle wrapper matching reference image */}
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-zinc-900 text-zinc-950 mb-3 bg-transparent">
-                  <w.icon size={26} strokeWidth={1.2} />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-brand-gold text-brand-maroon mb-3 bg-white shadow-sm">
+                  <w.icon size={24} strokeWidth={1.5} />
                 </div>
-                {/* Elegant serif title */}
-                <h3 className="text-base font-normal tracking-wide text-zinc-950 font-serif mb-1">{w.title}</h3>
-                {/* Small description text */}
-                <p className="text-xs font-normal text-zinc-500 max-w-[200px] leading-relaxed">{w.desc}</p>
+                <h3 className="text-base font-semibold tracking-wide text-brand-ink font-heading mb-1">{w.title}</h3>
+                <p className="text-xs font-normal text-brand-ink/70 max-w-[200px] leading-relaxed">{w.desc}</p>
               </div>
             ))}
           </div>
@@ -47,15 +44,12 @@ export default function WhyChooseUsSection() {
         {/* DESKTOP/LAPTOP GRID VIEW */}
         <div className="hidden lg:grid lg:grid-cols-5 gap-y-12 gap-x-6">
           {WHY.map((w, i) => (
-            <div key={i} className="why-card flex flex-col items-center text-center select-none">
-              {/* Thin outline circle wrapper matching reference image */}
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-zinc-900 text-zinc-950 mb-3 bg-transparent">
-                <w.icon size={26} strokeWidth={1.2} />
+            <div key={i} className="why-card flex flex-col items-center text-center select-none group">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-brand-gold/40 text-brand-maroon mb-3 bg-white shadow-sm group-hover:bg-brand-maroon group-hover:text-white group-hover:border-brand-maroon transition-all duration-300">
+                <w.icon size={24} strokeWidth={1.5} />
               </div>
-              {/* Elegant serif title */}
-              <h3 className="text-base md:text-lg font-normal tracking-wide text-zinc-950 font-serif mb-1">{w.title}</h3>
-              {/* Small description text */}
-              <p className="text-xs md:text-sm font-normal text-zinc-500 max-w-[200px] leading-relaxed">{w.desc}</p>
+              <h3 className="text-base md:text-lg font-bold tracking-wide text-brand-ink font-heading mb-1">{w.title}</h3>
+              <p className="text-xs md:text-sm font-normal text-brand-ink/70 max-w-[200px] leading-relaxed">{w.desc}</p>
             </div>
           ))}
         </div>

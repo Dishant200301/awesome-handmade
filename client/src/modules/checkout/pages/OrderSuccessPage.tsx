@@ -27,7 +27,7 @@ export const OrderSuccessPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const displayOrderId = orderId || order?.orderId || "#AAR-SUCCESS";
+  const displayOrderId = orderId || order?.orderId || "#AWH-SUCCESS";
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans flex flex-col justify-between selection:bg-black selection:text-white">
@@ -46,7 +46,7 @@ export const OrderSuccessPage: React.FC = () => {
                 Order Placed Successfully!
               </h1>
               <p className="text-xs sm:text-sm text-emerald-800 font-medium">
-                Thank you for shopping with AARAMLY. Confirmation details have been sent to your email.
+                Thank you for shopping with Awesome Handmade. Confirmation details have been sent to your email.
               </p>
             </div>
 

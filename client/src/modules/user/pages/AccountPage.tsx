@@ -181,7 +181,7 @@ export const AccountPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight">
-                  {user?.name || "AARAMLY Customer"}
+                  {user?.name || "Awesome Handmade Customer"}
                 </h1>
                 <p className="text-xs text-zinc-500 font-medium">
                   {user?.email} • Member since {user?.memberSince || "2026"}
@@ -305,7 +305,7 @@ export const AccountPage: React.FC = () => {
                     <div className="divide-y divide-zinc-100">
                       {ord.items.map((item: any, idx: number) => {
                         const isObj = typeof item === "object" && item !== null;
-                        const itemName = isObj ? (item.productName || item.name || "AARAMLY Product") : String(item);
+                        const itemName = isObj ? (item.productName || item.name || "Awesome Handmade Product") : String(item);
                         const itemPrice = isObj ? item.price : null;
                         const itemQty = isObj ? item.quantity : 1;
                         const itemImg = isObj ? (item.image || item.thumbnail) : null;

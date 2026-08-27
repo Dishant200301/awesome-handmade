@@ -30,11 +30,16 @@ import {
   subscribeToFilterStore,
 } from "@/modules/core/lib/apiStore";
 
-// Shop Categories for Header Bar (3 Core Categories)
+// Shop Categories for Header Bar
 const shopCategories = [
-  { id: "Bralettes", name: "Bralettes", count: "10 products", img: "https://m.media-amazon.com/images/I/71LtEuQjqXL._SL1500_.jpg" },
-  { id: "Everyday Bras", name: "Everyday Bras", count: "8 products", img: "https://m.media-amazon.com/images/I/71hu9PaEBcL._SL1500_.jpg" },
-  { id: "Seamless Panties", name: "Seamless Panties", count: "8 products", img: "https://m.media-amazon.com/images/I/51yter5yXjL._SL1500_.jpg" },
+  { id: "Latkan", name: "Latkans", count: "12 items", img: "/images/category/Latkan.webp" },
+  { id: "Earrings", name: "Earrings", count: "10 items", img: "/images/category/Earrings.webp" },
+  { id: "Necklace", name: "Necklaces", count: "8 items", img: "/images/category/Necklace.webp" },
+  { id: "Choli", name: "Cholis", count: "6 items", img: "/images/category/Choli.webp" },
+  { id: "Gift Hamper", name: "Gift Hampers", count: "5 items", img: "/images/category/Gift Hamper.webp" },
+  { id: "Waist Belt", name: "Waist Belts", count: "4 items", img: "/images/category/Waist Belt.webp" },
+  { id: "Krishna Outfit", name: "Krishna Outfits", count: "4 items", img: "/images/category/Krishna outfit.webp" },
+  { id: "Tassel", name: "Tassels", count: "6 items", img: "/images/category/Tassel.webp" },
 ];
 
 export default function ShopPage() {
@@ -522,8 +527,8 @@ export default function ShopPage() {
       {/* TOP SHOP BY CATEGORY CIRCLES SECTION */}
       <section className="bg-white pt-10 pb-8 border-b border-zinc-100">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[11px] font-extrabold font-semibold tracking-[0.2em] text-[#80a17d] mb-2">
-            AARAMLY CATEGORIES
+          <p className="text-[11px] font-extrabold font-semibold tracking-[0.2em] text-brand-maroon mb-2">
+            AWESOME HANDMADE CATEGORIES
           </p>
 
           {/* TABLET & LAPTOP/DESKTOP VIEW (>= sm): 3 Columns in 1 Row */}
@@ -789,7 +794,7 @@ export default function ShopPage() {
               <div className="text-center py-16 bg-zinc-50 border border-zinc-200 rounded-2xl p-8 space-y-4">
                 <h3 className="text-lg font-bold text-zinc-900">No products found</h3>
                 <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                  Try adjusting your chosen filters or price range to discover Aaramly products.
+                  Try adjusting your chosen filters or price range to discover Awesome Handmade products.
                 </p>
                 <button
                   type="button"

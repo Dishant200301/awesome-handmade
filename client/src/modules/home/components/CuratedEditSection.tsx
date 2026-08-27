@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperClass } from "swiper";
-import { IMG } from "../lib/aaramly-images";
 
 import "swiper/css";
 
@@ -11,32 +10,32 @@ export default function CuratedEditSection() {
 
   const cards = [
     {
-      price: "399",
-      img: IMG.bralette[0],
-      borderColor: "border-[#e06b47]",
-      textColor: "text-[#e06b47]",
-      lineColor: "bg-[#e06b47]",
+      price: "199",
+      img: "/images/category/Earrings.webp",
+      borderColor: "border-brand-maroon",
+      textColor: "text-brand-maroon",
+      lineColor: "bg-brand-maroon",
     },
     {
-      price: "599",
-      img: IMG.bralette[1],
-      borderColor: "border-[#2e5d4e]",
-      textColor: "text-[#2e5d4e]",
-      lineColor: "bg-[#2e5d4e]",
+      price: "299",
+      img: "/images/category/Latkan.webp",
+      borderColor: "border-brand-gold",
+      textColor: "text-brand-maroon",
+      lineColor: "bg-brand-gold",
     },
     {
-      price: "799",
-      img: IMG.seamless[3],
-      borderColor: "border-[#e06b47]",
-      textColor: "text-[#e06b47]",
-      lineColor: "bg-[#e06b47]",
+      price: "499",
+      img: "/images/category/Necklace.webp",
+      borderColor: "border-brand-maroon",
+      textColor: "text-brand-maroon",
+      lineColor: "bg-brand-maroon",
     },
     {
       price: "999",
-      img: IMG.seamless[1],
-      borderColor: "border-[#2e5d4e]",
-      textColor: "text-[#2e5d4e]",
-      lineColor: "bg-[#2e5d4e]",
+      img: "/images/category/Choli.webp",
+      borderColor: "border-brand-gold",
+      textColor: "text-brand-maroon",
+      lineColor: "bg-brand-gold",
     },
   ];
 

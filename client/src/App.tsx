@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import ProductDetailsPage from "@/modules/product/pages/ProductDetailsPage";
 import ShopPage from "@/modules/product/pages/ShopPage";
+import CollectionPage from "@/modules/product/pages/CollectionPage";
 import HomePage from "@/modules/home/pages/HomePage";
 import WishlistPage from "@/modules/product/pages/WishlistPage";
 import CartPage from "@/modules/product/pages/CartPage";
@@ -43,7 +44,11 @@ export default function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/shop" element={<ShopPage />} />
-                    <Route path="/categories" element={<ShopPage />} />
+                    <Route path="/categories" element={<CollectionPage />} />
+                    <Route path="/collections" element={<CollectionPage />} />
+                    <Route path="/collections/:categorySlug" element={<CollectionPage />} />
+                    <Route path="/collection/:categorySlug" element={<CollectionPage />} />
+                    <Route path="/category/:categorySlug" element={<CollectionPage />} />
                     <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />

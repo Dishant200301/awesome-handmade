@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   User,
@@ -14,8 +13,10 @@ import {
   Mail,
   Sparkles,
 } from "lucide-react";
+import { LOGO, categories } from "@/data/catalog";
 import { useWishlist } from "@/modules/product/context/WishlistContext";
 import { useCart } from "@/modules/product/context/CartContext";
+import { useQuickView } from "@/modules/product/context/QuickViewContext";
 import { useAuth } from "@/modules/core/context/AuthContext";
 import { getLiveProductsList } from "@/modules/core/lib/apiStore";
 
@@ -45,74 +46,56 @@ const YouTubeIcon = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
   </svg>
 );
 
-/* ---------- BRAND LOGO ---------- */
-export function AaramlyLogo({
-  className = "",
-  showText = true,
-  active = true,
-}: {
-  className?: string;
-  showText?: boolean;
-  active?: boolean;
-}) {
-  return (
-    <div className={`flex items-center gap-2 select-none ${className}`}>
-      <img
-        src="/images/home/logo.png"
-        alt="Aaramly Logo"
-        className={`h-7 sm:h-8 md:h-9 w-auto object-contain transition-all duration-300 ${
-          active ? "" : "brightness-0"
-        }`}
-        loading="eager"
-      />
-      {showText && (
-        <img
-          src="/images/home/aaramly_text_logo.png"
-          alt="Aaramly"
-          className={`h-6 sm:h-7 md:h-8 w-auto object-contain transition-all duration-300 ${
-            active ? "" : "brightness-0"
-          }`}
-          loading="eager"
-        />
-      )}
-    </div>
-  );
-}
-
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Shop All", href: "/shop" },
-  { label: "Shop by Categories", mega: true, key: "categories" },
-  { label: "Curated Collections", mega: true, key: "collections" },
-  { label: "Bralettes", href: "/shop?category=Bralettes" },
-  { label: "Everyday Bras", href: "/shop?category=Everyday Bras" },
-  { label: "About Us", href: "/about" },
+  { label: "New Arrivals", href: "#new-arrivals" },
+  { label: "Categories", mega: true, key: "categories", href: "/collections" },
+  { label: "Collections", mega: true, key: "collections", href: "/collections" },
+  { label: "About Us", href: "#about" },
   { label: "Contact", href: "/contact" },
 ];
 
 const announcements = [
-  "Free express delivery on prepaid orders above ₹999",
-  "100% Wire-Free & Zero Skin-Pinching Comfort Guarantee",
-  "Extra 15% OFF your first order with code: AARAMLY15",
-  "Try Risk-Free 30-Day Easy Exchanges & Returns",
+  "✨ Free Delivery on pre-paid orders above ₹999",
+  "🪡 100% Handcrafted Indian Heritage Craft | Surat, Gujarat",
+  "🎁 Use Code FESTIVE10 for 10% OFF on all handmade latkans",
+  "🌸 Special Navratri & Wedding Collection Live!",
 ];
 
+export function AaramlyLogo({ className = "h-9 w-9" }: { className?: string }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <img
+        src={LOGO}
+        alt="Awesome Handmade"
+        className={`${className} rounded-full object-cover shadow-sm border border-brand-gold/30`}
+      />
+      <div className="leading-none text-left">
+        <span className="block font-heading text-base sm:text-lg font-bold tracking-tight text-brand-ink">
+          Awesome <span className="text-brand-maroon">Handmade</span>
+        </span>
+        <span className="text-[9px] tracking-widest text-brand-gold uppercase font-medium">Surat, India</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const { wishlistCount } = useWishlist();
+  const { totalItemsCount, setIsCartOpen } = useCart();
+  const { openQuickView } = useQuickView();
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  const [open, setOpen] = useState(false);
   const [openMega, setOpenMega] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
-  const [scrolled, setScrolled] = useState(false);
+  const [mobileCatExpanded, setMobileCatExpanded] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const [announcementIndex, setAnnouncementIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const megaTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const { wishlistCount } = useWishlist();
-  const { totalItemsCount, totalPrice, setIsCartOpen } = useCart();
-  const { isLoggedIn, user, openAuthModal } = useAuth();
-  const firstName = user?.name ? user.name.split(" ")[0] : "Account";
   const allProducts = getLiveProductsList();
 
   useEffect(() => {
@@ -127,28 +110,22 @@ export default function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Close overlays on navigation
   useEffect(() => {
-    setMobileOpen(false);
-    setOpenMega(null);
-  }, [pathname]);
-
-  // Lock body scroll when mobile drawer is open
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [open]);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 25) {
-        setScrolled(true);
+      if (window.scrollY > 35) {
+        setIsScrolled(true);
       } else {
-        setScrolled(false);
+        setIsScrolled(false);
       }
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -164,11 +141,36 @@ export default function Navbar() {
     }, 150);
   };
 
-  const handleAccountClick = () => {
-    if (!isLoggedIn) {
-      openAuthModal();
+  // Smooth Scroll & Navigation Helper
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href?: string) => {
+    if (!href) return;
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      setOpen(false);
+      setOpenMega(null);
+
+      if (href === "#home" || href === "#") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      const targetId = href.replace("#", "");
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        const headerOffset = 90;
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
     } else {
-      navigate("/account");
+      e.preventDefault();
+      setOpen(false);
+      setOpenMega(null);
+      navigate(href);
     }
   };
 
@@ -176,346 +178,203 @@ export default function Navbar() {
     ? []
     : allProducts.filter(p =>
         (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.category || "").toLowerCase().includes(searchQuery.toLowerCase())
+        (p.category || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (String(p.id) || "").toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 6);
 
   return (
     <>
-      {/* 1. Top Announcement Bar */}
-      <div className="w-full bg-[#1A1A1A] text-white select-none relative z-50">
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between px-3 sm:px-6 py-2 min-h-[36px] gap-2">
-          <div className="flex-1 text-left overflow-hidden">
-            <p className={`text-[11px] font-medium tracking-wide sm:text-xs text-white transition-all duration-300 transform truncate sm:whitespace-normal ${
-              isFading ? "opacity-0 -translate-y-1" : "opacity-100 translate-y-0"
-            }`}>
-              {announcements[announcementIndex]}
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 sm:gap-2.5 text-white/80 shrink-0">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10 hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <FacebookIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </a>
-            <a
-              href="https://www.instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10 hover:bg-[#E1306C] hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <InstagramIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </a>
-            <a
-              href="https://wa.me/919824302072"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp"
-              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10 hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <WhatsAppIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="YouTube"
-              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10 hover:bg-[#FF0000] hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <YouTubeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </a>
-          </div>
+      {/* 1. Announcement bar with smooth infinite right-to-left marquee loop */}
+      <div className="w-full bg-[#1A1A1A] text-white select-none overflow-hidden py-2 border-b border-white/5">
+        <div className="animate-announcement-marquee flex items-center gap-10 whitespace-nowrap">
+          {[...announcements, ...announcements, ...announcements, ...announcements].map((text, idx) => (
+            <div key={idx} className="flex items-center gap-10 text-[11px] sm:text-xs font-medium tracking-wider uppercase text-white/90">
+              <span>{text}</span>
+              <span className="text-brand-gold text-xs">✦</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 2. Main Sticky Header with Solid Luxury Styling */}
-      <header
-        className={`sticky top-0 z-40 w-full bg-white transition-all duration-300 ${
-          scrolled ? "shadow-md border-b border-zinc-200" : "shadow-xs border-b border-zinc-100"
-        }`}
-      >
-        <div className="bg-white">
-          <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      {/* 2. Main Sticky Navbar */}
+      <header className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 ${
+        isScrolled ? "shadow-md border-b border-[#EDE5DA]" : "shadow-sm border-b border-gray-100"
+      }`}>
+        <div className="bg-white relative">
+          <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 sm:px-6 py-3">
             
-            {/* Left: Contact Info (Desktop >= 1130px) */}
-            <div className="hidden flex-1 items-center gap-4 text-xs font-medium text-zinc-600 min-[1130px]:flex">
-              <a href="tel:+919824302072" className="inline-flex items-center gap-1.5 hover:text-[#80a17d] transition-colors">
-                <Phone className="h-4 w-4 text-[#80a17d] stroke-[1.5] shrink-0" /> +91 98243 02072
-              </a>
-              <a href="mailto:hello@aaramly.com" className="inline-flex items-center gap-1.5 hover:text-[#80a17d] transition-colors">
-                <Mail className="h-4 w-4 text-[#80a17d] stroke-[1.5] shrink-0" /> hello@aaramly.com
+            {/* LEFT: Brand Logo & Text (ALL DEVICES) */}
+            <div className="flex shrink-0 items-center xl:flex-1 xl:justify-start">
+              <a
+                href="#home"
+                onClick={(e) => handleNavClick(e, "#home")}
+                className="flex items-center gap-2.5 group"
+              >
+                <img
+                  src={LOGO}
+                  alt="Awesome Handmade"
+                  className="h-9 w-9 sm:h-10 sm:w-10 min-[1024px]:h-11 min-[1024px]:w-11 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform border border-brand-gold/30 shrink-0"
+                />
+                <div className="leading-none text-left">
+                  <span className="block font-heading text-base sm:text-lg min-[1024px]:text-xl font-bold tracking-tight text-brand-ink whitespace-nowrap">
+                    Awesome <span className="text-brand-maroon">Handmade</span>
+                  </span>
+                </div>
               </a>
             </div>
 
-            {/* Center / Left: Logo */}
-            <Link
-              to="/"
-              className="flex shrink-0 items-center gap-2.5 min-[1130px]:flex-1 min-[1130px]:justify-center group"
-            >
-              <AaramlyLogo active={true} />
-            </Link>
-
-            {/* Right: Search & Action Icons */}
-            <div className="flex flex-1 items-center justify-end gap-2 min-[1130px]:gap-3 text-zinc-800">
-              
-              {/* Desktop Pill Search Bar */}
-              <div className="relative hidden min-[1130px]:block w-48 xl:w-56">
-                <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-800 transition focus-within:border-[#80a17d] focus-within:bg-white focus-within:ring-1 focus-within:ring-[#80a17d]/20">
-                  <Search className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search Aaramly..."
-                    className="w-full bg-transparent outline-none placeholder:text-zinc-400 text-zinc-800 text-xs"
-                  />
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} aria-label="Clear search">
-                      <X className="h-3 w-3 text-zinc-400 hover:text-zinc-700" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Inline Search Autocomplete Dropdown */}
-                {searchQuery.trim() !== "" && (
-                  <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-zinc-200 bg-white p-3 shadow-2xl z-50 animate-fade-slide-down">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-                      Matching Products ({searchResults.length})
-                    </p>
-                    {searchResults.length === 0 ? (
-                      <p className="text-xs text-zinc-500 py-2 text-center">No products found</p>
-                    ) : (
-                      <div className="space-y-1.5 max-h-64 overflow-y-auto">
-                        {searchResults.map((prod) => (
-                          <Link
-                            key={prod.id}
-                            to={`/product/${prod.id}`}
-                            onClick={() => setSearchQuery("")}
-                            className="flex items-center justify-between p-1.5 rounded-lg hover:bg-zinc-50 cursor-pointer transition-colors"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <img
-                                src={prod.image || (prod.images && prod.images[0]) || "/images/home/sports_bra.png"}
-                                alt={prod.name}
-                                className="h-9 w-9 rounded-md object-cover shrink-0"
-                              />
-                              <div className="text-left">
-                                <p className="text-xs font-medium text-zinc-900 truncate max-w-[150px]">{prod.name}</p>
-                                <p className="text-[11px] font-bold text-[#80a17d]">₹{prod.price}</p>
-                              </div>
-                            </div>
-                            <span className="text-[11px] font-bold text-[#80a17d] hover:underline">+ View</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop User / Account Icon */}
-              <button
-                onClick={handleAccountClick}
-                aria-label="Account"
-                className="hidden min-[1130px]:flex items-center gap-1.5 h-9 px-2 rounded-full text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
-                title={isLoggedIn ? `Logged in as ${user?.name || "User"}` : "Sign In / Register"}
+            {/* NAV LINKS: Right-aligned on Laptop (1024px-1279px), Centered on Desktop (>= 1280px) */}
+            <nav className="hidden min-[1024px]:flex flex-1 items-center justify-end xl:flex-initial xl:justify-center">
+              <ul
+                className="flex items-center justify-end xl:justify-center gap-5 xl:gap-8 text-sm font-medium text-brand-ink"
+                onMouseLeave={handleMegaLeave}
               >
-                <User className="h-4.5 w-4.5 stroke-[1.5]" />
-                {isLoggedIn && (
-                  <span className="text-xs font-bold text-zinc-900 max-w-[90px] truncate">
-                    {firstName}
-                  </span>
-                )}
-              </button>
+                {navLinks.map((link) => (
+                  <li
+                    key={link.label}
+                    className="relative py-1"
+                    onMouseEnter={() => link.mega ? handleMegaEnter(link.key) : handleMegaLeave()}
+                  >
+                    <a
+                      href={link.href || "#"}
+                      onClick={(e) => handleNavClick(e, link.href)}
+                      className={`inline-flex items-center gap-1.5 py-1 transition ${
+                        openMega === link.key
+                          ? "text-brand-maroon font-semibold border-b-2 border-brand-maroon pb-0.5"
+                          : "hover:text-brand-maroon"
+                      }`}
+                    >
+                      <span>{link.label}</span>
+                      {link.mega && (
+                        <ChevronDown
+                          className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                            openMega === link.key ? "rotate-180 text-brand-maroon" : "text-brand-gold"
+                          }`}
+                        />
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-              {/* Wishlist Button with Badge */}
-              <Link
-                to="/wishlist"
-                aria-label="Wishlist"
-                className="relative grid h-9 w-9 place-items-center rounded-full text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
-                title="My Wishlist"
-              >
-                <Heart className="h-4.5 w-4.5 stroke-[1.5] text-[#D84A6B]" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[16px] px-1 place-items-center rounded-full text-[10px] font-bold text-white bg-[#D84A6B] shadow-xs">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* Cart Button with Total & Badge */}
+            {/* RIGHT: Mobile Menu / Desktop Balance Spacer */}
+            <div className="flex items-center justify-end min-[1024px]:hidden xl:flex xl:flex-1">
               <button
                 type="button"
-                onClick={() => setIsCartOpen(true)}
-                aria-label="Cart"
-                className="relative flex items-center gap-1.5 h-9 px-2.5 rounded-full text-zinc-800 hover:bg-zinc-100 transition cursor-pointer"
-              >
-                <ShoppingBag className="h-4.5 w-4.5 stroke-[1.5] text-[#2e5d4e]" />
-                {totalItemsCount > 0 && (
-                  <span className="grid h-4 min-w-[16px] px-1 place-items-center rounded-full text-[10px] font-bold text-white bg-[#2e5d4e] shadow-xs">
-                    {totalItemsCount}
-                  </span>
-                )}
-                {totalPrice > 0 && (
-                  <span className="hidden xl:inline text-xs font-bold text-zinc-900 ml-0.5">
-                    ₹{totalPrice.toLocaleString("en-IN")}
-                  </span>
-                )}
-              </button>
-
-              {/* Mobile & Tablet Hamburger Menu Toggle (< 1130px) */}
-              <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
+                onClick={() => setOpen(true)}
                 aria-label="Open menu"
-                className="grid h-9 w-9 place-items-center rounded-full text-zinc-800 hover:bg-zinc-100 transition min-[1130px]:hidden cursor-pointer"
+                className="grid h-9 w-9 place-items-center rounded-full text-brand-ink transition hover:bg-brand-cream min-[1024px]:hidden cursor-pointer"
               >
                 <Menu className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          {/* Desktop Navigation Links & Mega Dropdowns (>= 1130px) */}
-          <nav className="hidden border-t border-zinc-100 bg-white min-[1130px]:block relative">
-            <ul
-              className="mx-auto flex max-w-[1500px] items-center justify-center gap-8 px-6 py-2.5 text-sm font-medium text-zinc-700 bg-white"
+          {/* Mega Menu Dropdown: Categories (Laptop & Desktop) */}
+          {openMega === "categories" && (
+            <div
+              className="hidden min-[1024px]:block absolute left-0 right-0 top-full w-full bg-white border-t border-b border-[#EDE5DA] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.16)] animate-fade-slide-down z-50"
+              onMouseEnter={() => handleMegaEnter("categories")}
               onMouseLeave={handleMegaLeave}
             >
-              {navLinks.map((link) => (
-                <li
-                  key={link.label}
-                  className="relative py-1"
-                  onMouseEnter={() => link.mega ? handleMegaEnter(link.key) : handleMegaLeave()}
-                >
-                  <Link
-                    to={link.href || "#"}
-                    className={`inline-flex items-center gap-1.5 py-1 transition ${
-                      pathname === link.href || openMega === link.key
-                        ? "text-[#2e5d4e] font-semibold border-b-2 border-[#2e5d4e] pb-0.5"
-                        : "hover:text-[#2e5d4e]"
-                    }`}
-                  >
-                    <span>{link.label}</span>
-                    {link.mega && (
-                      <ChevronDown
-                        className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                          openMega === link.key ? "rotate-180 text-[#2e5d4e]" : "text-zinc-400"
-                        }`}
-                      />
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* Mega Menu Dropdown: Categories */}
-            {openMega === "categories" && (
-              <div
-                className="absolute left-0 right-0 top-full w-full bg-white border-t border-b border-zinc-200 shadow-2xl animate-fade-slide-down z-50"
-                onMouseEnter={() => handleMegaEnter("categories")}
-                onMouseLeave={handleMegaLeave}
-              >
-                <div className="mx-auto max-w-[1500px] px-8 py-8 bg-white">
+              <div className="mx-auto max-w-[1500px] px-8 py-8 bg-white">
                   <div className="grid grid-cols-12 gap-8 items-start">
                     
                     {/* Left: 3 Columns of Categories (Col Span 7) */}
                     <div className="col-span-7 grid grid-cols-3 gap-8">
-                      {/* Col 1: Everyday & Bras */}
+                      {/* Col 1: Jewellery */}
                       <div className="space-y-2.5">
-                        <h4 className="font-bold text-sm text-[#2e5d4e] tracking-tight flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#80a17d]" /> Bras & Intimates
+                        <h4 className="font-bold text-sm text-brand-maroon tracking-tight flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> Jewellery
                         </h4>
-                        <ul className="space-y-2 text-xs text-zinc-600">
+                        <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/shop?category=Everyday Bras" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Everyday Wirefree Bras
+                            <Link to="/collections/earrings" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Earrings & Jhumkas
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Bralettes" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Lace & Cotton Bralettes
+                            <Link to="/collections/jewellery-set" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Bridal Jewellery Set
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Sports Bra" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Active Sports Bras
+                            <Link to="/collections/necklace" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Mirror Necklaces
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=T-Shirt Bra" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Seamless T-Shirt Bras
+                            <Link to="/collections/bracelet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Handmade Bracelets
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Zero-Feel" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Zero-Feel Comfort Bra
+                            <Link to="/collections/anklet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Anklets & Payal
                             </Link>
                           </li>
                         </ul>
                       </div>
 
-                      {/* Col 2: Shapewear & Bottoms */}
+                      {/* Col 2: Festive & Latkans */}
                       <div className="space-y-2.5">
-                        <h4 className="font-bold text-sm text-[#2e5d4e] tracking-tight flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#80a17d]" /> Shapewear & Bottoms
+                        <h4 className="font-bold text-sm text-brand-maroon tracking-tight flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> Festive & Latkans
                         </h4>
-                        <ul className="space-y-2 text-xs text-zinc-600">
+                        <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/shop?category=Shapewear" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Seamless Body Shapewear
+                            <Link to="/collections/choli" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Navratri Choli Set
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Panties" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Breathable Pure Cotton Panties
+                            <Link to="/collections/latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Bridal Mirror Latkans
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Period Panty" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Leak-Proof Period Panties
+                            <Link to="/collections/latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Blouse & Lehenga Latkans
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Innerwear Top" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Camisoles & Innerwear Tops
+                            <Link to="/collections/tassel" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Colourful Long Tassels
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Athleisure" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Athleisure Lounge Sets
+                            <Link to="/collections/krishna-outfit" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Krishna Outfits
                             </Link>
                           </li>
                         </ul>
                       </div>
 
-                      {/* Col 3: Accessories */}
+                      {/* Col 3: Gifts & Accessories */}
                       <div className="space-y-2.5">
-                        <h4 className="font-bold text-sm text-[#2e5d4e] tracking-tight flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#80a17d]" /> Accessories & Care
+                        <h4 className="font-bold text-sm text-brand-maroon tracking-tight flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> Gifts & More
                         </h4>
-                        <ul className="space-y-2 text-xs text-zinc-600">
+                        <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/shop?category=Accessories" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Silicone Nipple Covers
+                            <Link to="/collections/gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Gift Hampers & Boxes
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Accessories" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Invisible Backless Solutions
+                            <Link to="/collections/gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Macrame Keychains
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Accessories" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Delicate Bra Wash Bags
+                            <Link to="/collections/hair-accessories" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Hair Bows & Clips
                             </Link>
                           </li>
                           <li>
-                            <Link to="/shop?category=Accessories" className="hover:text-[#2e5d4e] hover:translate-x-1 inline-block transition-transform">
-                              Soft Extenders & Straps
+                            <Link to="/collections/waist-belt" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                              Mirror Waist Belts
                             </Link>
                           </li>
                         </ul>
@@ -525,52 +384,55 @@ export default function Navbar() {
                     {/* Right: 3 Visual Highlight Cards (Col Span 5) */}
                     <div className="col-span-5 grid grid-cols-3 gap-4">
                       <Link
-                        to="/shop?category=Sports Bra"
-                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-[#FAF8F4] border border-zinc-100"
+                        to="/collections/earrings"
+                        onClick={() => setOpenMega(null)}
+                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
                         <img
-                          src="/images/home/sports_bra.png"
-                          alt="Sports Bra"
+                          src="/images/category/Earrings.webp"
+                          alt="Earrings"
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                         <div className="absolute bottom-3 left-2 right-2">
-                          <div className="w-full py-2 px-1 bg-white text-zinc-900 font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-zinc-100 group-hover:bg-[#2e5d4e] group-hover:text-white transition-colors">
-                            Sports Bra
+                          <div className="w-full py-2 px-1 bg-white text-[#1A1A1A] font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-gray-100 group-hover:bg-brand-maroon group-hover:text-white transition-colors">
+                            Earrings
                           </div>
                         </div>
                       </Link>
 
                       <Link
-                        to="/shop?category=Panties"
-                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-[#FAF8F4] border border-zinc-100"
+                        to="/collections/choli"
+                        onClick={() => setOpenMega(null)}
+                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
                         <img
-                          src="/images/home/panties.png"
-                          alt="Cotton Panties"
+                          src="/images/category/Choli.webp"
+                          alt="Navratri Choli"
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                         <div className="absolute bottom-3 left-2 right-2">
-                          <div className="w-full py-2 px-1 bg-white text-zinc-900 font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-zinc-100 group-hover:bg-[#2e5d4e] group-hover:text-white transition-colors">
-                            Panties
+                          <div className="w-full py-2 px-1 bg-white text-[#1A1A1A] font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-gray-100 group-hover:bg-brand-maroon group-hover:text-white transition-colors">
+                            Choli Set
                           </div>
                         </div>
                       </Link>
 
                       <Link
-                        to="/shop?category=Shapewear"
-                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-[#FAF8F4] border border-zinc-100"
+                        to="/collections/latkan"
+                        onClick={() => setOpenMega(null)}
+                        className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
                         <img
-                          src="/images/home/shapewear.png"
-                          alt="Shapewear"
+                          src="/images/category/Latkan.webp"
+                          alt="Latkan"
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                         <div className="absolute bottom-3 left-2 right-2">
-                          <div className="w-full py-2 px-1 bg-white text-zinc-900 font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-zinc-100 group-hover:bg-[#2e5d4e] group-hover:text-white transition-colors">
-                            Shapewear
+                          <div className="w-full py-2 px-1 bg-white text-[#1A1A1A] font-bold text-[11px] leading-tight text-center rounded-xl shadow-md border border-gray-100 group-hover:bg-brand-maroon group-hover:text-white transition-colors">
+                            Latkans
                           </div>
                         </div>
                       </Link>
@@ -581,268 +443,270 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Mega Menu Dropdown: Curated Collections */}
+            {/* Mega Menu Dropdown: Collections */}
             {openMega === "collections" && (
               <div
-                className="absolute left-0 right-0 top-full w-full bg-white border-t border-b border-zinc-200 shadow-2xl animate-fade-slide-down z-50"
+                className="hidden min-[1024px]:block absolute left-0 right-0 top-full w-full bg-white border-t border-b border-[#EDE5DA] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.16)] animate-fade-slide-down z-50"
                 onMouseEnter={() => handleMegaEnter("collections")}
                 onMouseLeave={handleMegaLeave}
               >
                 <div className="mx-auto max-w-[1500px] px-8 py-8 bg-white">
                   <div className="grid grid-cols-4 gap-6">
                     <Link
-                      to="/shop?category=Everyday Bras"
+                      to="/collections/jewellery-set"
+                      onClick={() => setOpenMega(null)}
                       className="group relative overflow-hidden rounded-2xl aspect-[4/3] block shadow-md hover:shadow-xl transition-all duration-300"
                     >
-                      <img src="/images/home/hero/hero-1.png" alt="Zero Feel Everyday" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      <img src="/images/hero_twirl_tradition.jpg" alt="Bridal & Festive" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <span className="font-bold text-sm block">Zero-Feel Everyday Collection</span>
-                        <p className="text-[11px] text-white/80">Invisible & ultra-soft wirefree fit</p>
+                        <span className="font-heading font-bold text-sm block">Festive & Bridal Collection</span>
+                        <p className="text-[11px] text-white/80">Handcrafted grandeur</p>
                       </div>
                     </Link>
-
                     <Link
-                      to="/shop?category=Bralettes"
+                      to="/collections/latkan"
+                      onClick={() => setOpenMega(null)}
                       className="group relative overflow-hidden rounded-2xl aspect-[4/3] block shadow-md hover:shadow-xl transition-all duration-300"
                     >
-                      <img src="/images/home/hero/hero-2.png" alt="Lace Bralette Studio" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      <img src="/images/category/Latkan.webp" alt="Latkan Collection" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <span className="font-bold text-sm block">Signature Lace Bralette Studio</span>
-                        <p className="text-[11px] text-white/80">Support without the poke</p>
+                        <span className="font-heading font-bold text-sm block">Mirror Latkan Studio</span>
+                        <p className="text-[11px] text-white/80">Intricate royal tasseling</p>
                       </div>
                     </Link>
-
                     <Link
-                      to="/shop?category=Athleisure"
+                      to="/collections/choli"
+                      onClick={() => setOpenMega(null)}
                       className="group relative overflow-hidden rounded-2xl aspect-[4/3] block shadow-md hover:shadow-xl transition-all duration-300"
                     >
-                      <img src="/images/home/athleisure.png" alt="Active Athleisure" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      <img src="/images/category/Choli.webp" alt="Choli Collection" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <span className="font-bold text-sm block">Active Comfort & Athleisure</span>
-                        <p className="text-[11px] text-white/80">Flexibility for every movement</p>
+                        <span className="font-heading font-bold text-sm block">Navratri Choli & Attire</span>
+                        <p className="text-[11px] text-white/80">Vibrant Gujarati craft</p>
                       </div>
                     </Link>
-
                     <Link
-                      to="/shop?category=Accessories"
+                      to="/collections/macrame-hanging"
+                      onClick={() => setOpenMega(null)}
                       className="group relative overflow-hidden rounded-2xl aspect-[4/3] block shadow-md hover:shadow-xl transition-all duration-300"
                     >
-                      <img src="/images/home/hero/hero-3.png" alt="Invisible Silicone" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      <img src="/images/grace_every_thread.jpg" alt="Macrame & Crafts" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <span className="font-bold text-sm block">Silicone & Backless Solutions</span>
-                        <p className="text-[11px] text-white/80">Seamless confidence all day</p>
+                        <span className="font-heading font-bold text-sm block">Mother & Daughter Edit</span>
+                        <p className="text-[11px] text-white/80">Matching festive wear</p>
                       </div>
                     </Link>
                   </div>
                 </div>
               </div>
             )}
-          </nav>
         </div>
       </header>
 
-      {/* 3. Mobile Slide-in Left Drawer (< 1130px) */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 min-[1130px]:hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
-              onClick={() => setMobileOpen(false)}
-            />
+      {/* Mobile & Tablet Slide-in Drawer */}
+      <div className={`min-[1130px]:hidden ${open ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div
+          className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          className={`fixed left-0 top-0 z-50 h-full w-[86%] max-w-sm overflow-y-auto bg-white shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 bg-[#FAF8F4]">
+            <div className="flex items-center gap-2">
+              <img src={LOGO} alt="Awesome Handmade" className="h-9 w-9 rounded-full object-cover shadow-sm border border-brand-gold/30" />
+              <span className="font-heading text-base font-bold text-brand-ink">Awesome <span className="text-brand-maroon">Handmade</span></span>
+            </div>
+            <button onClick={() => setOpen(false)} aria-label="Close menu" className="grid h-9 w-9 place-items-center rounded-full hover:bg-gray-200 cursor-pointer">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute left-0 top-0 h-full w-[86%] max-w-sm bg-white shadow-2xl flex flex-col justify-between overflow-y-auto"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4 bg-[#FAF8F4]">
-                  <AaramlyLogo active={true} />
+          {/* Mobile Search Bar inside Drawer */}
+          <div className="p-3 border-b border-black/5 bg-[#FAF8F4]">
+            <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-xs text-brand-ink">
+              <Search className="h-3.5 w-3.5 text-brand-ink/40 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search jewellery, latkans, cholis..."
+                className="w-full bg-transparent outline-none placeholder:text-brand-ink/40 text-brand-ink text-xs"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")}>
+                  <X className="h-3 w-3 text-brand-ink/40 hover:text-brand-maroon" />
+                </button>
+              )}
+            </div>
+            {/* Drawer Search Results */}
+            {searchQuery.trim() !== "" && (
+              <div className="mt-2 max-h-52 overflow-y-auto space-y-1.5 bg-white p-2 rounded-xl border border-gray-100 shadow-inner">
+                {searchResults.length === 0 ? (
+                  <p className="text-xs text-gray-500 py-1 text-center">No products found</p>
+                ) : (
+                  searchResults.map((prod) => (
+                    <div
+                      key={prod.id}
+                      className="flex items-center justify-between p-1.5 rounded-lg hover:bg-brand-cream cursor-pointer"
+                      onClick={() => {
+                        openQuickView(prod.id);
+                        setOpen(false);
+                        setSearchQuery("");
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <img src={prod.image || (prod.images && prod.images[0]) || "/images/category/Gift Hamper.webp"} alt={prod.name} className="h-8 w-8 rounded object-cover" />
+                        <div>
+                          <p className="text-xs font-medium text-brand-ink truncate max-w-[140px]">{prod.name}</p>
+                          <p className="text-[10px] font-bold text-brand-maroon">₹{prod.price}</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-bold text-brand-maroon">+ View</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Links Accordion */}
+          <ul className="px-2 py-2 text-sm font-medium text-brand-ink bg-white">
+            {navLinks.map((link) =>
+              link.mega ? (
+                <li key={link.label} className="border-b border-black/5">
                   <button
                     type="button"
-                    aria-label="Close menu"
-                    onClick={() => setMobileOpen(false)}
-                    className="p-1 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+                    onClick={() => setMobileExpanded((v) => (v === link.key ? null : link.key))}
+                    className="flex w-full items-center justify-between px-3 py-3 hover:text-brand-maroon"
                   >
-                    <X className="h-6 w-6 stroke-[1.5]" />
+                    <span>{link.label}</span>
+                    <ChevronDown className={`h-4 w-4 text-brand-gold transition-transform ${mobileExpanded === link.key ? "rotate-180" : ""}`} />
                   </button>
-                </div>
-
-                {/* Mobile Search Input */}
-                <div className="p-3 border-b border-zinc-100 bg-[#FAF8F4]">
-                  <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">
-                    <Search className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search Aaramly..."
-                      className="w-full bg-transparent outline-none placeholder:text-zinc-400 text-zinc-800 text-xs"
-                    />
-                    {searchQuery && (
-                      <button onClick={() => setSearchQuery("")}>
-                        <X className="h-3 w-3 text-zinc-400 hover:text-zinc-700" />
-                      </button>
-                    )}
-                  </div>
-
-                  {searchQuery.trim() !== "" && (
-                    <div className="mt-2 max-h-52 overflow-y-auto space-y-1.5 bg-white p-2 rounded-xl border border-zinc-200 shadow-inner">
-                      {searchResults.length === 0 ? (
-                        <p className="text-xs text-zinc-500 py-1 text-center">No products found</p>
-                      ) : (
-                        searchResults.map((prod) => (
-                          <Link
-                            key={prod.id}
-                            to={`/product/${prod.id}`}
-                            onClick={() => {
-                              setMobileOpen(false);
-                              setSearchQuery("");
-                            }}
-                            className="flex items-center justify-between p-1.5 rounded-lg hover:bg-zinc-50 cursor-pointer"
-                          >
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={prod.image || (prod.images && prod.images[0]) || "/images/home/sports_bra.png"}
-                                alt={prod.name}
-                                className="h-8 w-8 rounded object-cover"
-                              />
-                              <div>
-                                <p className="text-xs font-medium text-zinc-900 truncate max-w-[140px]">{prod.name}</p>
-                                <p className="text-[10px] font-bold text-[#80a17d]">₹{prod.price}</p>
-                              </div>
-                            </div>
-                            <span className="text-[11px] font-bold text-[#80a17d]">+ View</span>
-                          </Link>
-                        ))
-                      )}
+                  {mobileExpanded === link.key && (
+                    <div className="pb-2 pl-3 animate-fade-slide-down border-l-2 border-brand-gold/30 ml-3 mb-2">
+                      {categories.map((cat) => (
+                        <div key={cat.slug} className="border-b border-black/5 last:border-0">
+                          <div className="flex items-center justify-between">
+                            <Link
+                              to={`/collections/${cat.slug}`}
+                              onClick={() => setOpen(false)}
+                              className="flex-1 py-2.5 text-left text-xs font-semibold text-brand-ink hover:text-brand-maroon transition-colors"
+                            >
+                              {cat.name}
+                            </Link>
+                            {cat.subs.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setMobileCatExpanded((v) => (v === cat.slug ? null : cat.slug))}
+                                className="p-2 text-gray-400 hover:text-brand-maroon"
+                                aria-label={`Expand ${cat.name}`}
+                              >
+                                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${mobileCatExpanded === cat.slug ? "rotate-90 text-brand-maroon" : ""}`} />
+                              </button>
+                            )}
+                          </div>
+                          {cat.subs.length > 0 && mobileCatExpanded === cat.slug && (
+                            <ul className="pl-4 pb-2 space-y-1 animate-fade-slide-down">
+                              <li key="all">
+                                <Link
+                                  to={`/collections/${cat.slug}`}
+                                  onClick={() => setOpen(false)}
+                                  className="block px-2 py-1 text-xs font-semibold text-brand-maroon hover:underline"
+                                >
+                                  • View All {cat.name}
+                                </Link>
+                              </li>
+                              {cat.subs.map((s) => (
+                                <li key={s.slug}>
+                                  <Link
+                                    to={`/collections/${cat.slug}?sub=${s.slug}`}
+                                    onClick={() => setOpen(false)}
+                                    className="block px-2 py-1 text-xs text-brand-ink/70 hover:text-brand-maroon"
+                                  >
+                                    • {s.name}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
-                </div>
+                </li>
+              ) : (
+                <li key={link.label} className="border-b border-black/5">
+                  <a
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    className="block px-3 py-3 hover:text-brand-maroon"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              )
+            )}
+            
+            {/* Wishlist Link in Mobile */}
+            <li className="border-b border-black/5">
+              <a
+                href="/wishlist"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center justify-between px-3 py-3 hover:text-brand-maroon text-left"
+              >
+                <span className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-[#D84A6B]" /> Wishlist
+                </span>
+                {wishlistCount > 0 && (
+                  <span className="rounded-full bg-[#D84A6B] px-2 py-0.5 text-[10px] font-bold text-white">
+                    {wishlistCount}
+                  </span>
+                )}
+              </a>
+            </li>
 
-                {/* Mobile Links */}
-                <ul className="px-2 py-2 text-sm font-medium text-zinc-800 bg-white">
-                  {navLinks.map((link) =>
-                    link.mega ? (
-                      <li key={link.label} className="border-b border-zinc-100">
-                        <button
-                          type="button"
-                          onClick={() => setMobileExpanded((v) => (v === link.key ? null : link.key))}
-                          className="flex w-full items-center justify-between px-3 py-3 hover:text-[#2e5d4e]"
-                        >
-                          <span>{link.label}</span>
-                          <ChevronDown className={`h-4 w-4 text-[#80a17d] transition-transform ${mobileExpanded === link.key ? "rotate-180" : ""}`} />
-                        </button>
-                        {mobileExpanded === link.key && (
-                          <div className="pb-2 pl-4 animate-fade-slide-down border-l-2 border-[#80a17d]/40 ml-3 mb-2 space-y-1.5 text-xs text-zinc-600">
-                            <Link to="/shop?category=Everyday Bras" onClick={() => setMobileOpen(false)} className="block py-1 hover:text-[#2e5d4e]">
-                              • Everyday Wirefree Bras
-                            </Link>
-                            <Link to="/shop?category=Bralettes" onClick={() => setMobileOpen(false)} className="block py-1 hover:text-[#2e5d4e]">
-                              • Lace & Cotton Bralettes
-                            </Link>
-                            <Link to="/shop?category=Shapewear" onClick={() => setMobileOpen(false)} className="block py-1 hover:text-[#2e5d4e]">
-                              • Seamless Body Shapewear
-                            </Link>
-                            <Link to="/shop?category=Panties" onClick={() => setMobileOpen(false)} className="block py-1 hover:text-[#2e5d4e]">
-                              • Pure Cotton Panties
-                            </Link>
-                            <Link to="/shop?category=Accessories" onClick={() => setMobileOpen(false)} className="block py-1 hover:text-[#2e5d4e]">
-                              • Silicone Covers & Accessories
-                            </Link>
-                          </div>
-                        )}
-                      </li>
-                    ) : (
-                      <li key={link.label} className="border-b border-zinc-100">
-                        <Link
-                          to={link.href}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-3 hover:text-[#2e5d4e]"
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    )
-                  )}
+            {/* Cart Link in Mobile */}
+            <li className="border-b border-black/5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setIsCartOpen(true);
+                }}
+                className="flex w-full items-center justify-between px-3 py-3 hover:text-brand-maroon text-left"
+              >
+                <span className="flex items-center gap-2">
+                  <ShoppingBag className="h-4 w-4 text-brand-maroon" /> Shopping Bag
+                </span>
+                {totalItemsCount > 0 && (
+                  <span className="rounded-full bg-brand-maroon px-2 py-0.5 text-[10px] font-bold text-white">
+                    {totalItemsCount}
+                  </span>
+                )}
+              </button>
+            </li>
 
-                  {/* Wishlist in Mobile */}
-                  <li className="border-b border-zinc-100">
-                    <Link
-                      to="/wishlist"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex w-full items-center justify-between px-3 py-3 hover:text-[#2e5d4e]"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-[#D84A6B]" /> Wishlist
-                      </span>
-                      {wishlistCount > 0 && (
-                        <span className="rounded-full bg-[#D84A6B] px-2 py-0.5 text-[10px] font-bold text-white">
-                          {wishlistCount}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
+            {/* Contact / Help in Mobile */}
+            <li>
+              <a href="#contact" onClick={(e) => handleNavClick(e, "#contact")} className="flex items-center gap-2 px-3 py-3 hover:text-brand-maroon">
+                <User className="h-4 w-4 text-gray-500" /> Contact & Support
+              </a>
+            </li>
+          </ul>
 
-                  {/* Cart in Mobile */}
-                  <li className="border-b border-zinc-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileOpen(false);
-                        setIsCartOpen(true);
-                      }}
-                      className="flex w-full items-center justify-between px-3 py-3 hover:text-[#2e5d4e] text-left"
-                    >
-                      <span className="flex items-center gap-2">
-                        <ShoppingBag className="h-4 w-4 text-[#2e5d4e]" /> Shopping Bag
-                      </span>
-                      {totalItemsCount > 0 && (
-                        <span className="rounded-full bg-[#2e5d4e] px-2 py-0.5 text-[10px] font-bold text-white">
-                          {totalItemsCount}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-
-                  {/* Account */}
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileOpen(false);
-                        handleAccountClick();
-                      }}
-                      className="flex w-full items-center gap-2 px-3 py-3 hover:text-[#2e5d4e] text-left"
-                    >
-                      <User className="h-4 w-4 text-zinc-500" />
-                      <span>{isLoggedIn ? `Account (${firstName})` : "Login / Register"}</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Drawer Footer */}
-              <div className="p-4 bg-[#FAF8F4] border-t border-zinc-200 text-xs text-zinc-600 space-y-1">
-                <p className="font-semibold text-zinc-900">Aaramly Intimates</p>
-                <p className="text-[11px]">Wire-Free & Zero-Feel Comfort</p>
-                <p className="font-medium text-[#2e5d4e]">+91 98243 02072</p>
-              </div>
-            </motion.aside>
+          {/* Drawer Footer with Store Info */}
+          <div className="p-4 mt-6 bg-[#FAF8F4] border-t border-black/5 text-xs text-brand-ink/70 space-y-2">
+            <p className="font-semibold text-brand-ink">Awesome Handmade</p>
+            <p>Shop-5, Soham Arcade, Pal Gam, Surat, Gujarat</p>
+            <p className="font-medium text-brand-maroon">+91 98243 02072</p>
           </div>
-        )}
-      </AnimatePresence>
+        </aside>
+      </div>
     </>
   );
 }

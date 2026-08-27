@@ -25,24 +25,17 @@ interface SizeChartModalProps {
 type Unit = "cm" | "in";
 
 const DEFAULT_SIZE_CHART: SizeChartEntry[] = [
-  { brandSize: "32A", inSize: "70A", usSize: "32A", euSize: "70A", ukSize: "32A", cnSize: "70A", bustCm: "80-82", underbustCm: "68-72" },
-  { brandSize: "32B", inSize: "70B", usSize: "32B", euSize: "70B", ukSize: "32B", cnSize: "70B", bustCm: "82-84", underbustCm: "68-72" },
-  { brandSize: "32C", inSize: "70C", usSize: "32C", euSize: "70C", ukSize: "32C", cnSize: "70C", bustCm: "84-86", underbustCm: "68-72" },
-  { brandSize: "32D", inSize: "70D", usSize: "32D", euSize: "70D", ukSize: "32D", cnSize: "70D", bustCm: "86-88", underbustCm: "68-72" },
-  { brandSize: "34A", inSize: "75A", usSize: "34A", euSize: "75A", ukSize: "34A", cnSize: "75A", bustCm: "85-87", underbustCm: "73-77" },
-  { brandSize: "34B", inSize: "75B", usSize: "34B", euSize: "75B", ukSize: "34B", cnSize: "75B", bustCm: "87-89", underbustCm: "73-77" },
-  { brandSize: "34C", inSize: "75C", usSize: "34C", euSize: "75C", ukSize: "34C", cnSize: "75C", bustCm: "89-91", underbustCm: "73-77" },
-  { brandSize: "34D", inSize: "75D", usSize: "34D", euSize: "75D", ukSize: "34D", cnSize: "75D", bustCm: "91-93", underbustCm: "73-77" },
-  { brandSize: "36A", inSize: "80A", usSize: "36A", euSize: "80A", ukSize: "36A", cnSize: "80A", bustCm: "90-92", underbustCm: "78-82" },
-  { brandSize: "36B", inSize: "80B", usSize: "36B", euSize: "80B", ukSize: "36B", cnSize: "80B", bustCm: "92-94", underbustCm: "78-82" },
-  { brandSize: "36C", inSize: "80C", usSize: "36C", euSize: "80C", ukSize: "36C", cnSize: "80C", bustCm: "94-96", underbustCm: "78-82" },
-  { brandSize: "36D", inSize: "80D", usSize: "36D", euSize: "80D", ukSize: "36D", cnSize: "80D", bustCm: "96-98", underbustCm: "78-82" },
-  { brandSize: "38A", inSize: "85A", usSize: "38A", euSize: "85A", ukSize: "38A", cnSize: "85A", bustCm: "95-97", underbustCm: "83-87" },
-  { brandSize: "38B", inSize: "85B", usSize: "38B", euSize: "85B", ukSize: "38B", cnSize: "85B", bustCm: "97-99", underbustCm: "83-87" },
-  { brandSize: "38C", inSize: "85C", usSize: "38C", euSize: "85C", ukSize: "38C", cnSize: "85C", bustCm: "99-101", underbustCm: "83-87" },
-  { brandSize: "38D", inSize: "85D", usSize: "38D", euSize: "85D", ukSize: "38D", cnSize: "85D", bustCm: "101-103", underbustCm: "83-87" },
-  { brandSize: "40A", inSize: "90A", usSize: "40A", euSize: "90A", ukSize: "40A", cnSize: "90A", bustCm: "100-102", underbustCm: "88-92" },
-  { brandSize: "40B", inSize: "90B", usSize: "40B", euSize: "90B", ukSize: "40B", cnSize: "90B", bustCm: "102-104", underbustCm: "88-92" }
+  { brandSize: "2-3 Y", inSize: "Kids 2-3 Y", usSize: "2T", euSize: "92-98", ukSize: "2-3 Y", cnSize: "100", bustCm: "52-54", underbustCm: "48-50" },
+  { brandSize: "4-5 Y", inSize: "Kids 4-5 Y", usSize: "4T", euSize: "104-110", ukSize: "4-5 Y", cnSize: "110", bustCm: "56-58", underbustCm: "52-54" },
+  { brandSize: "6-7 Y", inSize: "Kids 6-7 Y", usSize: "6", euSize: "116-122", ukSize: "6-7 Y", cnSize: "120", bustCm: "60-62", underbustCm: "56-58" },
+  { brandSize: "8-9 Y", inSize: "Kids 8-9 Y", usSize: "8", euSize: "128-134", ukSize: "8-9 Y", cnSize: "130", bustCm: "64-66", underbustCm: "60-62" },
+  { brandSize: "10-12 Y", inSize: "Kids 10-12 Y", usSize: "10", euSize: "140-152", ukSize: "10-12 Y", cnSize: "140", bustCm: "68-72", underbustCm: "64-66" },
+  { brandSize: "XS", inSize: "XS (34)", usSize: "XS", euSize: "34", ukSize: "6", cnSize: "155/80A", bustCm: "78-82", underbustCm: "68-72" },
+  { brandSize: "S", inSize: "S (36)", usSize: "S", euSize: "36", ukSize: "8", cnSize: "160/84A", bustCm: "83-87", underbustCm: "73-77" },
+  { brandSize: "M", inSize: "M (38)", usSize: "M", euSize: "38", ukSize: "10", cnSize: "165/88A", bustCm: "88-92", underbustCm: "78-82" },
+  { brandSize: "L", inSize: "L (40)", usSize: "L", euSize: "40", ukSize: "12", cnSize: "170/92A", bustCm: "93-97", underbustCm: "83-87" },
+  { brandSize: "XL", inSize: "XL (42)", usSize: "XL", euSize: "42", ukSize: "14", cnSize: "175/96A", bustCm: "98-102", underbustCm: "88-92" },
+  { brandSize: "Free Size", inSize: "Adjustable", usSize: "Free", euSize: "Free", ukSize: "Free", cnSize: "Free", bustCm: "75-105", underbustCm: "65-95" },
 ];
 
 export const SizeChartModal: React.FC<SizeChartModalProps> = ({

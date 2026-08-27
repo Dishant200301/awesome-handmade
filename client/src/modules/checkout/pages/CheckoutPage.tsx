@@ -219,7 +219,7 @@ export const CheckoutPage: React.FC = () => {
 
     setTimeout(() => {
       try {
-        const orderId = `AAR-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const orderId = `AWH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
         const orderObj: OrderPayload = {
           orderId,

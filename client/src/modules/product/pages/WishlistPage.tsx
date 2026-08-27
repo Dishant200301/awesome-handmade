@@ -191,14 +191,14 @@ export const WishlistPage: React.FC = () => {
                               addToCart({
                                 productId: String(w.id),
                                 productName: w.name,
-                                brand: w.brand || "AARAMLY",
-                                colorName: "Black",
-                                colorHex: "#000000",
-                                size: (w.availableSizes && w.availableSizes[0]) || "S",
+                                brand: w.brand || "Awesome Handmade",
+                                colorName: "Standard",
+                                colorHex: "#C89B3C",
+                                size: (w.availableSizes && w.availableSizes[0]) || "Free Size",
                                 price: w.price,
                                 originalPrice: w.originalPrice || w.price,
                                 image: mainImg,
-                                sku: w.sku || "AAR-SKU",
+                                sku: w.sku || "AWH-SKU",
                                 quantity: 1,
                               })
                             }

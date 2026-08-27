@@ -3,8 +3,8 @@ import { gsap } from "gsap";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Navigation } from "swiper/modules";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { IMG } from "../lib/aaramly-images";
 import ReelCard from "./ReelCard";
+import { Sparkles } from "lucide-react";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -12,52 +12,52 @@ import "swiper/css/navigation";
 
 const REELS = [
   {
-    title: "All-Day Bralette",
-    views: "12.4K",
-    likes: 240,
-    img: IMG.bralette[0],
+    title: "Mirror Latkan Making",
+    views: "15.4K",
+    likes: 340,
+    img: "/images/category/Latkan.webp",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Aaramly Wire-free Bralette", price: "₹1,299", img: IMG.bralette[1], link: "#bralette" }
+    relatedProduct: { name: "Handmade Mirror Latkan Pair", price: "₹499", img: "/images/category/Latkan.webp", link: "/shop?category=latkan" }
   },
   {
-    title: "Invisible Silicone",
-    views: "8.9K",
-    likes: 180,
-    img: IMG.seamless[1],
+    title: "Gift Hamper Unboxing",
+    views: "12.8K",
+    likes: 280,
+    img: "/images/category/Gift Hamper.webp",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Premium Silicone Comfort Bra", price: "₹699", img: IMG.silicone[0], link: "#silicone" }
+    relatedProduct: { name: "Festive Keychain Gift Hamper", price: "₹599", img: "/images/category/Gift Hamper.webp", link: "/shop?category=gift-hamper" }
   },
   {
-    title: "Seamless Comfort",
-    views: "6.1K",
-    likes: 132,
-    img: IMG.seamless[0],
+    title: "Statement Earrings Drop",
+    views: "9.1K",
+    likes: 212,
+    img: "/images/category/Earrings.webp",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Aaramly Seamless Everyday Bra", price: "₹1,499", img: IMG.seamless[2], link: "#seamless" }
+    relatedProduct: { name: "Handcrafted Mirror Earrings", price: "₹349", img: "/images/category/Earrings.webp", link: "/shop?category=earrings" }
   },
   {
-    title: "Sleep Soft",
-    views: "4.5K",
-    likes: 96,
-    img: IMG.seamless[1],
+    title: "Festive Choli Styling",
+    views: "8.5K",
+    likes: 196,
+    img: "/images/category/Choli.webp",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Ultra-soft Sleeping Bra", price: "₹1,199", img: IMG.seamless[1], link: "#seamless" }
+    relatedProduct: { name: "Embroidered Kids & Adult Choli", price: "₹899", img: "/images/category/Choli.webp", link: "/shop?category=choli" }
   },
   {
-    title: "Everyday Ease",
-    views: "3.7K",
-    likes: 74,
-    img: IMG.bralette[2],
+    title: "Heritage Necklaces",
+    views: "6.7K",
+    likes: 154,
+    img: "/images/category/Necklace.webp",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Lightweight Bralette", price: "₹1,099", img: IMG.bralette[0], link: "#bralette" }
+    relatedProduct: { name: "Beaded Heritage Necklace Set", price: "₹799", img: "/images/category/Necklace.webp", link: "/shop?category=necklace" }
   },
   {
-    title: "Breathe Free",
-    views: "2.8K",
-    likes: 58,
-    img: IMG.seamless[3],
+    title: "Behind The Scenes Macrame",
+    views: "5.8K",
+    likes: 128,
+    img: "/images/grace_every_thread.jpg",
     video: "https://www.youtube.com/watch?v=mUhOAuy-Oek",
-    relatedProduct: { name: "Breathable Mesh Comfort Bra", price: "₹1,399", img: IMG.seamless[3], link: "#seamless" }
+    relatedProduct: { name: "Artisan Macrame Wall Hanging", price: "₹849", img: "/images/grace_every_thread.jpg", link: "/shop?category=macrame-hanging" }
   },
 ];
 
@@ -75,9 +75,18 @@ export default function WatchShopSection() {
   }, []);
 
   return (
-    <section ref={ref} className="bg-[#faf6f1] py-20 md:py-24 overflow-hidden">
-      <div className="mb-12 text-center">
-        <h2 className="text-3xl md:text-4xl font-serif tracking-wide text-zinc-900">Watch and Shop</h2>
+    <section ref={ref} className="bg-[#FAF8F4] py-16 md:py-24 overflow-hidden border-t border-[#EDE5DA]">
+      <div className="mb-10 text-center">
+        <div className="inline-flex items-center gap-2 mb-2 px-3.5 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-maroon">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span className="text-[11px] font-bold tracking-[0.25em] uppercase">Artisan Reels</span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold tracking-tight text-brand-maroon uppercase">
+          WATCH & SHOP HANDMADE
+        </h2>
+        <p className="mt-2 text-xs sm:text-sm text-brand-ink/70 max-w-lg mx-auto font-light">
+          See the making, styling, and real customer unboxings directly from our studio
+        </p>
       </div>
 
       {/* MOBILE & TABLET SLIDER VIEW: visible on < lg */}
@@ -105,11 +114,11 @@ export default function WatchShopSection() {
           ))}
         </Swiper>
 
-        {/* Left/Right Centered Navigation Arrows */}
-        <button className="reels-prev absolute left-6 md:left-2 top-[calc(50%-24px)] -translate-y-1/2 z-30 grid h-10 w-10 place-items-center rounded-full bg-white/90 border border-zinc-200 text-zinc-800 shadow-md hover:bg-black hover:text-white transition-all duration-300">
+        {/* Navigation Arrows */}
+        <button className="reels-prev absolute left-6 md:left-2 top-[calc(50%-24px)] -translate-y-1/2 z-30 grid h-10 w-10 place-items-center rounded-full bg-white/90 border border-brand-gold/30 text-brand-maroon shadow-md hover:bg-brand-maroon hover:text-white transition-all duration-300 cursor-pointer">
           <FiChevronLeft size={20} />
         </button>
-        <button className="reels-next absolute right-6 md:right-2 top-[calc(50%-24px)] -translate-y-1/2 z-30 grid h-10 w-10 place-items-center rounded-full bg-white/90 border border-zinc-200 text-zinc-800 shadow-md hover:bg-black hover:text-white transition-all duration-300">
+        <button className="reels-next absolute right-6 md:right-2 top-[calc(50%-24px)] -translate-y-1/2 z-30 grid h-10 w-10 place-items-center rounded-full bg-white/90 border border-brand-gold/30 text-brand-maroon shadow-md hover:bg-brand-maroon hover:text-white transition-all duration-300 cursor-pointer">
           <FiChevronRight size={20} />
         </button>
 
@@ -117,8 +126,8 @@ export default function WatchShopSection() {
         <div className="reels-pagination flex justify-center gap-2 mt-4" />
       </div>
 
-      {/* DESKTOP FLEX VIEW: visible on >= lg (completely unchanged) */}
-      <div className="hidden lg:flex no-scrollbar gap-4 overflow-x-auto snap-x scroll-smooth px-5 md:px-8 max-w-[1400px] mx-auto">
+      {/* DESKTOP FLEX VIEW: visible on >= lg */}
+      <div className="hidden lg:flex no-scrollbar gap-5 overflow-x-auto snap-x scroll-smooth px-5 md:px-8 max-w-[1500px] mx-auto justify-center">
         {REELS.map((r, i) => (
           <ReelCard key={i} r={r} />
         ))}

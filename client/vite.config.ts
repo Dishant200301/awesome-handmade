@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     host: true,
     watch: {
-      ignored: ["**/public/images/**"],
+      ignored: ["**/node_modules/**", "**/.git/**"],
     },
     proxy: {
       "/api": {

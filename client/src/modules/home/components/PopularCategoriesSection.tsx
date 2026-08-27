@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { FiChevronRight } from "react-icons/fi";
 
 const POPULAR_CATEGORIES = [
-  { key: "shapewear", title: "SHAPEWEAR", img: "/images/home/shapewear.png" },
-  { key: "period_panty", title: "PERIOD PANTY", img: "/images/home/period_panty.png" },
-  { key: "innerwear_top", title: "INNERWEAR TOP", img: "/images/home/innerwear_top.png" },
+  { key: "latkan", title: "LATKANS", img: "/images/category/Latkan.webp" },
+  { key: "necklace", title: "JEWELLERY", img: "/images/category/Necklace.webp" },
+  { key: "choli", title: "CHOLIS", img: "/images/category/Choli.webp" },
 ];
 
 export default function PopularCategoriesSection() {
@@ -25,9 +26,10 @@ export default function PopularCategoriesSection() {
     <section ref={ref} className="mx-auto max-w-[1400px] px-5 md:px-8 py-16 md:py-24">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4">
         {POPULAR_CATEGORIES.map((c) => (
-          <div
+          <Link
             key={c.key}
-            className="pop-card group relative overflow-hidden rounded-[18px] md:rounded-[20px] aspect-10/14 bg-[#f5f2ee] shadow-sm select-none cursor-pointer"
+            to={`/collections/${c.key}`}
+            className="pop-card group relative overflow-hidden rounded-[18px] md:rounded-[20px] aspect-10/14 bg-[#f5f2ee] shadow-sm select-none cursor-pointer block"
           >
             {/* Image zoom on hover */}
             <img
@@ -50,7 +52,7 @@ export default function PopularCategoriesSection() {
             <div className="absolute right-6 bottom-6 p-2 rounded-full bg-white/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
               <FiChevronRight className="text-white" size={18} />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

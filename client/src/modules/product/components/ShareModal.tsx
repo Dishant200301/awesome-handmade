@@ -36,7 +36,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   };
 
   const encodedUrl = encodeURIComponent(currentUrl);
-  const encodedTitle = encodeURIComponent(`Check out ${productName} on Aaramly!`);
+  const encodedTitle = encodeURIComponent(`Check out ${productName} on Awesome Handmade!`);
 
   const shareLinks = [
     {

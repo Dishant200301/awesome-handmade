@@ -99,12 +99,12 @@ export default function ReelCard({ r }: { r: ReelItem }) {
         {/* Logo Image */}
         <div className="flex flex-col items-center mb-3 transition-transform duration-500 group-hover:scale-105">
           <img
-            src="/images/home/logo.png"
-            alt="Aaramly Logo"
-            className="w-12 h-12 object-contain mb-1 drop-shadow-md "
+            src="/images/logo/logo.webp"
+            alt="Awesome Handmade Logo"
+            className="w-12 h-12 object-contain mb-1 drop-shadow-md rounded-full bg-white/20 p-1"
           />
-          <span className="font-serif text-lg tracking-[0.2em] text-white drop-shadow-md select-none opacity-90 uppercase">
-            AARAMLY
+          <span className="font-heading text-sm tracking-[0.2em] text-white drop-shadow-md select-none opacity-95 uppercase font-bold">
+            Awesome Handmade
           </span>
         </div>
         {/* Play Icon - Borderless and Center Positioned */}

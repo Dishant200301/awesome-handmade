@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaFacebookF, FaInstagram, FaYoutube, FaPinterestP } from "react-icons/fa";
-import { FiMail, FiX, FiCheckCircle } from "react-icons/fi";
+import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp } from "react-icons/fa";
+import { FiMail, FiPhone, FiMapPin, FiX, FiCheckCircle } from "react-icons/fi";
 import { AaramlyLogo } from "./Navbar";
 import NewsletterCTA from "./NewsletterCTA";
 import { MOCK_CONTACT_MESSAGES } from "../../../../../admin/src/data/mockAdminData";
@@ -23,14 +23,13 @@ export default function Footer() {
       id: `msg-${Date.now()}`,
       name: name.trim(),
       email: email.trim(),
-      phone: phone.trim() || '+91 98000 00000',
+      phone: phone.trim() || '+91 98243 02072',
       subject: subject.trim() || 'General Inquiry',
       message: message.trim(),
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
       status: 'New' as const
     };
 
-    // Push to mock admin dataset for real-time synchronization
     MOCK_CONTACT_MESSAGES.unshift(newMsg);
 
     setSubmitted(true);
@@ -46,162 +45,116 @@ export default function Footer() {
   };
 
   return (
-    <footer className="mt-8 bg-white font-sans selection:bg-[#80a17d] selection:text-white">
+    <footer className="mt-8 bg-white font-sans border-t border-[#EDE5DA]">
       <NewsletterCTA />
-      <div className="mx-auto grid max-w-[1400px] gap-10 px-5 py-16 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 md:px-8">
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2 sm:row-start-1 lg:row-start-1 xl:row-start-1">
+      
+      <div className="mx-auto grid max-w-[1500px] gap-10 px-5 py-16 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 md:px-8">
+        {/* Brand Column */}
+        <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
           <div className="mb-4">
             <Link to="/" className="inline-block cursor-pointer">
               <AaramlyLogo />
             </Link>
           </div>
-          <p className="mt-4 max-w-xs text-sm text-aaramly-ink-2">Premium seamless innerwear crafted for skin-friendly, breathable comfort — every single day.</p>
+          <p className="mt-4 max-w-sm text-xs sm:text-sm text-brand-ink/70 leading-relaxed">
+            100% Handcrafted Indian Heritage Craft, Traditional Jewellery, Bridal Latkans, Cholis, and Artisan Gifts made with love in Surat, Gujarat.
+          </p>
           <div className="mt-6 flex items-center gap-3">
-            {[FaInstagram, FaFacebookF, FaPinterestP, FaYoutube].map((I, i) => (
-              <a key={i} href="#" aria-label="social" className="grid h-9 w-9 place-items-center rounded-full border border-aaramly-line hover:bg-black hover:text-white transition-colors"><I size={13} /></a>
-            ))}
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="grid h-9 w-9 place-items-center rounded-full border border-brand-gold/30 text-brand-ink hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all"
+            >
+              <FaFacebookF size={13} />
+            </a>
+            <a
+              href="https://www.instagram.com/awesome.handmade1?igsh=OWtwd2huMmR5YnFz"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="grid h-9 w-9 place-items-center rounded-full border border-brand-gold/30 text-brand-ink hover:bg-[#E1306C] hover:text-white hover:border-[#E1306C] transition-all"
+            >
+              <FaInstagram size={13} />
+            </a>
+            <a
+              href="https://wa.me/919824302072"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="grid h-9 w-9 place-items-center rounded-full border border-brand-gold/30 text-brand-ink hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all"
+            >
+              <FaWhatsapp size={14} />
+            </a>
+            <a
+              href="https://www.youtube.com/channel/UCZhBD5VMLRLHg95ppgoqtNQ"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="grid h-9 w-9 place-items-center rounded-full border border-brand-gold/30 text-brand-ink hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000] transition-all"
+            >
+              <FaYoutube size={13} />
+            </a>
           </div>
         </div>
 
-        <div className="col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-1 sm:row-start-2 lg:row-start-2 xl:row-start-1">
-          <ul className="mt-4 space-y-3 text-sm text-aaramly-ink-2">
-            <li><Link to="/shop" className="hover:text-black">Shop</Link></li>
-            <li><Link to="/shop?category=Bralettes" className="hover:text-black">Seamless Padded Bralette</Link></li>
-            <li><Link to="/shop?category=Accessories" className="hover:text-black">Silicone Nipple Covers</Link></li>
-            <li><Link to="/shop?category=Everyday Bras" className="hover:text-black">Women's Seamless Bra</Link></li>
+        {/* Quick Categories */}
+        <div className="col-span-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-maroon mb-4">Categories</p>
+          <ul className="space-y-2.5 text-xs sm:text-sm text-brand-ink/75">
+            <li><Link to="/shop?category=Latkan" className="hover:text-brand-maroon">Bridal & Blouse Latkans</Link></li>
+            <li><Link to="/shop?category=Necklace" className="hover:text-brand-maroon">Mirror Necklaces</Link></li>
+            <li><Link to="/shop?category=Choli" className="hover:text-brand-maroon">Navratri Choli Sets</Link></li>
+            <li><Link to="/shop?category=Earrings" className="hover:text-brand-maroon">Kundan & Mirror Earrings</Link></li>
+            <li><Link to="/shop?category=Gift Hamper" className="hover:text-brand-maroon">Festive Gift Hampers</Link></li>
+            <li><Link to="/shop?category=Krishna Outfit" className="hover:text-brand-maroon">Krishna Outfits</Link></li>
           </ul>
         </div>
 
-        <div className="col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-1 sm:row-start-2 lg:row-start-2 xl:row-start-1">
-          <ul className="mt-4 space-y-3 text-sm text-aaramly-ink-2">
+        {/* Information & Store Links */}
+        <div className="col-span-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-maroon mb-4">Customer Care</p>
+          <ul className="space-y-2.5 text-xs sm:text-sm text-brand-ink/75">
             <li>
-              <Link
-                to="/contact"
-                className="flex items-center gap-1.5 cursor-pointer text-zinc-900"
-              >
-                {/* <FiMail className="text-[#80a17d]" /> */}
-                <span>Contact Us</span>
+              <Link to="/contact" className="hover:text-brand-maroon font-medium text-brand-ink">
+                Contact & Support
               </Link>
             </li>
-            <li><a href="#" className="hover:text-black">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-black">Shipping &amp; Delivery</a></li>
-            <li><a href="#" className="hover:text-black">Returns &amp; Exchanges</a></li>
-            <li><a href="#" className="hover:text-black">FAQ</a></li>
+            <li><Link to="/about" className="hover:text-brand-maroon">About Our Heritage</Link></li>
+            <li><a href="#" className="hover:text-brand-maroon">Shipping &amp; Delivery</a></li>
+            <li><a href="#" className="hover:text-brand-maroon">Custom Bridal Orders</a></li>
+            <li><a href="#" className="hover:text-brand-maroon">FAQs &amp; Help</a></li>
           </ul>
         </div>
 
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-1 sm:row-start-3 lg:row-start-1 xl:row-start-1">
-          <p className="text-sm font-700 tracking-wide">Newsletter</p>
-          <p className="mt-4 text-sm text-aaramly-ink-2">Soft launches &amp; subscriber-only offers.</p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-4 flex border border-aaramly-line">
-            <input type="email" required placeholder="Your email" className="flex-1 bg-transparent px-3 py-3 text-sm outline-none" />
-            <button className="bg-black px-4 text-white text-[10px] font-600 tracking-[0.25em] uppercase">Join</button>
-          </form>
-        </div>
-      </div>
-
-      <div className="border-t border-aaramly-line py-5 text-center text-xs text-aaramly-ink-2">
-        © {new Date().getFullYear()} AARAMLY. All rights reserved.
-      </div>
-
-      {/* CONTACT FORM MODAL */}
-      {showContactModal && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-200 p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <div>
-                <h3 className="text-lg font-black text-stone-900">Contact AARAMLY Support</h3>
-                <p className="text-xs text-stone-500">Send us a inquiry — our team syncs directly with the Admin Panel.</p>
-              </div>
-              <button
-                onClick={() => setShowContactModal(false)}
-                className="p-2 text-stone-400 hover:text-stone-900 rounded-full hover:bg-stone-100 cursor-pointer"
-              >
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
-
-            {submitted ? (
-              <div className="p-8 text-center space-y-2">
-                <FiCheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
-                <h4 className="text-base font-black text-stone-900">Message Sent Successfully!</h4>
-                <p className="text-xs text-stone-500">
-                  Thank you! Your message has been stored in the database and forwarded to the Admin Panel.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleContactSubmit} className="space-y-3.5 text-xs">
-                <div>
-                  <label className="font-extrabold text-stone-900 uppercase tracking-wider block mb-1">Your Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Meera Kapoor"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 focus:outline-none focus:border-stone-900 font-medium"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-extrabold text-stone-900 uppercase tracking-wider block mb-1">Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="meera@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 focus:outline-none focus:border-stone-900 font-medium"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-extrabold text-stone-900 uppercase tracking-wider block mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      placeholder="+91 98765 43210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 focus:outline-none focus:border-stone-900 font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-stone-900 uppercase tracking-wider block mb-1">Subject</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Sizing Advice / Exchange Request"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 focus:outline-none focus:border-stone-900 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-stone-900 uppercase tracking-wider block mb-1">Message *</label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Write your question or feedback..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 focus:outline-none focus:border-stone-900 font-medium"
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-stone-900 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow-md transition-all cursor-pointer"
-                >
-                  Send Inquiry to Admin
-                </button>
-              </form>
-            )}
+        {/* Store Address & Contact */}
+        <div className="col-span-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-maroon mb-4">Artisan Studio</p>
+          <div className="space-y-2.5 text-xs sm:text-sm text-brand-ink/75">
+            <p className="font-semibold text-brand-ink">Awesome Handmade</p>
+            <p className="flex items-start gap-2">
+              <FiMapPin className="text-brand-gold mt-1 shrink-0" size={14} />
+              <span>Shop-5, Soham Arcade, Pal Gam, Surat, Gujarat, India</span>
+            </p>
+            <p className="flex items-center gap-2">
+              <FiPhone className="text-brand-gold shrink-0" size={14} />
+              <a href="tel:+919824302072" className="hover:text-brand-maroon font-bold">+91 98243 02072</a>
+            </p>
+            <p className="flex items-center gap-2">
+              <FiMail className="text-brand-gold shrink-0" size={14} />
+              <a href="mailto:hello@awesomehandmade.com" className="hover:text-brand-maroon">hello@awesomehandmade.com</a>
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="border-t border-[#EDE5DA] bg-[#FAF8F4] py-4">
+        <div className="mx-auto flex max-w-[1500px] flex-col sm:flex-row items-center justify-between px-5 text-xs text-brand-ink/60 gap-2">
+          <p>© {new Date().getFullYear()} Awesome Handmade. All rights reserved.</p>
+          <p className="text-[11px]">Crafted with love in Surat, Gujarat</p>
+        </div>
+      </div>
     </footer>
   );
 }

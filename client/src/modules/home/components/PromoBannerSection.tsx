@@ -1,33 +1,36 @@
+import React from 'react';
+import { IMG } from '@/data/catalog';
+
 export default function PromoBannerSection() {
   return (
-    <section className="py-16 sm:py-20 md:py-24 px-0 flex items-center justify-center overflow-visible select-none w-full">
-      {/* Full-bleed container (no max-width, w-full) */}
-      <div className="w-full relative overflow-visible aspect-2/1 sm:aspect-2.2/1 md:aspect-2.5/1">
-
-        {/* Balcony background scene spanning 100% full width, no rounded corners */}
-        <div className="absolute inset-x-0 bottom-0 top-[12%] sm:top-[15%] overflow-hidden bg-[#f2f2f2]">
-          <img
-            src="/images/home/Gemini_Generated_Image_4k8pfc4k8pfc4k8p.webp"
-            alt=""
-            className="w-full h-full object-cover object-center"
-            loading="lazy"
-          />
-        </div>
-
-        {/* Big Signature Series heading positioned at the top on the section background */}
-        <div className="absolute top-[-8%] left-0 right-0 z-10 text-center px-4">
-          <h3 className="text-[7.5vw] sm:text-[6.5vw] md:text-5xl lg:text-[110px] font-medium tracking-[0.16em] text-zinc-400/80 uppercase leading-none font-sans whitespace-nowrap">
-            SIGNATURE SERIES
-          </h3>
-        </div>
-
-        {/* Model cutout overlapping and extending above the background image */}
-        <img
-          src="/images/home/signature_model_transparent.png"
-          alt="Signature Series Model"
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[118%] sm:h-[126%] md:h-[134%] lg:h-[112%] w-auto object-contain z-20 pointer-events-none"
-          loading="lazy"
-        />
+    <section aria-label="Festive Collection Banner" className="w-full py-8 sm:py-12 bg-[#FDFBF7]">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+        <a
+          href="#best-sellers"
+          className="block w-full rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 cursor-pointer border border-[#EDE5DA] group"
+        >
+          {/* Full-width single promotional banner image from catalog */}
+          <div className="relative aspect-[21/9] sm:aspect-[2.4/1] md:aspect-[2.8/1] max-h-[500px] overflow-hidden bg-brand-cream">
+            <img
+              src={IMG.banner}
+              alt="Awesome Handmade - Festive Handcrafted Choli, Jewellery and Traditional Indian Accessories Collection"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/30" />
+            <div className="absolute left-6 sm:left-12 bottom-6 sm:bottom-12 text-white max-w-xl">
+              <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase bg-brand-gold text-brand-ink mb-3 inline-block">
+                Festive Edition 2026
+              </span>
+              <h3 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight uppercase leading-tight">
+                Traditional Craft, Contemporary Grace
+              </h3>
+              <p className="mt-2 text-xs sm:text-sm text-white/85 font-light">
+                Explore hand-cut mirrors, bridal latkans, and heirloom jewellery made in Surat
+              </p>
+            </div>
+          </div>
+        </a>
       </div>
     </section>
   );

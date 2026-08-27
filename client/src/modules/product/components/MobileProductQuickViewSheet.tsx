@@ -293,14 +293,14 @@ export const MobileProductQuickViewSheet: React.FC = () => {
     addToCart({
       productId: String(product.id),
       productName: product.name,
-      brand: product.brand || "AARAMLY",
+      brand: product.brand || "Awesome Handmade",
       colorName: selectedColor,
-      colorHex: activeVariation.colorHex || "#000000",
+      colorHex: activeVariation.colorHex || "#C89B3C",
       size: selectedSize,
       price: livePrice,
       originalPrice: originalPrice,
       image: currentImage.url,
-      sku: activeVariation.sku || product.defaultSku || "AAR-SKU",
+      sku: activeVariation.sku || product.defaultSku || "AWH-SKU",
       quantity: quantity,
     });
     toast.success(`Added ${quantity} x ${product.name} (${selectedColor}, ${selectedSize}) to Bag!`);
@@ -312,7 +312,7 @@ export const MobileProductQuickViewSheet: React.FC = () => {
       navigator
         .share({
           title: product.name,
-          text: `Check out ${product.name} on Aaramly!`,
+          text: `Check out ${product.name} on Awesome Handmade!`,
           url: window.location.href,
         })
         .catch(() => { });
@@ -342,7 +342,7 @@ export const MobileProductQuickViewSheet: React.FC = () => {
   }
 
   const wishlisted = isWishlisted(String(product.id));
-  const productCategory = (product as any).category || (product as any).type || product.brand || "Lingerie";
+  const productCategory = (product as any).category || (product as any).type || product.brand || "Handmade";
 
   return (
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && closeQuickView()}>
@@ -758,7 +758,7 @@ export const MobileProductQuickViewSheet: React.FC = () => {
             <div className="flex items-center gap-2">
               <Ruler className="w-5 h-5 text-[#80a17d]" />
               <h3 className="text-base font-semibold text-zinc-900">
-                Aaramly Size Guide
+                Awesome Handmade Size Guide
               </h3>
             </div>
             <button

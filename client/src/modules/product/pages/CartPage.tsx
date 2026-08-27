@@ -29,11 +29,11 @@ export const CartPage: React.FC = () => {
       return;
     }
     const code = couponCode.trim().toUpperCase();
-    if (code === "AARAMLY10" || code === "FIRST10") {
+    if (code === "HANDMADE10" || code === "FIRST10") {
       setDiscount(0.1);
       setCouponMessage({ type: "success", text: "Coupon code applied! 10% discount added." });
     } else {
-      setCouponMessage({ type: "error", text: "Invalid coupon code. Try AARAMLY10" });
+      setCouponMessage({ type: "error", text: "Invalid coupon code. Try HANDMADE10" });
     }
   };
 
