@@ -26,6 +26,8 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.10.2",
     "sequelize": "^6.37.3",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.2",
     "winston": "^3.13.0",
     "zod": "^3.23.8"
   },
@@ -36,8 +38,6 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^20.14.9",
-    "tsx": "^4.16.0",
-    "typescript": "^5.5.2"
+    "@types/node": "^20.14.9"
   }
 }
