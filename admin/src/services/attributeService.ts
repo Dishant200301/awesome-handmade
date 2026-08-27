@@ -1,6 +1,6 @@
 import { AttributeMaster, AttributeValue } from '../types/attribute.types';
 
-const API_BASE_URL = 'http://localhost:5000/api/v1/attributes';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1')}/attributes`;
 const LOCAL_STORAGE_KEY = 'awesome_admin_attribute_master_v3';
 
 export const INITIAL_DEFAULT_ATTRIBUTES: AttributeMaster[] = [

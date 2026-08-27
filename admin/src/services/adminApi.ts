@@ -9,7 +9,7 @@ import {
 } from "../data/mockAdminData";
 import { Product, Category, Subcategory, Brand, Attribute, ContactMessage, SizeGuide } from "../types/admin";
 
-const API_BASE = "http://localhost:5000/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api/v1" : "http://localhost:5000/api/v1");
 
 export class AdminApiService {
   private static async request<T>(endpoint: string, options?: RequestInit): Promise<T | null> {

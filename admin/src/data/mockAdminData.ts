@@ -141,7 +141,7 @@ export const getGlobalVariantsList = (): Variant[] => {
   return globalList;
 };
 
-const BACKEND_API_URL = 'http://localhost:5000/api/v1/products';
+const BACKEND_API_URL = `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1')}/products`;
 
 export const fetchProductsFromBackend = async (): Promise<Product[]> => {
   // 1. Sync from IndexedDB first (contains all newly added and edited admin products)

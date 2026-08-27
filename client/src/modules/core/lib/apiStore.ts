@@ -3,7 +3,7 @@ import { SAMPLE_PRODUCT, CLIENT_SHOP_PRODUCTS } from "@/modules/product/data/pro
 import { categories as CATALOG_CATEGORIES } from "@/data/catalog";
 import { idbGet, idbSet } from "./idbStorage";
 
-const API_BASE_URL = "http://localhost:5000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api/v1" : "http://localhost:5000/api/v1");
 
 // Live Product Store state listeners
 type Listener = () => void;

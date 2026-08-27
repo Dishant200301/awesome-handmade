@@ -53,7 +53,8 @@ export function ContactPage() {
 
     // 1. Send API HTTP POST Request to Express Server Backend
     try {
-      await fetch("http://localhost:5000/api/v1/contacts", {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api/v1" : "http://localhost:5000/api/v1");
+      await fetch(`${apiBase}/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
