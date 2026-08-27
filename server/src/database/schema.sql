@@ -1,11 +1,7 @@
 -- =========================================================
 -- AWESOME HANDMADE ENTERPRISE E-COMMERCE PLATFORM - MYSQL DDL SCHEMA
--- Database Name: awesome_handmade_ecommerce
 -- Engine: InnoDB | Character Set: utf8mb4_unicode_ci
 -- =========================================================
-
-CREATE DATABASE IF NOT EXISTS awesome_handmade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE awesome_handmade;
 
 -- 1. CATEGORIES
 CREATE TABLE IF NOT EXISTS categories (
@@ -98,8 +94,8 @@ CREATE TABLE IF NOT EXISTS attributes (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
-    type VARCHAR(50) NOT NULL DEFAULT 'text', -- text, textarea, select, multi_select, number, boolean, color
-    usage VARCHAR(20) NOT NULL DEFAULT 'PRODUCT', -- PRODUCT, VARIANT
+    type VARCHAR(50) NOT NULL DEFAULT 'text',
+    `usage` VARCHAR(20) NOT NULL DEFAULT 'PRODUCT',
     show_in_highlights BOOLEAN DEFAULT TRUE,
     is_required BOOLEAN DEFAULT FALSE,
     display_order INT DEFAULT 0,
