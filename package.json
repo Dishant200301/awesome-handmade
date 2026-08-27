@@ -18,5 +18,12 @@
     "build:admin": "npm --prefix admin run build",
     "build:all": "npm run build:client && npm run build:admin && npm run build:server",
     "build": "npm run build:all"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.34.8",
+    "@rollup/rollup-linux-x64-musl": "^4.34.8"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
