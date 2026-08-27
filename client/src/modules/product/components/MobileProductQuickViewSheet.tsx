@@ -189,7 +189,7 @@ export const MobileProductQuickViewSheet: React.FC = () => {
         price: 499,
         originalPrice: 1500,
         discountPercentage: 67,
-        sku: "AAR-SKU-100",
+        sku: "AH-SKU-100",
         stock: 24,
         images: [],
       };
@@ -223,7 +223,7 @@ export const MobileProductQuickViewSheet: React.FC = () => {
       price: activeColorObj?.price || (product as any).price || 499,
       originalPrice: activeColorObj?.originalPrice || (product as any).originalPrice || 1500,
       discountPercentage: 67,
-      sku: product.defaultSku || `AAR-${selectedColor.toUpperCase()}-${selectedSize}`,
+      sku: product.defaultSku || `AH-${selectedColor.toUpperCase()}-${selectedSize}`,
       stock: activeColorObj?.stock || 24,
       images: [],
     };

@@ -12,29 +12,35 @@ interface ColorItem {
 }
 
 const DEFAULT_CATEGORIES: CategoryItem[] = [
-  { name: 'Bralettes', key: 'Bralettes' },
-  { name: 'Everyday Bras', key: 'Everyday Bras' },
-  { name: 'Seamless Panties', key: 'Seamless Panties' },
-  { name: 'Silicone Covers', key: 'Accessories' },
-  { name: 'Contour Shapewear', key: 'Shapewear' },
+  { name: 'Latkan', key: 'Latkan' },
+  { name: 'Choli', key: 'Choli' },
+  { name: 'Gift Hamper', key: 'Gift Hamper' },
+  { name: 'Necklace', key: 'Necklace' },
+  { name: 'Earrings', key: 'Earrings' },
+  { name: 'Tassel', key: 'Tassel' },
+  { name: 'Hair Accessories', key: 'Hair Accessories' },
+  { name: 'Macrame Hanging', key: 'Macrame Hanging' }
 ];
 
 const DEFAULT_COLORS: ColorItem[] = [
-  { name: 'Black', hex: '#000000' },
-  { name: 'Nude Beige', hex: '#F5F5DC' },
+  { name: 'Maroon', hex: '#800000' },
+  { name: 'Gold', hex: '#D4AF37' },
+  { name: 'Royal Blue', hex: '#4169E1' },
+  { name: 'Emerald Green', hex: '#50C878' },
+  { name: 'Blush Pink', hex: '#FF69B4' },
+  { name: 'Mustard Yellow', hex: '#FFDB58' },
   { name: 'Classic White', hex: '#FFFFFF' },
-  { name: 'Blush Pink', hex: '#FFB6C1' },
-  { name: 'Dusty Rose', hex: '#D8A7B1' },
+  { name: 'Black', hex: '#000000' }
 ];
 
-const DEFAULT_SIZES: string[] = ['S', 'M', 'L', 'XL', '32B', '34B', '36B', '36C'];
+const DEFAULT_SIZES: string[] = ['Free Size', 'Kids (2-4 Yrs)', 'Kids (5-8 Yrs)', 'Adult S', 'Adult M', 'Adult L', 'Adult XL'];
 
-const STORAGE_KEY = 'aaramly_dynamic_filters';
+const STORAGE_KEY = 'awesome_dynamic_filters';
 
 export const FilterManagementPage: React.FC = () => {
   const [categories, setCategories] = useState<CategoryItem[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('aaramly_dynamic_filters');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.categories) && parsed.categories.length > 0) {
@@ -47,7 +53,7 @@ export const FilterManagementPage: React.FC = () => {
 
   const [colors, setColors] = useState<ColorItem[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('aaramly_dynamic_filters');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.colors) && parsed.colors.length > 0) {
@@ -60,7 +66,7 @@ export const FilterManagementPage: React.FC = () => {
 
   const [sizes, setSizes] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('aaramly_dynamic_filters');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.sizes) && parsed.sizes.length > 0) {
@@ -73,7 +79,7 @@ export const FilterManagementPage: React.FC = () => {
 
   const [maxPrice, setMaxPrice] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('aaramly_dynamic_filters');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.maxPrice) return Number(parsed.maxPrice);
@@ -97,8 +103,10 @@ export const FilterManagementPage: React.FC = () => {
       
       // Broadcast live update across all tabs
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-        const channel = new BroadcastChannel('aaramly_filter_sync');
+        const channel = new BroadcastChannel('awesome_filter_sync');
         channel.postMessage({ filters: payload });
+        const legacyChannel = new BroadcastChannel('aaramly_filter_sync');
+        legacyChannel.postMessage({ filters: payload });
       }
 
       // Also try posting to backend API if live
@@ -178,7 +186,7 @@ export const FilterManagementPage: React.FC = () => {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="e.g. Bralettes, Shapewear..."
+              placeholder="e.g. Latkan, Choli, Gift Hamper..."
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-900 focus:outline-none focus:border-[#bf5c30]"

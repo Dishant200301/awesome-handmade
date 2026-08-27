@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 
-const LOCAL_STORAGE_KEY = "aaramly_search_history_v1";
+const LOCAL_STORAGE_KEY = "awesome_search_history_v1";
 const MAX_SEARCH_HISTORY = 8;
 
 export function useSearchHistory() {
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem("aaramly_search_history_v1");
       if (saved) {
         return JSON.parse(saved);
       }
     } catch {
       // ignore
     }
-    return ["thermal label", "packing tape", "bubble roll"];
+    return ["mirror latkan", "navratri choli", "jewellery set", "tassels"];
   });
 
   useEffect(() => {

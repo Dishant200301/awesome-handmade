@@ -10,12 +10,12 @@ const ANNOUNCEMENTS = [
   },
   {
     id: 2,
-    text: "Extra 15% off your first order",
-    code: "AARAMLY15",
+    text: "Extra 15% off your first handmade order",
+    code: "AOCIND15",
   },
   {
     id: 3,
-    text: "100% wire-free & zero skin-pinching comfort guarantee",
+    text: "100% authentic Gujarati artisan handcrafted guarantee",
     code: "TRYNOW",
   },
 ];

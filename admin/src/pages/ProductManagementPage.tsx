@@ -106,7 +106,7 @@ export const ProductManagementPage: React.FC = () => {
     const newSubcat: Subcategory = {
       id: `sub-${Date.now()}`,
       categoryId: parent?.id || 'cat-1',
-      categoryName: parent?.name || 'Bralettes',
+      categoryName: parent?.name || 'Latkan',
       name: newSubcatName.trim(),
       slug: newSubcatName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
     };

@@ -28,7 +28,7 @@ export default function WhyChooseUsSection() {
       <div className="mx-auto max-w-[1400px] px-5 md:px-8">
         {/* MOBILE & TABLET VIEW (infinite marquee scroll) */}
         <div className="lg:hidden overflow-hidden w-full relative">
-          <div className="flex w-max aaramly-marquee gap-6 pb-2">
+          <div className="flex w-max awesome-marquee gap-6 pb-2">
             {[...WHY, ...WHY].map((w, i) => (
               <div key={i} className="why-card flex flex-col items-center text-center select-none flex-shrink-0 w-[55vw] md:w-[30vw]">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full border border-brand-gold text-brand-maroon mb-3 bg-white shadow-sm">

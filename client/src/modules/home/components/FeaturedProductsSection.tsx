@@ -81,7 +81,7 @@ export default function FeaturedProductsSection({ activeTab, setActiveTab }: Fea
        
 
         {/* Scrollable Category Filter Tabs */}
-        <div className="w-full max-w-3xl mt-5 md:mt-8 px-0 overflow-x-auto no-scrollbar">
+        <div className="w-full max-w-6xl mt-5 md:mt-8 px-0 overflow-x-auto no-scrollbar">
           <div className="flex justify-center items-center gap-4 sm:gap-6 md:gap-8 min-w-max mx-auto px-4 border-b border-[#EDE5DA]">
             {CATEGORY_TABS.map((t) => {
               const isActive = tab === t.key;

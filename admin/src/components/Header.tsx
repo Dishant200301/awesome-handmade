@@ -48,10 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
     fetchUnread();
 
     const handleSync = () => fetchUnread();
+    window.addEventListener("awesome_contact_sync", handleSync);
     window.addEventListener("aaramly_contact_sync", handleSync);
     window.addEventListener("storage", handleSync);
     window.addEventListener("focus", handleSync);
     return () => {
+      window.removeEventListener("awesome_contact_sync", handleSync);
       window.removeEventListener("aaramly_contact_sync", handleSync);
       window.removeEventListener("storage", handleSync);
       window.removeEventListener("focus", handleSync);

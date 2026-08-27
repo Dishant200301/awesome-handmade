@@ -11,7 +11,7 @@ export const AVAILABLE_COUPONS: Coupon[] = [
     minOrderValue: 499
   },
   {
-    code: "AARAMLY100",
+    code: "AOCIND100",
     description: "Flat ₹100 OFF on orders above ₹999",
     discountType: "fixed",
     discountValue: 100,
@@ -52,7 +52,7 @@ export const CouponInput: React.FC<CouponInputProps> = ({
 
     const found = AVAILABLE_COUPONS.find((c) => c.code === code);
     if (!found) {
-      setErrorMessage("Invalid coupon code. Try WELCOME10 or AARAMLY100");
+      setErrorMessage("Invalid coupon code. Try WELCOME10 or AOCIND100");
       return;
     }
 

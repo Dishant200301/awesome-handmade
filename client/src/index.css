@@ -13,10 +13,6 @@
   --color-brand-maroon: #520618;
   --color-brand-gold: #C89B3C;
   --color-brand-cream: #FAF8F4;
-  --color-aaramly-bg: #ffffff;
-  --color-aaramly-ink: #000000;
-  --color-aaramly-ink-2: #4b4b4b;
-  --color-aaramly-line: #eaeaea;
 }
 
 .font-heading { font-family: "Cinzel", "Playfair Display", Georgia, serif; }
@@ -28,12 +24,12 @@ html, body { font-family: var(--font-sans); background: #fff; color: #000; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-@keyframes aaramly-marquee {
+@keyframes awesome-marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
-.aaramly-marquee { animation: aaramly-marquee 40s linear infinite; }
-.aaramly-marquee:hover { animation-play-state: paused; }
+.awesome-marquee, .aaramly-marquee { animation: awesome-marquee 40s linear infinite; }
+.awesome-marquee:hover, .aaramly-marquee:hover { animation-play-state: paused; }
 
 @keyframes announcement-marquee {
   0% { transform: translateX(0); }

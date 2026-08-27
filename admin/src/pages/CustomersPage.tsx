@@ -220,8 +220,8 @@ export const CustomersPage: React.FC = () => {
                   <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center gap-3">
                     <div className="w-10 h-10 bg-neutral-200 rounded-lg shrink-0"></div>
                     <div>
-                      <p className="font-bold text-black">Women's Seamless Padded Bralette</p>
-                      <p className="text-neutral-500">₹799 &bull; Color: Blush Pink</p>
+                      <p className="font-bold text-black">Royal Mirror Latkan Pair</p>
+                      <p className="text-neutral-500">₹799 &bull; Color: Maroon & Gold</p>
                     </div>
                   </div>
                 </div>

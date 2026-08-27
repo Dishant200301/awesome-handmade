@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { productStore } from "../store/productStore.js";
+import { AiProductGeneratorService } from "../services/aiProductGenerator.service.js";
 
 export class ProductController {
   // GET /api/v1/products (with pagination & search)
@@ -137,5 +138,29 @@ export class ProductController {
       success: true,
       message: "Product deleted successfully"
     });
+  }
+
+  // POST /api/v1/products/ai-generate (AI Image to Product Generator)
+  public static async generateFromImage(req: Request, res: Response): Promise<void> {
+    try {
+      const { image, hint } = req.body;
+      if (!image) {
+        res.status(400).json({ success: false, message: "Product image is required for AI generation" });
+        return;
+      }
+
+      const generatedData = await AiProductGeneratorService.generateFromImage(image, hint);
+      res.status(200).json({
+        success: true,
+        data: generatedData,
+        message: "Product content generated successfully"
+      });
+    } catch (error: any) {
+      console.error("AI Generation error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate product details"
+      });
+    }
   }
 }

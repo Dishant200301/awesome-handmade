@@ -27,10 +27,18 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
 
+  const validImages = Array.isArray(images) && images.length > 0
+    ? images.filter((img) => img && typeof img.url === "string" && img.url.trim().length > 0)
+    : [];
+
+  const safeImages: ProductImage[] = validImages.length > 0
+    ? validImages
+    : [{ id: "fallback-img", url: "/images/category/Latkan.webp", alt: "Product Preview" }];
+
   // Keep index in valid range if images array changes (e.g. variation switch)
   useEffect(() => {
     setSelectedIndex(0);
-  }, [images]);
+  }, [safeImages.length]);
 
   // Infinite vertical thumbnail auto-scroll disabled per user request
 
@@ -51,7 +59,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedIndex, isLightboxOpen, images]);
+  }, [selectedIndex, isLightboxOpen, safeImages]);
 
   const handleSelectImage = (index: number) => {
     setDirection(index > selectedIndex ? 1 : -1);
@@ -60,12 +68,12 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
 
   const handleNext = () => {
     setDirection(1);
-    setSelectedIndex((prev) => (prev + 1) % images.length);
+    setSelectedIndex((prev) => (prev + 1) % safeImages.length);
   };
 
   const handlePrev = () => {
     setDirection(-1);
-    setSelectedIndex((prev) => (prev - 1 + images.length) % images.length);
+    setSelectedIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
   };
 
   // Image Zoom on Hover
@@ -76,7 +84,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
     setZoomPos({ x, y });
   };
 
-  const currentImage = images[selectedIndex] || images[0];
+  const currentImage = safeImages[selectedIndex] || safeImages[0];
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-4 select-none">
@@ -105,7 +113,7 @@ export const VerticalGallery: React.FC<VerticalGalleryProps> = ({ images, sku })
           className="w-full flex-1 max-h-[660px] overflow-y-auto scrollbar-none flex flex-col gap-2.5 py-0.5 px-0.5 transition-all"
           style={{ scrollBehavior: "smooth" }}
         >
-          {images.map((img, idx) => {
+          {safeImages.map((img, idx) => {
             const isActive = idx === selectedIndex;
             return (
               <button

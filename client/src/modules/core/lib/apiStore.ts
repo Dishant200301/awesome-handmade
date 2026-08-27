@@ -1,6 +1,7 @@
 import { ProductDetails, ProductColorVariation } from "@/modules/product/types/product";
 import { SAMPLE_PRODUCT, CLIENT_SHOP_PRODUCTS } from "@/modules/product/data/productData";
 import { categories as CATALOG_CATEGORIES } from "@/data/catalog";
+import { idbGet, idbSet } from "./idbStorage";
 
 const API_BASE_URL = "http://localhost:5000/api/v1";
 
@@ -8,7 +9,34 @@ const API_BASE_URL = "http://localhost:5000/api/v1";
 type Listener = () => void;
 const listeners: Set<Listener> = new Set();
 
-const DEFAULT_CATALOG_PRODUCTS: any[] = [...CLIENT_SHOP_PRODUCTS];
+export const isLegacyAaramlyProduct = (p: any): boolean => {
+  if (!p) return true;
+  const str = `${p.name || ""} ${p.category || ""} ${p.subcategory || ""} ${p.subtitle || ""} ${p.brand || ""} ${p.sku || ""} ${p.defaultSku || ""}`.toLowerCase();
+  return (
+    str.includes("panty") ||
+    str.includes("bralette") ||
+    str.includes("tactel") ||
+    str.includes("innerwear") ||
+    str.includes("lingerie") ||
+    str.includes("seamless bra") ||
+    str.includes("nipple cover") ||
+    str.includes("stayfresh") ||
+    str.includes("absorbent") ||
+    str.includes("period") ||
+    str.includes("aaramly") ||
+    str.includes("underwear") ||
+    p.id === "prod-1" ||
+    p.id === "prod-2" ||
+    p.id === "prod-3"
+  );
+};
+
+export const sanitizeClientProducts = (list: any[]): any[] => {
+  if (!Array.isArray(list)) return [];
+  return list.filter((p) => !isLegacyAaramlyProduct(p));
+};
+
+const DEFAULT_CATALOG_PRODUCTS: any[] = sanitizeClientProducts(CLIENT_SHOP_PRODUCTS);
 
 let liveProducts: any[] = [...DEFAULT_CATALOG_PRODUCTS];
 let isLoaded = false;
@@ -24,15 +52,50 @@ const notifyListeners = () => {
   listeners.forEach((fn) => fn());
 };
 
-// Fetch live products from MySQL Express backend
+// Fetch live products from MySQL Express backend or local IndexedDB dynamic store
 export const fetchLiveProducts = async (): Promise<any[]> => {
+  syncDeletedIds();
+
+  // 1. Sync from IndexedDB (contains full admin-managed dynamic products & base64 images)
+  if (typeof window !== "undefined") {
+    try {
+      const stored = await idbGet<any>("awesome_admin_sync");
+      if (stored && Array.isArray(stored.products) && stored.products.length > 0) {
+        const clean = sanitizeClientProducts(stored.products);
+        liveProducts = clean.filter(
+          (p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== "Draft"
+        );
+        isLoaded = true;
+        notifyListeners();
+      }
+    } catch (e) {}
+
+    try {
+      const local = localStorage.getItem("awesome_admin_sync");
+      if (local && !isLoaded) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed.products) && parsed.products.length > 0) {
+          const clean = sanitizeClientProducts(parsed.products);
+          liveProducts = clean.filter(
+            (p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== "Draft"
+          );
+          isLoaded = true;
+          notifyListeners();
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. Fetch from backend API if available
   try {
     const res = await fetch(`${API_BASE_URL}/products`);
     if (res.ok) {
       const json = await res.json();
       const list = json.data || json.items || json.products;
-      if (list && Array.isArray(list) && list.length > 0) {
-        liveProducts = list;
+      if (Array.isArray(list) && list.length > 0) {
+        liveProducts = sanitizeClientProducts(list).filter(
+          (p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== "Draft"
+        );
         isLoaded = true;
         notifyListeners();
         return liveProducts;
@@ -41,6 +104,8 @@ export const fetchLiveProducts = async (): Promise<any[]> => {
   } catch (e) {
     console.warn("Express MySQL backend offline; serving local dynamic state.");
   }
+
+  liveProducts = sanitizeClientProducts(liveProducts).filter((p: any) => !deletedProductIds.has(String(p.id)));
   return liveProducts;
 };
 
@@ -75,58 +140,67 @@ let deletedProductIds = new Set<string>();
 const syncDeletedIds = () => {
   if (typeof window !== 'undefined') {
     try {
-      const saved = localStorage.getItem('aaramly_deleted_products');
+      const saved = localStorage.getItem('awesome_deleted_products') || localStorage.getItem('aaramly_deleted_products');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) parsed.forEach((id) => deletedProductIds.add(String(id)));
       }
     } catch (e) {}
+
+    idbGet<string[]>('awesome_deleted_products').then((ids) => {
+      if (Array.isArray(ids)) {
+        ids.forEach((id) => deletedProductIds.add(String(id)));
+      }
+    }).catch(() => {});
   }
 };
 syncDeletedIds();
 
 // BroadcastChannel and Storage Listener for Real-Time Sync with Admin Panel
 if (typeof window !== "undefined") {
-  try {
-    const channel = new BroadcastChannel("aaramly_product_sync");
-    channel.onmessage = (event) => {
-      if (event.data) {
-        if (Array.isArray(event.data.deletedIds)) {
-          event.data.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
-          try {
-            localStorage.setItem('aaramly_deleted_products', JSON.stringify(Array.from(deletedProductIds)));
-          } catch (e) {}
-        }
-        if (Array.isArray(event.data.products)) {
-          liveProducts = event.data.products.filter((p: any) => !deletedProductIds.has(String(p.id)));
-          notifyListeners();
-        } else if (event.data.product) {
-          const updated = event.data.product;
-          if (!deletedProductIds.has(String(updated.id))) {
-            const idx = liveProducts.findIndex((p) => String(p.id) === String(updated.id));
-            if (idx !== -1) {
-              liveProducts[idx] = updated;
-            } else {
-              liveProducts.unshift(updated);
-            }
+  const handleProductMessage = (event: MessageEvent) => {
+    if (event.data) {
+      if (Array.isArray(event.data.deletedIds)) {
+        event.data.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
+        try {
+          localStorage.setItem('awesome_deleted_products', JSON.stringify(Array.from(deletedProductIds)));
+        } catch (e) {}
+      }
+      if (Array.isArray(event.data.products)) {
+        const clean = sanitizeClientProducts(event.data.products);
+        liveProducts = clean.filter((p: any) => !deletedProductIds.has(String(p.id)));
+        notifyListeners();
+      } else if (event.data.product) {
+        const updated = event.data.product;
+        if (!deletedProductIds.has(String(updated.id))) {
+          const idx = liveProducts.findIndex((p) => String(p.id) === String(updated.id));
+          if (idx !== -1) {
+            liveProducts[idx] = updated;
+          } else {
+            liveProducts.unshift(updated);
           }
           notifyListeners();
         }
       }
-    };
-  } catch (e) {
-    // BroadcastChannel fallback
-  }
+    }
+  };
+
+  try {
+    const channel = new BroadcastChannel("awesome_product_sync");
+    channel.onmessage = handleProductMessage;
+    const legacyChannel = new BroadcastChannel("aaramly_product_sync");
+    legacyChannel.onmessage = handleProductMessage;
+  } catch (e) {}
 
   window.addEventListener("storage", (e) => {
-    if (e.key === "aaramly_deleted_products" && e.newValue) {
+    if ((e.key === "awesome_deleted_products" || e.key === "aaramly_deleted_products") && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
         if (Array.isArray(parsed)) parsed.forEach((id) => deletedProductIds.add(String(id)));
         notifyListeners();
       } catch (err) {}
     }
-    if (e.key === "aaramly_admin_sync" && e.newValue) {
+    if ((e.key === "awesome_admin_sync" || e.key === "aaramly_admin_sync") && e.newValue) {
       try {
         syncDeletedIds();
         const parsed = JSON.parse(e.newValue);
@@ -134,43 +208,62 @@ if (typeof window !== "undefined") {
           parsed.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
         }
         if (Array.isArray(parsed.products)) {
-          liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)));
+          const clean = sanitizeClientProducts(parsed.products);
+          liveProducts = clean.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
           notifyListeners();
         }
       } catch (err) {}
     }
   });
 
-  window.addEventListener("aaramly_product_sync", () => {
+  const handleProductSyncEvent = () => {
     try {
       syncDeletedIds();
-      const stored = localStorage.getItem("aaramly_admin_sync");
+      const stored = localStorage.getItem("awesome_admin_sync") || localStorage.getItem("aaramly_admin_sync");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed.deletedIds)) {
           parsed.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
         }
         if (Array.isArray(parsed.products)) {
-          liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
+          const clean = sanitizeClientProducts(parsed.products);
+          liveProducts = clean.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
           notifyListeners();
         }
       }
     } catch (e) {}
-  });
 
-  // Load persisted admin sync state from localStorage on init
-  try {
-    const stored = localStorage.getItem("aaramly_admin_sync");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.deletedIds)) {
-        parsed.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
+    // Also sync from IndexedDB
+    idbGet<any>("awesome_admin_sync").then((stored) => {
+      if (stored) {
+        if (Array.isArray(stored.deletedIds)) {
+          stored.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
+        }
+        if (Array.isArray(stored.products) && stored.products.length > 0) {
+          const clean = sanitizeClientProducts(stored.products);
+          liveProducts = clean.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
+          notifyListeners();
+        }
       }
-      if (Array.isArray(parsed.products)) {
-        liveProducts = parsed.products.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
+    }).catch(() => {});
+  };
+
+  window.addEventListener("awesome_product_sync", handleProductSyncEvent);
+  window.addEventListener("aaramly_product_sync", handleProductSyncEvent);
+
+  // Load from IndexedDB on startup (supports full base64 images of any size)
+  idbGet<any>("awesome_admin_sync").then((stored) => {
+    if (stored) {
+      if (Array.isArray(stored.deletedIds)) {
+        stored.deletedIds.forEach((id: string) => deletedProductIds.add(String(id)));
+      }
+      if (Array.isArray(stored.products) && stored.products.length > 0) {
+        const clean = sanitizeClientProducts(stored.products);
+        liveProducts = clean.filter((p: any) => !deletedProductIds.has(String(p.id)) && p.isPublished !== false && p.status !== 'Draft');
+        notifyListeners();
       }
     }
-  } catch (e) {}
+  }).catch(() => {});
 }
 
 export const updateLiveStoreDirectly = (productsList: any[]) => {
@@ -182,92 +275,100 @@ export const updateLiveStoreDirectly = (productsList: any[]) => {
 const formatVariantImages = (v: any, index: number, parentProduct: any): any => {
   const colorName = v.colorName || v.color || `Color ${index + 1}`;
 
-  // Find matching color object from parentProduct.colors (from Admin Product Editor)
+  const colorMedia = (parentProduct?.colorMediaConfigs || []).find(
+    (cm: any) => cm && (cm.colorName || cm.name || "").toLowerCase() === colorName.toLowerCase()
+  );
+
   const colorObj = (parentProduct?.colors || []).find(
-    (c: any) => (c.colorName || c.name || "").toLowerCase() === colorName.toLowerCase()
+    (c: any) => c && (c.colorName || c.name || c.color || "").toLowerCase() === colorName.toLowerCase()
   );
 
   // Gather parent product image URLs
-  const parentImages: string[] = Array.isArray(parentProduct?.images) && parentProduct.images.length > 0
-    ? parentProduct.images.filter((img: any) => typeof img === "string" && img.trim().length > 0)
-    : (typeof parentProduct?.image === "string" && parentProduct.image.trim().length > 0 ? [parentProduct.image] : []);
+  const parentImages: string[] = [];
+  if (parentProduct?.mainImage && typeof parentProduct.mainImage === "string" && parentProduct.mainImage.trim()) {
+    parentImages.push(parentProduct.mainImage.trim());
+  }
+  if (parentProduct?.image && typeof parentProduct.image === "string" && parentProduct.image.trim() && !parentImages.includes(parentProduct.image.trim())) {
+    parentImages.push(parentProduct.image.trim());
+  }
+  if (Array.isArray(parentProduct?.galleryImages)) {
+    parentProduct.galleryImages.forEach((img: any) => {
+      const u = typeof img === "string" ? img : img?.url;
+      if (u && typeof u === "string" && u.trim() && !parentImages.includes(u.trim())) parentImages.push(u.trim());
+    });
+  }
+  if (Array.isArray(parentProduct?.images)) {
+    parentProduct.images.forEach((img: any) => {
+      const u = typeof img === "string" ? img : img?.url;
+      if (u && typeof u === "string" && u.trim() && !parentImages.includes(u.trim())) parentImages.push(u.trim());
+    });
+  }
 
-  const fallbackMainImg = parentImages[0] || "";
-  const mainImg = colorObj?.mainImage || colorObj?.displayImage || v.thumbnail || v.image || fallbackMainImg;
+  const fallbackMainImg = parentImages[0] || "/images/category/Latkan.webp";
+
+  const mainImg =
+    colorMedia?.mainImage ||
+    colorObj?.mainImage ||
+    colorObj?.displayImage ||
+    (typeof v.image === "string" && v.image.trim() ? v.image.trim() : "") ||
+    (typeof v.thumbnail === "string" && v.thumbnail.trim() ? v.thumbnail.trim() : "") ||
+    fallbackMainImg;
+
+  const colorGalleryUrls = (colorMedia?.gallery && Array.isArray(colorMedia.gallery))
+    ? colorMedia.gallery
+    : (colorObj?.galleryImages && Array.isArray(colorObj.galleryImages))
+    ? colorObj.galleryImages
+    : (v.galleryImages && Array.isArray(v.galleryImages))
+    ? v.galleryImages
+    : [];
 
   let galleryList: any[] = [];
-  if (Array.isArray(v.images) && v.images.length > 0) {
+
+  if (colorGalleryUrls.length > 0) {
+    const allUrls = Array.from(new Set([mainImg, ...colorGalleryUrls].filter(Boolean)));
+    galleryList = allUrls.map((url, i) => ({
+      id: `img-${v.id || index}-${i}`,
+      url,
+      alt: `${parentProduct?.name || ''} - ${colorName} View ${i + 1}`,
+    }));
+  } else if (Array.isArray(v.images) && v.images.length > 0) {
     galleryList = v.images.map((img: any, i: number) =>
       typeof img === "string"
         ? { id: `img-${v.id || index}-${i}`, url: img, alt: `${colorName} ${i + 1}` }
         : { id: img.id || `img-${v.id || index}-${i}`, url: img.url || mainImg, alt: img.alt || `${colorName} ${i + 1}` }
     );
-  } else if (colorObj && Array.isArray(colorObj.galleryImages) && colorObj.galleryImages.length > 0) {
-    const allUrls = Array.from(new Set([mainImg, ...colorObj.galleryImages].filter(Boolean)));
-    galleryList = allUrls.map((url, i) => ({
+  } else if (parentImages.length > 0) {
+    const combined = Array.from(new Set([mainImg, ...parentImages].filter(Boolean)));
+    galleryList = combined.map((url, i) => ({
       id: `img-${v.id || index}-${i}`,
       url,
-      alt: `${colorName} View ${i + 1}`,
-    }));
-  } else if (Array.isArray(v.galleryImages) && v.galleryImages.length > 0) {
-    const allUrls = Array.from(new Set([mainImg, ...v.galleryImages].filter(Boolean)));
-    galleryList = allUrls.map((url, i) => ({
-      id: `img-${v.id || index}-${i}`,
-      url,
-      alt: `${colorName} View ${i + 1}`,
+      alt: `${parentProduct?.name || ''} - ${colorName} View ${i + 1}`,
     }));
   } else {
-    // Check if another variant with the same color uploaded gallery images or a distinct main image
-    const rawVars = parentProduct?.variations || parentProduct?.variants || [];
-    const colorSibling = rawVars.find(
-      (sib: any) =>
-        (sib.colorName || sib.color)?.toLowerCase() === colorName.toLowerCase() &&
-        ((Array.isArray(sib.galleryImages) && sib.galleryImages.length > 0) ||
-         (Array.isArray(sib.images) && sib.images.length > 0) ||
-         (sib.image && sib.image !== parentProduct?.image))
-    );
-
-    if (colorSibling) {
-      const sibGallery = colorSibling.galleryImages || colorSibling.images || [];
-      const sibMain = colorSibling.thumbnail || colorSibling.image || mainImg;
-      const sibUrls = Array.from(new Set([sibMain, ...sibGallery.map((x: any) => (typeof x === "string" ? x : x.url))]));
-      galleryList = sibUrls.map((url, i) => ({
-        id: `img-${v.id || index}-${i}`,
-        url,
-        alt: `${colorName} View ${i + 1}`,
-      }));
-    } else if (parentImages.length > 0) {
-      galleryList = parentImages.map((url, i) => ({
-        id: `img-${v.id || index}-${i}`,
-        url,
-        alt: `${colorName} View ${i + 1}`,
-      }));
-    } else {
-      galleryList = [
-        { id: `img-${v.id || index}-0`, url: mainImg, alt: `${colorName} Front View` }
-      ];
-    }
+    galleryList = [
+      { id: `img-${v.id || index}-0`, url: mainImg, alt: `${colorName} Front View` }
+    ];
   }
 
   // Derive hex code for common color names if missing
-  let colorHex = colorObj?.colorHex || v.colorHex || "#000000";
+  let colorHex = colorObj?.colorHex || colorMedia?.colorCode || v.colorHex || "#000000";
   if (!colorHex || colorHex === "#000000") {
     const lower = colorName.toLowerCase();
     if (lower.includes("black")) colorHex = "#000000";
     else if (lower.includes("white")) colorHex = "#FFFFFF";
     else if (lower.includes("pink")) colorHex = "#FFB6C1";
     else if (lower.includes("beige") || lower.includes("nude")) colorHex = "#F5F5DC";
-    else if (lower.includes("red")) colorHex = "#DC2626";
-    else if (lower.includes("blue")) colorHex = "#2563EB";
-    else if (lower.includes("green")) colorHex = "#16A34A";
-    else if (lower.includes("yellow")) colorHex = "#EAB308";
+    else if (lower.includes("red") || lower.includes("maroon")) colorHex = "#520618";
+    else if (lower.includes("blue")) colorHex = "#1A3B8B";
+    else if (lower.includes("green")) colorHex = "#1A5235";
+    else if (lower.includes("gold") || lower.includes("yellow")) colorHex = "#C89B3C";
     else if (lower.includes("purple")) colorHex = "#9333EA";
   }
 
   const varPrice = Number(v.price) || Number(parentProduct?.price) || 799;
   const varOrigPrice = Number(v.originalPrice) || Number(parentProduct?.originalPrice) || Math.round(varPrice * 1.6);
   const discountPct = Math.max(0, Math.round(((varOrigPrice - varPrice) / varOrigPrice) * 100));
-  const defaultSize = (colorObj?.sizes && colorObj.sizes[0]) || (parentProduct?.availableSizes && parentProduct.availableSizes[0]) || "S";
+  const defaultSize = (colorObj?.sizes && colorObj.sizes[0]) || (parentProduct?.availableSizes && parentProduct.availableSizes[0]) || "Standard Pair";
 
   return {
     id: v.id || `var-${index}`,
@@ -279,7 +380,7 @@ const formatVariantImages = (v: any, index: number, parentProduct: any): any => 
     price: varPrice,
     originalPrice: varOrigPrice,
     discountPercentage: discountPct,
-    sku: v.sku || parentProduct?.defaultSku || parentProduct?.sku || `SKU-${index}`,
+    sku: v.sku || parentProduct?.defaultSku || parentProduct?.sku || `AH-${colorName}-${v.size || defaultSize}`,
     stock: Number(v.stock) !== undefined ? Number(v.stock) : (Number(parentProduct?.stock) || 50),
     images: galleryList,
   };
@@ -301,7 +402,7 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
 
   if (!found && typeof window !== "undefined") {
     try {
-      const stored = localStorage.getItem("aaramly_admin_sync");
+      const stored = localStorage.getItem("awesome_admin_sync") || localStorage.getItem("aaramly_admin_sync");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed.products) && parsed.products.length > 0) {
@@ -322,9 +423,29 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
     }
   }
 
-  const parentImages: string[] = Array.isArray(found.images) && found.images.length > 0
-    ? found.images.filter((img: any) => typeof img === "string" && img.trim().length > 0)
-    : (typeof found.image === "string" && found.image.trim().length > 0 ? [found.image] : []);
+  const parentImages: string[] = [];
+  if (found.mainImage && typeof found.mainImage === "string" && found.mainImage.trim()) {
+    parentImages.push(found.mainImage.trim());
+  }
+  if (found.image && typeof found.image === "string" && found.image.trim() && !parentImages.includes(found.image.trim())) {
+    parentImages.push(found.image.trim());
+  }
+  if (Array.isArray(found.galleryImages)) {
+    found.galleryImages.forEach((img: any) => {
+      const u = typeof img === "string" ? img : img?.url;
+      if (u && typeof u === "string" && u.trim() && !parentImages.includes(u.trim())) {
+        parentImages.push(u.trim());
+      }
+    });
+  }
+  if (Array.isArray(found.images)) {
+    found.images.forEach((img: any) => {
+      const u = typeof img === "string" ? img : img?.url;
+      if (u && typeof u === "string" && u.trim() && !parentImages.includes(u.trim())) {
+        parentImages.push(u.trim());
+      }
+    });
+  }
 
   const rawVariants = found.variations || found.variants || [];
   let mappedVariations: ProductColorVariation[] = [];
@@ -359,7 +480,7 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
             price: Number(found.price) || 799,
             originalPrice: Number(found.originalPrice) || 1299,
             discountPercentage: 38,
-            sku: found.defaultSku || found.sku || `AAR-${col.colorName}-${sz}`,
+            sku: found.defaultSku || found.sku || `AH-${col.colorName}-${sz}`,
             stock: Number(found.stock) !== undefined ? Number(found.stock) : 50,
             images: gallery
           });
@@ -368,8 +489,36 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
     });
   }
 
+  // Synthesize missing color variations from found.colorMediaConfigs if present
+  if (Array.isArray(found.colorMediaConfigs) && found.colorMediaConfigs.length > 0) {
+    found.colorMediaConfigs.forEach((cm: any) => {
+      const exists = mappedVariations.some(
+        (v) => (v.colorName || "").toLowerCase() === (cm.colorName || "").toLowerCase()
+      );
+      if (!exists && cm.colorName) {
+        const cMain = cm.mainImage || parentImages[0] || "/images/category/Latkan.webp";
+        const cGal = (cm.gallery && cm.gallery.length > 0) ? cm.gallery : parentImages;
+        const allUrls = Array.from(new Set([cMain, ...cGal])).filter(Boolean);
+        mappedVariations.push({
+          id: cm.colorValueId || `v-cm-${cm.colorName}`,
+          colorName: cm.colorName,
+          colorHex: cm.colorCode || "#000000",
+          size: (found.availableSizes && found.availableSizes[0]) || "Standard Pair",
+          sizeName: (found.availableSizes && found.availableSizes[0]) || "Standard Pair",
+          thumbnail: cMain,
+          price: Number(found.price) || 799,
+          originalPrice: Number(found.originalPrice) || 1299,
+          discountPercentage: 38,
+          sku: found.defaultSku || found.sku || `AH-${cm.colorName}-STD`,
+          stock: Number(found.stock) !== undefined ? Number(found.stock) : 50,
+          images: allUrls.map((url: string, i: number) => ({ id: `img-cm-${i}`, url, alt: `${found.name} - ${cm.colorName} ${i + 1}` }))
+        });
+      }
+    });
+  }
+
   if (mappedVariations.length === 0) {
-    const mainImg = parentImages[0] || "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=800";
+    const mainImg = parentImages[0] || "/images/category/Latkan.webp";
     const gallery = parentImages.length > 0
       ? parentImages.map((url, i) => ({ id: `img-def-${i}`, url, alt: `${found.name} View ${i + 1}` }))
       : [{ id: "img-def-0", url: mainImg, alt: found.name }];
@@ -380,15 +529,15 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
 
     mappedVariations = [{
       id: "v-default",
-      colorName: "Black",
-      colorHex: "#000000",
-      size: (found.availableSizes && found.availableSizes[0]) || "S",
-      sizeName: (found.availableSizes && found.availableSizes[0]) || "S",
+      colorName: "Standard",
+      colorHex: "#C89B3C",
+      size: (found.availableSizes && found.availableSizes[0]) || "Standard Pair",
+      sizeName: (found.availableSizes && found.availableSizes[0]) || "Standard Pair",
       thumbnail: mainImg,
       price: priceNum,
       originalPrice: origPriceNum,
       discountPercentage: discPct,
-      sku: found.defaultSku || found.sku || "AAR-SKU-100",
+      sku: found.defaultSku || found.sku || "AH-SKU-100",
       stock: Number(found.stock) !== undefined ? Number(found.stock) : 50,
       images: gallery,
     }];
@@ -401,33 +550,39 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
       descCards = [
         {
           id: "card-1",
-          title: found.name || "Premium Fit & Comfort",
-          subtitle: found.shortDescription || found.subtitle || "Engineered for soft 4-way contour stretch",
-          image: parentImages[0]
+          title: found.name || "Authentic Handcrafted Artistry",
+          subtitle: found.shortDescription || found.subtitle || "Expertly crafted with traditional techniques in Surat, Gujarat",
+          image: parentImages[0] || "/images/category/Latkan.webp"
         },
         {
           id: "card-2",
-          title: "Wirefree Contour",
-          subtitle: "Zero dig-in side wings and breathable lining",
-          image: parentImages[1] || parentImages[0]
+          title: "Intricate Mirror & Beadwork",
+          subtitle: "Precision glass mirrors framed with golden zari thread and fine embellishments",
+          image: parentImages[1] || parentImages[0] || "/images/category/Latkan.webp"
         },
         {
           id: "card-3",
-          title: "All-Day Breathable",
-          subtitle: "Ultra lightweight fabric composition",
-          image: parentImages[2] || parentImages[0]
+          title: "Festive & Bridal Elegance",
+          subtitle: "Perfect statement piece for lehengas, dupattas, blouses and designer wear",
+          image: parentImages[2] || parentImages[0] || "/images/category/Latkan.webp"
         },
         {
           id: "card-4",
-          title: "Seamless Support",
-          subtitle: "Smooth finish under any outfit",
-          image: parentImages[3] || parentImages[0]
+          title: "Durable & Lightweight",
+          subtitle: "Long-lasting anti-tarnish finish with secure hanging tie loops",
+          image: parentImages[3] || parentImages[0] || "/images/category/Latkan.webp"
         }
       ];
     } else {
       descCards = SAMPLE_PRODUCT.descriptionCards;
     }
   }
+
+  const productHighlights = Array.isArray(found.highlights) && found.highlights.length > 0
+    ? found.highlights
+    : (Array.isArray(found.keyFeatures) && found.keyFeatures.length > 0
+        ? found.keyFeatures
+        : SAMPLE_PRODUCT.highlights);
 
   return {
     ...SAMPLE_PRODUCT,
@@ -444,15 +599,21 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
     reviewCount: Number(found.reviewCount || found.salesCount) || 120,
     defaultSku: found.defaultSku || found.sku || "AWH-SKU-100",
     colors: found.colors || [],
+    colorMediaConfigs: found.colorMediaConfigs || [],
     variations: mappedVariations,
-    availableSizes: found.availableSizes || (found.sizes ? found.sizes : ["S", "M", "L", "XL"]),
+    availableSizes: found.availableSizes || (found.sizes ? found.sizes : ["Free Size", "Standard Pair", "Bridal Set"]),
     descriptionCards: descCards,
-    idealForPills: found.idealForPills || (found.category ? [found.category, "Daily Wear", "Under T-Shirts"] : SAMPLE_PRODUCT.idealForPills),
+    highlights: productHighlights,
+    specs: found.specs || SAMPLE_PRODUCT.specs,
+    galleryImages: parentImages,
+    images: parentImages,
+    mainImage: parentImages[0] || found.image || "/images/category/Latkan.webp",
+    idealForPills: found.idealForPills || (found.category ? [found.category, "Handmade", "Surat Artisan"] : SAMPLE_PRODUCT.idealForPills),
     washingInstructions: found.washingInstructions && found.washingInstructions.length > 0 ? found.washingInstructions : SAMPLE_PRODUCT.washingInstructions,
     manufacturingInfo: {
       ...SAMPLE_PRODUCT.manufacturingInfo,
       ...(found.manufacturingInfo || {}),
-      ...(found.brand ? { manufacturer: `${found.brand} Intimates` } : {})
+      ...(found.brand ? { manufacturer: `${found.brand}` } : {})
     },
   };
 };
@@ -460,7 +621,7 @@ export const getLiveProductById = (idOrSlug?: string): ProductDetails => {
 export const getLiveProductsList = () => {
   if (typeof window !== 'undefined') {
     try {
-      const saved = localStorage.getItem('aaramly_deleted_products');
+      const saved = localStorage.getItem('awesome_deleted_products') || localStorage.getItem('aaramly_deleted_products');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) parsed.forEach((id) => deletedProductIds.add(String(id)));
@@ -510,7 +671,7 @@ export const fetchLiveFilters = async () => {
       if (json.data) {
         liveFilterData = json.data;
         if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('aaramly_dynamic_filters', JSON.stringify(json.data));
+          localStorage.setItem('awesome_dynamic_filters', JSON.stringify(json.data));
         }
         filterListeners.forEach((fn) => fn());
         return liveFilterData;
@@ -524,7 +685,7 @@ export const fetchLiveFilters = async () => {
 
 export const getLiveFilters = () => {
   try {
-    const saved = localStorage.getItem('aaramly_dynamic_filters');
+    const saved = localStorage.getItem('awesome_dynamic_filters') || localStorage.getItem('aaramly_dynamic_filters');
     if (saved) {
       const parsed = JSON.parse(saved);
       return {
@@ -544,15 +705,20 @@ export const subscribeToFilterStore = (listener: () => void) => {
   filterListeners.add(listener);
 
   let broadcastChannel: BroadcastChannel | null = null;
+  let legacyChannel: BroadcastChannel | null = null;
   if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-    broadcastChannel = new BroadcastChannel('aaramly_filter_sync');
+    broadcastChannel = new BroadcastChannel('awesome_filter_sync');
     broadcastChannel.onmessage = () => {
+      filterListeners.forEach((fn) => fn());
+    };
+    legacyChannel = new BroadcastChannel('aaramly_filter_sync');
+    legacyChannel.onmessage = () => {
       filterListeners.forEach((fn) => fn());
     };
   }
 
   const handleStorageChange = (e: StorageEvent) => {
-    if (e.key === 'aaramly_dynamic_filters') {
+    if (e.key === 'awesome_dynamic_filters' || e.key === 'aaramly_dynamic_filters') {
       filterListeners.forEach((fn) => fn());
     }
   };
@@ -564,6 +730,7 @@ export const subscribeToFilterStore = (listener: () => void) => {
   return () => {
     filterListeners.delete(listener);
     if (broadcastChannel) broadcastChannel.close();
+    if (legacyChannel) legacyChannel.close();
     if (typeof window !== 'undefined') {
       window.removeEventListener('storage', handleStorageChange);
     }

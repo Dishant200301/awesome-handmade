@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams, useParams, Link } from "react-router-dom";
 import {
   LayoutGrid,
   List as ListIcon,
   SlidersHorizontal,
   X,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Star,
   Heart,
   ShoppingBag,
@@ -32,6 +34,7 @@ import {
 
 // Shop Categories for Header Bar
 const shopCategories = [
+  { id: "all", name: "All Products", count: "All items", img: "/images/category/Latkan.webp" },
   { id: "Latkan", name: "Latkans", count: "12 items", img: "/images/category/Latkan.webp" },
   { id: "Earrings", name: "Earrings", count: "10 items", img: "/images/category/Earrings.webp" },
   { id: "Necklace", name: "Necklaces", count: "8 items", img: "/images/category/Necklace.webp" },
@@ -44,6 +47,7 @@ const shopCategories = [
 
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categorySlug } = useParams<{ categorySlug?: string }>();
   const { cartItems, addToCart, updateQuantity } = useCart();
   const { wishlistIds, toggleWishlist, isWishlisted } = useWishlist();
   const { openQuickView, isMobileOrTablet } = useQuickView();
@@ -73,7 +77,7 @@ export default function ShopPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filter States
-  const initialCategory = searchParams.get("category") || null;
+  const initialCategory = categorySlug || searchParams.get("category") || null;
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [maxPrice, setMaxPrice] = useState<number>(3000);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -100,20 +104,63 @@ export default function ShopPage() {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Mobile Auto Slider State for Category (5-second transition)
-  const [mobileCatIndex, setMobileCatIndex] = useState<number>(0);
+  // Top Categories Horizontal Scroll & 5 Dots State (Sync for Mobile, Tablet & Desktop)
+  const catScrollRef = useRef<HTMLDivElement>(null);
+  const [activeCatDot, setActiveCatDot] = useState<number>(0);
+  const isDraggingCat = useRef<boolean>(false);
+  const startCatX = useRef<number>(0);
+  const scrollLeftStartCat = useRef<number>(0);
+  const hasMovedCat = useRef<boolean>(false);
+
+  const handleCatScroll = () => {
+    if (!catScrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = catScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll <= 5) {
+      setActiveCatDot(0);
+      return;
+    }
+    const progress = Math.max(0, Math.min(1, scrollLeft / maxScroll));
+    const dot = Math.min(4, Math.max(0, Math.round(progress * 4)));
+    setActiveCatDot(dot);
+  };
+
+  const scrollToCatDot = (dotIdx: number) => {
+    if (!catScrollRef.current) return;
+    const { scrollWidth, clientWidth } = catScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+    const target = maxScroll * (dotIdx / 4);
+    catScrollRef.current.scrollTo({ left: target, behavior: "smooth" });
+    setActiveCatDot(dotIdx);
+  };
+
+  const handleCatMouseDown = (e: React.MouseEvent) => {
+    if (!catScrollRef.current) return;
+    isDraggingCat.current = true;
+    hasMovedCat.current = false;
+    startCatX.current = e.pageX - catScrollRef.current.offsetLeft;
+    scrollLeftStartCat.current = catScrollRef.current.scrollLeft;
+  };
+
+  const handleCatMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingCat.current || !catScrollRef.current) return;
+    const x = e.pageX - catScrollRef.current.offsetLeft;
+    const walk = (x - startCatX.current);
+    if (Math.abs(walk) > 4) {
+      hasMovedCat.current = true;
+      e.preventDefault();
+      catScrollRef.current.scrollLeft = scrollLeftStartCat.current - walk;
+    }
+  };
+
+  const handleCatMouseUp = () => {
+    isDraggingCat.current = false;
+  };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMobileCatIndex((prev) => (prev + 1) % shopCategories.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const catFromUrl = searchParams.get("category");
-    if (catFromUrl) setSelectedCategory(catFromUrl);
-  }, [searchParams]);
+    const catFromUrl = categorySlug || searchParams.get("category");
+    setSelectedCategory(catFromUrl || null);
+  }, [searchParams, categorySlug]);
 
   // Load Live & Published Products
   useEffect(() => {
@@ -181,12 +228,72 @@ export default function ShopPage() {
     setSearchParams({});
   };
 
+  // Comprehensive category & subcategory matching helper
+  const matchProductCategory = (prod: any, targetCategory: string): boolean => {
+    if (!targetCategory || targetCategory.toLowerCase() === "all") return true;
+
+    const clean = (s?: string) => (s || "").toLowerCase().replace(/[-_\s]+/g, "");
+    const target = clean(targetCategory);
+    const targetStem = target.endsWith("s") && target.length > 3 ? target.slice(0, -1) : target;
+
+    const cat = clean(prod.category);
+    const subcat = clean(prod.subcategory);
+    const name = clean(prod.name);
+    const desc = clean(prod.shortDescription || prod.subtitle || "");
+    const categoriesList = Array.isArray(prod.categories) ? prod.categories.map(clean) : [];
+
+    // 1. Direct or stem equality
+    if (cat === target || cat === targetStem || subcat === target || subcat === targetStem) return true;
+    if (categoriesList.includes(target) || categoriesList.includes(targetStem)) return true;
+
+    // 2. Substring matching
+    if (cat.includes(targetStem) || subcat.includes(targetStem) || target.includes(cat) || targetStem.includes(cat)) return true;
+    if (name.includes(targetStem) || desc.includes(targetStem)) return true;
+
+    // 3. Domain-specific semantic mappings
+    if (targetStem.includes("latkan") || targetStem.includes("tassel")) {
+      return cat.includes("latkan") || cat.includes("tassel") || subcat.includes("latkan") || subcat.includes("tassel") || name.includes("latkan") || name.includes("tassel");
+    }
+    if (targetStem.includes("choli") || targetStem.includes("navratri")) {
+      return cat.includes("choli") || subcat.includes("choli") || name.includes("choli");
+    }
+    if (targetStem.includes("earring") || targetStem.includes("jhumka")) {
+      return cat.includes("earring") || cat.includes("jhumka") || subcat.includes("earring") || name.includes("earring") || name.includes("jhumka");
+    }
+    if (targetStem.includes("necklace") || targetStem.includes("haar") || targetStem.includes("mala")) {
+      return cat.includes("necklace") || subcat.includes("necklace") || name.includes("necklace");
+    }
+    if (targetStem.includes("gift") || targetStem.includes("hamper") || targetStem.includes("keychain")) {
+      return cat.includes("gift") || cat.includes("hamper") || cat.includes("keychain") || subcat.includes("gift") || subcat.includes("hamper") || subcat.includes("keychain") || name.includes("gift") || name.includes("hamper") || name.includes("keychain");
+    }
+    if (targetStem.includes("hair") || targetStem.includes("bow") || targetStem.includes("clip") || targetStem.includes("band")) {
+      return cat.includes("hair") || subcat.includes("hair") || cat.includes("bow") || cat.includes("clip") || name.includes("hair") || name.includes("bow") || name.includes("clip");
+    }
+    if (targetStem.includes("krishna") || targetStem.includes("poshak") || targetStem.includes("outfit")) {
+      return cat.includes("krishna") || subcat.includes("krishna") || name.includes("krishna") || name.includes("poshak");
+    }
+    if (targetStem.includes("belt") || targetStem.includes("kandora") || targetStem.includes("kamarbandh")) {
+      return cat.includes("belt") || subcat.includes("belt") || name.includes("belt") || name.includes("kamarbandh") || name.includes("kandora");
+    }
+    if (targetStem.includes("watch")) {
+      return cat.includes("watch") || subcat.includes("watch") || name.includes("watch");
+    }
+    if (targetStem.includes("bracelet") || targetStem.includes("anklet") || targetStem.includes("payal")) {
+      return cat.includes("bracelet") || cat.includes("anklet") || cat.includes("payal") || subcat.includes("bracelet") || subcat.includes("anklet") || name.includes("bracelet") || name.includes("anklet");
+    }
+    if (targetStem.includes("jewel") || targetStem.includes("ornament")) {
+      return cat.includes("necklace") || cat.includes("earring") || cat.includes("bracelet") || cat.includes("anklet") || cat.includes("ring") || name.includes("jewel");
+    }
+
+    return false;
+  };
+
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
     let list = [...products];
 
-    // Category
-    if (selectedCategory) {
+    // Category Filter (if category selected, show only related; if no category or all, show all products)
+    if (selectedCategory && selectedCategory.toLowerCase() !== "all") {
       if (selectedCategory === "newArrival") {
         list = list.filter((p) => p.labels?.newArrival);
       } else if (selectedCategory === "bestSeller") {
@@ -194,11 +301,7 @@ export default function ShopPage() {
       } else if (selectedCategory === "sale") {
         list = list.filter((p) => p.labels?.sale);
       } else {
-        list = list.filter(
-          (p) =>
-            p.category === selectedCategory ||
-            p.categories?.includes(selectedCategory)
-        );
+        list = list.filter((p) => matchProductCategory(p, selectedCategory));
       }
     }
 
@@ -525,105 +628,99 @@ export default function ShopPage() {
       <Navbar />
 
       {/* TOP SHOP BY CATEGORY CIRCLES SECTION */}
-      <section className="bg-white pt-10 pb-8 border-b border-zinc-100">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[11px] font-extrabold font-semibold tracking-[0.2em] text-brand-maroon mb-2">
+      <section className="bg-white pt-8 pb-6 border-b border-zinc-100">
+        <div className="w-full max-w-[1400px] mx-auto px-0 sm:px-6 lg:px-8">
+          <p className="text-[11px] font-extrabold font-semibold tracking-[0.2em] text-brand-maroon mb-4 text-center">
             AWESOME HANDMADE CATEGORIES
           </p>
 
-          {/* TABLET & LAPTOP/DESKTOP VIEW (>= sm): 3 Columns in 1 Row */}
-          <div className="hidden sm:grid grid-cols-3 gap-6 max-w-4xl mx-auto pt-4 items-stretch">
-            {shopCategories.map((cat, idx) => {
-              const active = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(active ? null : cat.id)}
-                  className={`group flex flex-col items-center justify-between py-4 px-3 cursor-pointer transition-all duration-300 ${idx !== shopCategories.length - 1 ? "sm:border-r sm:border-zinc-200/80" : ""
-                    }`}
-                >
-                  {/* Category Circle Image */}
-                  <div
-                    className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden transition-all duration-300 p-0.5 ${active ? "border-2 border-[#80a17d]" : "border-2 border-transparent"
-                      }`}
-                  >
-                    <img
-                      src={cat.img}
-                      alt={cat.name}
-                      className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  {/* Title & Count */}
-                  <div className="mt-3 text-center">
-                    <h3
-                      className={`text-sm sm:text-base font-bold transition-colors leading-tight ${active ? "text-[#80a17d]" : "text-zinc-900 group-hover:text-[#80a17d]"
-                        }`}
-                    >
-                      {cat.name}
-                    </h3>
-                    <span className="text-xs italic text-zinc-400 mt-1 block">
-                      {cat.count}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          {/* SINGLE HORIZONTAL LINE: 6 (Laptop) / 4.5 (Tablet) / 2.5 (Mobile) */}
+          <div className="relative w-full">
+            <div
+              ref={catScrollRef}
+              onScroll={handleCatScroll}
+              onMouseDown={handleCatMouseDown}
+              onMouseMove={handleCatMouseMove}
+              onMouseUp={handleCatMouseUp}
+              onMouseLeave={handleCatMouseUp}
+              className="flex flex-row items-stretch overflow-x-auto scroll-smooth scrollbar-none select-none cursor-grab active:cursor-grabbing w-full pl-0"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {shopCategories.map((cat) => {
+                const active = cat.id === "all"
+                  ? (!selectedCategory || selectedCategory.toLowerCase() === "all")
+                  : (selectedCategory?.toLowerCase() === cat.id.toLowerCase());
 
-          {/* MOBILE VIEW (< sm): 1 Category Slide per View with 5-Second Auto Scroll + Manual Swipe & Dots */}
-          <div className="block sm:hidden pt-4 max-w-xs mx-auto">
-            {/* Scrollable Track & Auto Slide Card */}
-            <div className="flex flex-col items-center justify-center space-y-3">
-              {(() => {
-                const cat = shopCategories[mobileCatIndex];
-                const active = selectedCategory === cat.id;
                 return (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory(active ? null : cat.id)}
-                    className="group flex flex-col items-center cursor-pointer transition-all duration-500 transform active:scale-95"
+                  <div
+                    key={cat.id}
+                    className="shrink-0 w-[calc(100%/2.5)] sm:w-[calc(100%/4.5)] lg:w-[calc(100%/6)] px-2 sm:px-3 text-center"
                   >
-                    <div
-                      className={`w-32 h-32 rounded-full overflow-hidden transition-all p-0.5 shadow-sm ${active ? "border-2 border-[#80a17d]" : "border-2 border-transparent"
-                        }`}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (hasMovedCat.current) return;
+                        if (cat.id === "all") {
+                          setSelectedCategory(null);
+                          setSearchParams({});
+                        } else {
+                          setSelectedCategory(active ? null : cat.id);
+                        }
+                      }}
+                      className="group flex flex-col items-center justify-between w-full h-full py-2 cursor-pointer transition-all duration-300 transform active:scale-95"
                     >
-                      <img
-                        src={cat.img}
-                        alt={cat.name}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    </div>
-                    <div className="mt-3 text-center">
-                      <h3
-                        className={`text-base font-bold transition-colors ${active ? "text-[#80a17d]" : "text-zinc-900"
-                          }`}
+                      {/* Circle Image */}
+                      <div
+                        className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-28 lg:h-28 rounded-full overflow-hidden transition-all duration-300 p-0.5 shadow-xs ${
+                          active
+                            ? "border-2 border-[#80a17d] ring-2 ring-[#80a17d]/30"
+                            : "border-2 border-transparent group-hover:border-zinc-300"
+                        }`}
                       >
-                        {cat.name}
-                      </h3>
-                      <span className="text-xs italic text-zinc-400 mt-0.5 block">
-                        {cat.count}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })()}
+                        <img
+                          src={cat.img}
+                          alt={cat.name}
+                          className="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform duration-500 pointer-events-none"
+                          draggable={false}
+                        />
+                      </div>
 
-              {/* Manual Dot Controls (5-second auto transition indicators) */}
-              <div className="flex items-center justify-center gap-2 pt-2">
-                {shopCategories.map((_, dotIdx) => (
-                  <button
-                    key={dotIdx}
-                    type="button"
-                    onClick={() => setMobileCatIndex(dotIdx)}
-                    aria-label={`Go to category ${dotIdx + 1}`}
-                    className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${mobileCatIndex === dotIdx
-                        ? "w-6 bg-[#80a17d]"
-                        : "w-2 bg-zinc-300 hover:bg-zinc-400"
-                      }`}
-                  />
-                ))}
-              </div>
+                      {/* Title & Count */}
+                      <div className="mt-2.5 text-center w-full">
+                        <h3
+                          className={`text-xs sm:text-sm font-bold transition-colors leading-tight truncate ${
+                            active
+                              ? "text-[#80a17d]"
+                              : "text-zinc-900 group-hover:text-[#80a17d]"
+                          }`}
+                        >
+                          {cat.name}
+                        </h3>
+                        <span className="text-[11px] italic text-zinc-400 mt-0.5 block">
+                          {cat.count}
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ONLY 5 PAGINATION DOTS (ALL DEVICES) */}
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-4">
+              {[0, 1, 2, 3, 4].map((dotIdx) => (
+                <button
+                  key={dotIdx}
+                  type="button"
+                  onClick={() => scrollToCatDot(dotIdx)}
+                  aria-label={`Go to section ${dotIdx + 1}`}
+                  className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${
+                    activeCatDot === dotIdx
+                      ? "w-6 bg-[#80a17d]"
+                      : "w-2 bg-zinc-300 hover:bg-zinc-400"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -954,14 +1051,14 @@ export default function ShopPage() {
                                     addToCart({
                                       productId: String(p.id),
                                       productName: p.name,
-                                      brand: p.brand || "AARAMLY",
-                                      colorName: "Classic Black",
-                                      colorHex: "#000000",
-                                      size: "S",
+                                      brand: p.brand || "AOCIND",
+                                      colorName: "Maroon",
+                                      colorHex: "#800000",
+                                      size: "Free Size",
                                       price: p.price,
                                       originalPrice: p.originalPrice || p.price,
                                       image: mainImg,
-                                      sku: p.sku || "AAR-SKU",
+                                      sku: p.sku || "AOC-SKU",
                                       quantity: 1,
                                     })
                                   }
@@ -1132,14 +1229,14 @@ export default function ShopPage() {
                                 addToCart({
                                   productId: String(p.id),
                                   productName: p.name,
-                                  brand: p.brand || "AARAMLY",
-                                  colorName: "Classic Black",
-                                  colorHex: "#000000",
-                                  size: "S",
+                                  brand: p.brand || "AOCIND",
+                                  colorName: "Maroon",
+                                  colorHex: "#800000",
+                                  size: "Free Size",
                                   price: p.price,
                                   originalPrice: p.originalPrice || p.price,
                                   image: mainImg,
-                                  sku: p.sku || "AAR-SKU",
+                                  sku: p.sku || "AOC-SKU",
                                   quantity: 1,
                                 })
                               }

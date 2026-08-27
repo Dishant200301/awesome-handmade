@@ -25,67 +25,47 @@ interface SizeGuidesPageProps {
 
 const INITIAL_SIZE_GUIDES: SizeGuide[] = [
   {
-    id: "sg-bralette",
-    title: "Women's Bralette & International Fit Guide",
-    description: "Standard international size mapping for wire-free contour bralettes.",
-    categoryIds: ["cat-1", "cat-2"],
-    subcategoryIds: ["sub-1", "sub-3"],
+    id: "sg-choli",
+    title: "Navratri Traditional Choli & Blouse Fit Guide",
+    description: "Standard size and chest/waist measurements for stitched & semi-stitched cholis.",
+    categoryIds: ["cat-2"],
+    subcategoryIds: ["sub-2", "sub-3"],
     countries: [
       { id: "c-1", name: "India", code: "IN", displayOrder: 1 },
       { id: "c-2", name: "USA", code: "US", displayOrder: 2 },
-      { id: "c-3", name: "EU", code: "EU", displayOrder: 3 },
-      { id: "c-4", name: "UK", code: "UK", displayOrder: 4 },
-      { id: "c-5", name: "China", code: "CN", displayOrder: 5 }
+      { id: "c-3", name: "UK", code: "UK", displayOrder: 3 }
     ],
     columns: [
-      { id: "col-1", key: "brandSize", name: "Brand Size", displayOrder: 1 },
-      { id: "col-2", key: "countrySize", name: "Country Standard", displayOrder: 2 },
-      { id: "col-3", key: "bust", name: "Bust", displayOrder: 3 },
-      { id: "col-4", key: "underbust", name: "Underbust", displayOrder: 4 }
+      { id: "col-1", key: "brandSize", name: "Size / Age", displayOrder: 1 },
+      { id: "col-2", key: "countrySize", name: "Standard", displayOrder: 2 },
+      { id: "col-3", key: "chest", name: "Chest", displayOrder: 3 },
+      { id: "col-4", key: "length", name: "Length", displayOrder: 4 }
     ],
     rows: [
       {
         id: "r-1",
-        brandSize: "32A",
+        brandSize: "Kids (2-4 Yrs)",
         displayOrder: 1,
         values: {
-          IN_countrySize: { cm: "70A", inch: "32A" },
-          IN_bust: { cm: "80-82", inch: "31.5-32.3" },
-          IN_underbust: { cm: "68-72", inch: "26.7-28.3" },
-          CN_countrySize: { cm: "70A", inch: "70A" },
-          CN_bust: { cm: "80-82", inch: "31.5-32.3" },
-          CN_underbust: { cm: "68-72", inch: "26.7-28.3" }
+          IN_countrySize: { cm: "22-24", inch: "22-24" },
+          IN_chest: { cm: "56-60", inch: "22-24" },
+          IN_length: { cm: "25-28", inch: "10-11" }
         }
       },
       {
         id: "r-2",
-        brandSize: "32B",
+        brandSize: "Adult Free Size (M-XL)",
         displayOrder: 2,
         values: {
-          IN_countrySize: { cm: "70B", inch: "32B" },
-          IN_bust: { cm: "82-84", inch: "32.3-33.1" },
-          IN_underbust: { cm: "68-72", inch: "26.7-28.3" },
-          CN_countrySize: { cm: "70B", inch: "70B" },
-          CN_bust: { cm: "82-84", inch: "32.3-33.1" },
-          CN_underbust: { cm: "68-72", inch: "26.7-28.3" }
-        }
-      },
-      {
-        id: "r-3",
-        brandSize: "34B",
-        displayOrder: 3,
-        values: {
-          IN_countrySize: { cm: "75B", inch: "34B" },
-          IN_bust: { cm: "87-89", inch: "34.2-35.0" },
-          IN_underbust: { cm: "73-77", inch: "28.7-30.3" },
-          CN_countrySize: { cm: "75B", inch: "75B" },
-          CN_bust: { cm: "87-89", inch: "34.2-35.0" },
-          CN_underbust: { cm: "73-77", inch: "28.7-30.3" }
+          IN_countrySize: { cm: "36-40", inch: "36-40" },
+          IN_chest: { cm: "90-102", inch: "36-40" },
+          IN_length: { cm: "38-42", inch: "15-16.5" }
         }
       }
     ]
   }
 ];
+
 
 export const SizeGuidesPage: React.FC<SizeGuidesPageProps> = ({ initialSubTab = 'all-guides' }) => {
   const [subTab, setSubTab] = useState(initialSubTab);
@@ -150,24 +130,22 @@ export const SizeGuidesPage: React.FC<SizeGuidesPageProps> = ({ initialSubTab = 
     setEditingGuide(null);
     setTitle('');
     setDescription('');
-    setSelectedCatIds(['cat-1']);
+    setSelectedCatIds(['cat-2']);
     setSelectedSubcatIds([]);
     setCountries([
       { id: "c-1", name: "India", code: "IN", displayOrder: 1 },
       { id: "c-2", name: "USA", code: "US", displayOrder: 2 },
-      { id: "c-3", name: "EU", code: "EU", displayOrder: 3 },
-      { id: "c-4", name: "UK", code: "UK", displayOrder: 4 },
-      { id: "c-5", name: "China", code: "CN", displayOrder: 5 }
+      { id: "c-3", name: "UK", code: "UK", displayOrder: 3 }
     ]);
     setColumns([
-      { id: "col-1", key: "brandSize", name: "Brand Size", displayOrder: 1 },
-      { id: "col-2", key: "countrySize", name: "Country Standard", displayOrder: 2 },
-      { id: "col-3", key: "bust", name: "Bust", displayOrder: 3 },
-      { id: "col-4", key: "underbust", name: "Underbust", displayOrder: 4 }
+      { id: "col-1", key: "brandSize", name: "Size / Age", displayOrder: 1 },
+      { id: "col-2", key: "countrySize", name: "Standard", displayOrder: 2 },
+      { id: "col-3", key: "chest", name: "Chest", displayOrder: 3 },
+      { id: "col-4", key: "length", name: "Length", displayOrder: 4 }
     ]);
     setRows([
-      { id: "r-1", brandSize: "32A", displayOrder: 1, values: {} },
-      { id: "r-2", brandSize: "34B", displayOrder: 2, values: {} }
+      { id: "r-1", brandSize: "Kids (2-4 Yrs)", displayOrder: 1, values: {} },
+      { id: "r-2", brandSize: "Adult Free Size", displayOrder: 2, values: {} }
     ]);
     setSubTab('add-guide');
   };

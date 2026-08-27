@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp } from "react-icons/fa";
 import { FiMail, FiPhone, FiMapPin, FiX, FiCheckCircle } from "react-icons/fi";
-import { AaramlyLogo } from "./Navbar";
+import { AwesomeLogo } from "./Navbar";
 import NewsletterCTA from "./NewsletterCTA";
 import { MOCK_CONTACT_MESSAGES } from "../../../../../admin/src/data/mockAdminData";
 
@@ -52,9 +52,7 @@ export default function Footer() {
         {/* Brand Column */}
         <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
           <div className="mb-4">
-            <Link to="/" className="inline-block cursor-pointer">
-              <AaramlyLogo />
-            </Link>
+            <AwesomeLogo />
           </div>
           <p className="mt-4 max-w-sm text-xs sm:text-sm text-brand-ink/70 leading-relaxed">
             100% Handcrafted Indian Heritage Craft, Traditional Jewellery, Bridal Latkans, Cholis, and Artisan Gifts made with love in Surat, Gujarat.

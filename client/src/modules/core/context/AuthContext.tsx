@@ -65,22 +65,22 @@ interface AuthContextType {
 
 const DEFAULT_ORDERS: UserOrder[] = [
   {
-    id: "#AAR-98214",
+    id: "#AWH-98214",
     date: "2026-07-30",
-    total: 1897,
+    total: 1898,
     status: "Delivered",
     items: [
-      { name: "Women's Seamless Padded Bralette - Black", size: "S", price: 999, quantity: 1 },
-      { name: "Silicone Nipple Covers - Nude", size: "Free Size", price: 898, quantity: 1 }
+      { name: "Royal Mirror Latkan Pair with Golden Beads", size: "Standard Pair", price: 999, quantity: 1 },
+      { name: "Handmade Mirror Jhumka Earrings - Gold", size: "Free Size", price: 899, quantity: 1 }
     ],
   },
   {
-    id: "#AAR-91042",
+    id: "#AWH-91042",
     date: "2026-06-14",
     total: 899,
     status: "Delivered",
     items: [
-      { name: "Women's Contour Seamless Bra - Denim Blue", size: "34B", price: 899, quantity: 1 }
+      { name: "Navratri Gujarati Mirror Work Kids Choli", size: "Kids (2-4 Yrs)", price: 899, quantity: 1 }
     ],
   },
 ];
@@ -104,7 +104,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const getStoredSessionUser = (): UserProfile | null => {
   if (typeof window === "undefined") return null;
   try {
-    const stored = localStorage.getItem("aaramly_user_session");
+    const stored = localStorage.getItem("awesome_user_session") || localStorage.getItem("aaramly_user_session");
     if (stored) {
       const parsed = JSON.parse(stored);
       if (parsed && parsed.email) return parsed;
@@ -117,8 +117,9 @@ const saveSessionUser = (profile: UserProfile | null) => {
   if (typeof window === "undefined") return;
   try {
     if (profile) {
-      localStorage.setItem("aaramly_user_session", JSON.stringify(profile));
+      localStorage.setItem("awesome_user_session", JSON.stringify(profile));
     } else {
+      localStorage.removeItem("awesome_user_session");
       localStorage.removeItem("aaramly_user_session");
     }
   } catch (e) {}
@@ -137,8 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orders, setOrders] = useState<UserOrder[]>(() => {
     if (typeof window === "undefined") return DEFAULT_ORDERS;
     try {
-      const savedCheckoutOrders = localStorage.getItem("aaramly_orders_v1");
-      const userOrders = localStorage.getItem("aaramly_user_orders");
+      const savedCheckoutOrders = localStorage.getItem("awesome_orders_v1") || localStorage.getItem("aaramly_orders_v1");
+      const userOrders = localStorage.getItem("awesome_user_orders") || localStorage.getItem("aaramly_user_orders");
 
       let merged: any[] = [];
       if (savedCheckoutOrders) {
@@ -172,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [addresses, setAddresses] = useState<UserAddress[]>(() => {
     if (typeof window === "undefined") return DEFAULT_ADDRESSES;
     try {
-      const saved = localStorage.getItem("aaramly_user_addresses");
+      const saved = localStorage.getItem("awesome_user_addresses") || localStorage.getItem("aaramly_user_addresses");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -185,7 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("aaramly_user_orders", JSON.stringify(orders));
+        localStorage.setItem("awesome_user_orders", JSON.stringify(orders));
       } catch (e) {}
     }
   }, [orders]);
@@ -194,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("aaramly_user_addresses", JSON.stringify(addresses));
+        localStorage.setItem("awesome_user_addresses", JSON.stringify(addresses));
       } catch (e) {}
     }
   }, [addresses]);
@@ -234,7 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setFirebaseUser(currentUser);
       if (currentUser) {
-        const displayName = currentUser.displayName || currentUser.email?.split("@")[0] || "AARAMLY User";
+        const displayName = currentUser.displayName || currentUser.email?.split("@")[0] || "AOCIND User";
         const initials = displayName
           .split(" ")
           .map((n) => n[0])
@@ -294,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (emailInput: string, passInput: string) => {
     try {
       const userCred = await signInWithEmailAndPassword(auth, emailInput, passInput);
-      const displayName = userCred.user?.displayName || emailInput.split("@")[0] || "AARAMLY User";
+      const displayName = userCred.user?.displayName || emailInput.split("@")[0] || "AOCIND User";
       const initials = displayName
         .split(" ")
         .map((n) => n[0])
@@ -317,7 +318,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       handlePostAuthRedirect();
     } catch (err: any) {
       console.error("Firebase Login Error:", err);
-      const displayName = emailInput.split("@")[0] || "AARAMLY User";
+      const displayName = emailInput.split("@")[0] || "AOCIND User";
       const initials = displayName
         .split(" ")
         .map((n) => n[0])
@@ -396,7 +397,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
-      const displayName = res.user?.displayName || "AARAMLY User";
+      const displayName = res.user?.displayName || "AOCIND User";
       const initials = displayName
         .split(" ")
         .map((n) => n[0])

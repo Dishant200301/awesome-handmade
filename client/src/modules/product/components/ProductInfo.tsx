@@ -192,70 +192,103 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
     setIsCartOpen(true);
   };
 
-  // Group variations by unique color to display distinct color swatches (merging product.colors and product.variations)
+  // Group variations by unique color to display distinct color swatches (merging product.colors, colorMediaConfigs, and product.variations)
   const uniqueColorVariations = React.useMemo(() => {
     const map = new Map<string, ProductColorVariation>();
 
     // 1. Populate from product.colors if defined
     if (product.colors && product.colors.length > 0) {
       product.colors.forEach((col) => {
-        const key = (col.colorName || "Default").toLowerCase();
+        if (!col) return;
+        const colName = col.colorName || (col as any).name || (col as any).color || "Default";
+        const key = colName.toLowerCase();
         const matchingVar = (product.variations || []).find(
-          (v) => (v.colorName || "").toLowerCase() === key
+          (v) => v && (v.colorName || (v as any).color || "").toLowerCase() === key
         );
 
-        const colMainImg = col.displayImage || col.mainImage || matchingVar?.thumbnail || (product as any).image || "";
+        const colMainImg = col.displayImage || col.mainImage || (col as any).image || (col.galleryImages && col.galleryImages[0]) || matchingVar?.thumbnail || (product as any).mainImage || (product as any).image || "/images/category/Latkan.webp";
         const colGallery = col.galleryImages || (matchingVar?.images ? matchingVar.images.map((i: any) => typeof i === 'string' ? i : i.url) : []);
 
         map.set(key, {
           id: matchingVar?.id || col.id || `col-${key}`,
-          colorName: col.colorName,
+          colorName: colName,
           colorHex: col.colorHex || "#000000",
-          size: selectedSize || col.sizes?.[0] || "S",
+          size: selectedSize || col.sizes?.[0] || "Standard Pair",
           thumbnail: colMainImg,
           price: matchingVar?.price || product.price || 799,
           originalPrice: matchingVar?.originalPrice || product.originalPrice || 1299,
           discountPercentage: matchingVar?.discountPercentage || 38,
-          sku: matchingVar?.sku || product.defaultSku || "AAR-SKU-100",
+          sku: matchingVar?.sku || product.defaultSku || `AH-${colName}-STD`,
           stock: matchingVar?.stock !== undefined ? matchingVar.stock : 50,
           images: [
-            { id: `img-${key}-main`, url: colMainImg, alt: `${product.name} - ${col.colorName}` },
-            ...colGallery.map((gUrl, idx) => ({ id: `img-${key}-gal-${idx}`, url: gUrl, alt: `${product.name} - ${col.colorName} View ${idx + 1}` }))
+            { id: `img-${key}-main`, url: colMainImg, alt: `${product.name} - ${colName}` },
+            ...colGallery.map((gUrl, idx) => ({ id: `img-${key}-gal-${idx}`, url: gUrl, alt: `${product.name} - ${colName} View ${idx + 1}` }))
           ]
         });
       });
     }
 
-    // 2. Populate strictly from product.variations defined in Admin
+    // 2. Populate from product.colorMediaConfigs
+    if (Array.isArray((product as any).colorMediaConfigs) && (product as any).colorMediaConfigs.length > 0) {
+      (product as any).colorMediaConfigs.forEach((cm: any) => {
+        if (!cm) return;
+        const colName = cm.colorName || cm.name || "Default";
+        const key = colName.toLowerCase();
+        if (!map.has(key)) {
+          const cMainImg = cm.mainImage || (product as any).mainImage || (product as any).image || "/images/category/Latkan.webp";
+          const cGal = (cm.gallery && cm.gallery.length > 0) ? cm.gallery : [];
+          map.set(key, {
+            id: cm.colorValueId || `col-${key}`,
+            colorName: colName,
+            colorHex: cm.colorCode || "#000000",
+            size: selectedSize || "Standard Pair",
+            thumbnail: cMainImg,
+            price: product.price || 799,
+            originalPrice: product.originalPrice || 1299,
+            discountPercentage: 38,
+            sku: product.defaultSku || `AH-${colName}-STD`,
+            stock: 50,
+            images: [
+              { id: `img-${key}-main`, url: cMainImg, alt: `${product.name} - ${colName}` },
+              ...cGal.map((gUrl: string, idx: number) => ({ id: `img-${key}-gal-${idx}`, url: gUrl, alt: `${product.name} - ${colName} View ${idx + 1}` }))
+            ]
+          });
+        }
+      });
+    }
+
+    // 3. Populate strictly from product.variations defined in Admin
     (product.variations || []).forEach((v) => {
-      const key = (v.colorName || "Default").toLowerCase();
+      if (!v) return;
+      const key = (v.colorName || (v as any).color || "Default").toLowerCase();
       if (!map.has(key)) {
         map.set(key, v);
       }
     });
 
     return Array.from(map.values());
-  }, [product.colors, product.variations, product.price, product.originalPrice, product.defaultSku, product.name, selectedSize]);
+  }, [product.colors, (product as any).colorMediaConfigs, product.variations, product.price, product.originalPrice, product.defaultSku, product.name, selectedSize]);
 
   // Filter available sizes specifically matching the currently active color strictly from Admin data
   const availableSizesForColor = React.useMemo(() => {
+    const activeColor = activeVariation?.colorName || "";
     const colorObj = (product.colors || []).find(
-      (c) => c.colorName.toLowerCase() === (activeVariation.colorName || "").toLowerCase()
+      (c) => c && (c.colorName || (c as any).name || (c as any).color || "").toLowerCase() === activeColor.toLowerCase()
     );
     if (colorObj?.sizes && colorObj.sizes.length > 0) {
       return colorObj.sizes;
     }
 
     const matchingSizes = (product.variations || [])
-      .filter((v) => (v.colorName || "").toLowerCase() === (activeVariation.colorName || "").toLowerCase())
+      .filter((v) => v && (v.colorName || (v as any).color || "").toLowerCase() === activeColor.toLowerCase())
       .map((v) => v.size || v.sizeName)
       .filter(Boolean) as string[];
 
     if (matchingSizes.length > 0) {
       return Array.from(new Set(matchingSizes));
     }
-    return product.availableSizes || ["S", "M", "L", "XL"];
-  }, [product.colors, product.variations, activeVariation.colorName, product.availableSizes]);
+    return product.availableSizes || ["Free Size", "Standard Pair"];
+  }, [product.colors, product.variations, activeVariation?.colorName, product.availableSizes]);
 
   const isVariableProduct = product.type === "Variable" ||
     (product.colors && product.colors.length > 0) ||
@@ -263,6 +296,12 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
     (product.availableSizes && product.availableSizes.length > 0) ||
     uniqueColorVariations.length > 0;
   const savings = activeVariation.originalPrice - activeVariation.price;
+
+  const activeColorMedia = ((product as any).colorMediaConfigs || []).find(
+    (cm: any) => cm && (cm.colorName || cm.name || "").toLowerCase() === (activeVariation?.colorName || "").toLowerCase()
+  );
+  const displayTitle = activeColorMedia?.title || (activeVariation as any)?.title || product.name;
+  const displaySubtitle = activeColorMedia?.productInfo || (activeVariation as any)?.productInfo || (activeVariation as any)?.subtitle || product.subtitle || product.shortDescription;
 
   return (
     <div className="w-full flex flex-col gap-6 lg:sticky lg:top-24 h-fit font-sans">
@@ -302,8 +341,14 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
 
         {/* Title in Montserrat 800 uppercase matching Home Page */}
         <h1 className="text-[22px] sm:text-[26px] lg:text-[30px] xl:text-[34px] font-montserrat font-800 text-zinc-900 leading-[1.2] tracking-tight line-clamp-3">
-          {product.name}
+          {displayTitle}
         </h1>
+
+        {displaySubtitle && (
+          <p className="text-xs sm:text-sm text-zinc-600 font-medium leading-relaxed">
+            {displaySubtitle}
+          </p>
+        )}
 
         {/* Rating & Reviews */}
         <div className="flex items-center gap-2 pt-1 font-montserrat">
@@ -352,7 +397,11 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
           )}
         </div>
         <p className="text-xs text-zinc-500 font-medium pt-1">
-          Inclusive of all taxes • SKU: <span className="font-mono text-zinc-700 font-bold uppercase">{activeVariation.sku}</span>
+          Inclusive of all taxes • SKU: <span className="font-mono text-zinc-700 font-bold uppercase">
+            {activeVariation.sku && !activeVariation.sku.includes("UNDEFINED")
+              ? activeVariation.sku
+              : `AH-${(product.category || "PRD").toUpperCase()}-${(activeVariation.colorName || "STD").toUpperCase()}-${selectedSize || "STD"}`}
+          </span>
         </p>
       </div>
 
@@ -380,10 +429,12 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
               {/* Color Cards Row: Unique Color Swatches Grid */}
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 sm:gap-3 py-1">
                 {uniqueColorVariations.map((v) => {
-                  const isActive = v.colorName.toLowerCase() === activeVariation.colorName.toLowerCase();
-                  const colorObj = (product.colors || []).find((c) => c.colorName.toLowerCase() === v.colorName.toLowerCase());
-                  const colorMedia = (product.colorMediaConfigs || []).find((cm: any) => cm.colorName.toLowerCase() === v.colorName.toLowerCase());
-                  const displayImg = colorMedia?.mainImage || (v as any).displayImage || colorObj?.displayImage || v.thumbnail || (v.images && v.images[0] ? v.images[0].url : "");
+                  const vColName = (v.colorName || (v as any).color || "").toLowerCase();
+                  const activeColName = (activeVariation?.colorName || "").toLowerCase();
+                  const isActive = vColName === activeColName;
+                  const colorObj = (product.colors || []).find((c) => c && (c.colorName || (c as any).name || (c as any).color || "").toLowerCase() === vColName);
+                  const colorMedia = ((product as any).colorMediaConfigs || []).find((cm: any) => cm && (cm.colorName || cm.name || "").toLowerCase() === vColName);
+                  const displayImg = colorMedia?.mainImage || (v as any).displayImage || colorObj?.displayImage || colorObj?.mainImage || (colorObj as any)?.image || v.thumbnail || (v.images && v.images[0] ? v.images[0].url : "") || (product as any).mainImage || (product as any).image || "/images/category/Latkan.webp";
 
                   return (
                     <motion.button
@@ -400,13 +451,16 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
                     >
                       <div className="w-full h-20 sm:aspect-[4/5] rounded-lg sm:rounded-xl overflow-hidden bg-[#f5f2ee] mb-1 sm:mb-1.5 relative">
                         <img
-                          src={displayImg}
-                          alt={v.colorName}
+                          src={displayImg || "/images/category/Latkan.webp"}
+                          alt={v.colorName || "Variation"}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/images/category/Latkan.webp";
+                          }}
                           className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                       <div className="flex flex-col justify-between text-[11px] sm:text-xs px-0.5 leading-tight gap-0.5">
-                        <span className="font-extrabold text-zinc-900 truncate block text-[11px]">{v.colorName}</span>
+                        <span className="font-extrabold text-zinc-900 truncate block text-[11px]">{v.colorName || "Standard"}</span>
                         <div className="flex items-baseline justify-between w-full">
                           <span className="font-bold text-zinc-900 text-[10px] sm:text-[11px]">₹{v.price}</span>
                           <span className="text-[9px] text-zinc-400 line-through">₹{v.originalPrice}</span>
@@ -427,29 +481,22 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
           {/* Size Selector with Out of Stock handling */}
           {availableSizesForColor.length > 0 && (
             <div className="space-y-3 font-montserrat">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-montserrat font-600 tracking-wider text-zinc-900">
-                  Size: <span className="font-bold text-black">{selectedSize}</span>
-                </span>
-                <button
-                  onClick={onOpenSizeChart}
-                  className="text-xs font-bold tracking-wider text-zinc-900 hover:text-[#80a17d] transition-colors flex items-center gap-1 cursor-pointer"
-                >
-                  Size Chart <FiChevronDown size={14} />
-                </button>
-              </div>
+              
 
               {/* Size Buttons Row with Out of Stock indication */}
               <div className="flex flex-wrap items-center gap-2">
                 {availableSizesForColor.map((sz) => {
+                  const activeColName = (activeVariation?.colorName || "").toLowerCase();
+                  const szLower = String(sz || "").toLowerCase();
                   const matchingVar = (product.variations || []).find(
                     (v) =>
-                      (v.colorName || "").toLowerCase() === (activeVariation.colorName || "").toLowerCase() &&
-                      ((v.size || "").toLowerCase() === sz.toLowerCase() ||
-                        (v.sizeName || "").toLowerCase() === sz.toLowerCase())
+                      v &&
+                      (v.colorName || "").toLowerCase() === activeColName &&
+                      (((v.size || "").toLowerCase() === szLower) ||
+                        ((v.sizeName || "").toLowerCase() === szLower))
                   );
                   const isOutOfStock = matchingVar ? matchingVar.stock <= 0 : false;
-                  const isSelected = sz.toLowerCase() === selectedSize.toLowerCase();
+                  const isSelected = szLower === (selectedSize || "").toLowerCase();
 
                   return (
                     <button
@@ -507,13 +554,47 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({
               });
             }
 
-            return (product.highlights || []).slice(0, 5).map((h, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <DynamicLucideIcon name={h.iconName || (h as any).icon || "Sparkles"} className="w-4 h-4 text-zinc-700 shrink-0" />
-                <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-36 shrink-0">{h.label || h.title}:</span>
-                <span className="text-zinc-900 font-semibold">{h.value}</span>
-              </div>
-            ));
+            return (product.highlights || []).slice(0, 6).map((h: any, idx: number) => {
+              if (typeof h === "string") {
+                if (h.includes(":")) {
+                  const [lbl, ...valParts] = h.split(":");
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      <DynamicLucideIcon name="Sparkles" className="w-4 h-4 text-zinc-700 shrink-0" />
+                      <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-36 shrink-0">{lbl.trim()}:</span>
+                      <span className="text-zinc-900 font-semibold">{valParts.join(":").trim()}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={idx} className="flex items-start gap-3">
+                    <DynamicLucideIcon name="Sparkles" className="w-4 h-4 text-zinc-700 shrink-0 mt-0.5" />
+                    <span className="text-zinc-900 font-medium">{h}</span>
+                  </div>
+                );
+              }
+
+              const icon = h.iconName || h.icon || "Sparkles";
+              const label = h.label || h.title || h.key || "";
+              const val = h.value || h.text || h.desc || "";
+
+              if (!label && val) {
+                return (
+                  <div key={idx} className="flex items-start gap-3">
+                    <DynamicLucideIcon name={icon} className="w-4 h-4 text-zinc-700 shrink-0 mt-0.5" />
+                    <span className="text-zinc-900 font-medium">{val}</span>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={idx} className="flex items-center gap-3">
+                  <DynamicLucideIcon name={icon} className="w-4 h-4 text-zinc-700 shrink-0" />
+                  {label && <span className="text-zinc-500 font-bold tracking-wider text-[11px] w-36 shrink-0">{label}:</span>}
+                  <span className="text-zinc-900 font-semibold">{val}</span>
+                </div>
+              );
+            });
           })()}
         </div>
 

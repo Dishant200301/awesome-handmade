@@ -1,7 +1,7 @@
 {
-  "name": "aaramly-backend",
+  "name": "awesome-handmade-backend",
   "version": "1.0.0",
-  "description": "Production-ready scalable e-commerce backend for AARAMLY platform using MySQL",
+  "description": "Production-ready scalable e-commerce backend for Awesome Handmade platform using MySQL",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
     "compression": "^1.7.4",

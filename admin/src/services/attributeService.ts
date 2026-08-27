@@ -1,7 +1,7 @@
 import { AttributeMaster, AttributeValue } from '../types/attribute.types';
 
 const API_BASE_URL = 'http://localhost:5000/api/v1/attributes';
-const LOCAL_STORAGE_KEY = 'aaramly_admin_attribute_master_v3';
+const LOCAL_STORAGE_KEY = 'awesome_admin_attribute_master_v3';
 
 export const INITIAL_DEFAULT_ATTRIBUTES: AttributeMaster[] = [
   {
@@ -129,6 +129,7 @@ export class AttributeService {
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(attributes));
       if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('awesome_attribute_sync'));
         window.dispatchEvent(new CustomEvent('aaramly_attribute_sync'));
       }
     } catch (e) {}

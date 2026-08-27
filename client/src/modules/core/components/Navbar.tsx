@@ -61,13 +61,17 @@ const announcements = [
   "🌸 Special Navratri & Wedding Collection Live!",
 ];
 
-export function AaramlyLogo({ className = "h-9 w-9" }: { className?: string }) {
+export function AwesomeLogo({ className = "h-9 w-9" }: { className?: string }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <Link
+      to="/"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="flex items-center gap-2.5 cursor-pointer group"
+    >
       <img
         src={LOGO}
         alt="Awesome Handmade"
-        className={`${className} rounded-full object-cover shadow-sm border border-brand-gold/30`}
+        className={`${className} rounded-full object-cover shadow-sm border border-brand-gold/30 group-hover:scale-105 transition-transform shrink-0`}
       />
       <div className="leading-none text-left">
         <span className="block font-heading text-base sm:text-lg font-bold tracking-tight text-brand-ink">
@@ -75,9 +79,11 @@ export function AaramlyLogo({ className = "h-9 w-9" }: { className?: string }) {
         </span>
         <span className="text-[9px] tracking-widest text-brand-gold uppercase font-medium">Surat, India</span>
       </div>
-    </div>
+    </Link>
   );
 }
+
+export const AaramlyLogo = AwesomeLogo;
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -205,10 +211,12 @@ export default function Navbar() {
             
             {/* LEFT: Brand Logo & Text (ALL DEVICES) */}
             <div className="flex shrink-0 items-center xl:flex-1 xl:justify-start">
-              <a
-                href="#home"
-                onClick={(e) => handleNavClick(e, "#home")}
-                className="flex items-center gap-2.5 group"
+              <Link
+                to="/"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="flex items-center gap-2.5 group cursor-pointer"
               >
                 <img
                   src={LOGO}
@@ -220,7 +228,7 @@ export default function Navbar() {
                     Awesome <span className="text-brand-maroon">Handmade</span>
                   </span>
                 </div>
-              </a>
+              </Link>
             </div>
 
             {/* NAV LINKS: Right-aligned on Laptop (1024px-1279px), Centered on Desktop (>= 1280px) */}
@@ -290,27 +298,27 @@ export default function Navbar() {
                         </h4>
                         <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/collections/earrings" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=earrings" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Earrings & Jhumkas
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/jewellery-set" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=jewellery-set" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Bridal Jewellery Set
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/necklace" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=necklace" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Mirror Necklaces
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/bracelet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=bracelet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Handmade Bracelets
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/anklet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=anklet" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Anklets & Payal
                             </Link>
                           </li>
@@ -324,27 +332,27 @@ export default function Navbar() {
                         </h4>
                         <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/collections/choli" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=choli" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Navratri Choli Set
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Bridal Mirror Latkans
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=latkan" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Blouse & Lehenga Latkans
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/tassel" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=tassel" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Colourful Long Tassels
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/krishna-outfit" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=krishna-outfit" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Krishna Outfits
                             </Link>
                           </li>
@@ -358,22 +366,22 @@ export default function Navbar() {
                         </h4>
                         <ul className="space-y-2 text-xs text-brand-ink/80">
                           <li>
-                            <Link to="/collections/gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Gift Hampers & Boxes
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=gift-hamper" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Macrame Keychains
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/hair-accessories" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=hair-accessories" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Hair Bows & Clips
                             </Link>
                           </li>
                           <li>
-                            <Link to="/collections/waist-belt" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
+                            <Link to="/shop?category=waist-belt" onClick={() => setOpenMega(null)} className="hover:text-brand-maroon hover:translate-x-1 inline-block transition-transform">
                               Mirror Waist Belts
                             </Link>
                           </li>
@@ -384,7 +392,7 @@ export default function Navbar() {
                     {/* Right: 3 Visual Highlight Cards (Col Span 5) */}
                     <div className="col-span-5 grid grid-cols-3 gap-4">
                       <Link
-                        to="/collections/earrings"
+                        to="/shop?category=earrings"
                         onClick={() => setOpenMega(null)}
                         className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
@@ -402,7 +410,7 @@ export default function Navbar() {
                       </Link>
 
                       <Link
-                        to="/collections/choli"
+                        to="/shop?category=choli"
                         onClick={() => setOpenMega(null)}
                         className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
@@ -420,7 +428,7 @@ export default function Navbar() {
                       </Link>
 
                       <Link
-                        to="/collections/latkan"
+                        to="/shop?category=latkan"
                         onClick={() => setOpenMega(null)}
                         className="group relative overflow-hidden rounded-2xl aspect-[3/4] block shadow-md hover:shadow-xl transition-all duration-300 bg-brand-cream border border-gray-100"
                       >
@@ -517,10 +525,17 @@ export default function Navbar() {
           className={`fixed left-0 top-0 z-50 h-full w-[86%] max-w-sm overflow-y-auto bg-white shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}
         >
           <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 bg-[#FAF8F4]">
-            <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              onClick={() => {
+                setOpen(false);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <img src={LOGO} alt="Awesome Handmade" className="h-9 w-9 rounded-full object-cover shadow-sm border border-brand-gold/30" />
               <span className="font-heading text-base font-bold text-brand-ink">Awesome <span className="text-brand-maroon">Handmade</span></span>
-            </div>
+            </Link>
             <button onClick={() => setOpen(false)} aria-label="Close menu" className="grid h-9 w-9 place-items-center rounded-full hover:bg-gray-200 cursor-pointer">
               <X className="h-5 w-5" />
             </button>
@@ -593,7 +608,7 @@ export default function Navbar() {
                         <div key={cat.slug} className="border-b border-black/5 last:border-0">
                           <div className="flex items-center justify-between">
                             <Link
-                              to={`/collections/${cat.slug}`}
+                              to={`/shop?category=${cat.slug}`}
                               onClick={() => setOpen(false)}
                               className="flex-1 py-2.5 text-left text-xs font-semibold text-brand-ink hover:text-brand-maroon transition-colors"
                             >
@@ -614,7 +629,7 @@ export default function Navbar() {
                             <ul className="pl-4 pb-2 space-y-1 animate-fade-slide-down">
                               <li key="all">
                                 <Link
-                                  to={`/collections/${cat.slug}`}
+                                  to={`/shop?category=${cat.slug}`}
                                   onClick={() => setOpen(false)}
                                   className="block px-2 py-1 text-xs font-semibold text-brand-maroon hover:underline"
                                 >
@@ -624,7 +639,7 @@ export default function Navbar() {
                               {cat.subs.map((s) => (
                                 <li key={s.slug}>
                                   <Link
-                                    to={`/collections/${cat.slug}?sub=${s.slug}`}
+                                    to={`/shop?category=${cat.slug}&sub=${s.slug}`}
                                     onClick={() => setOpen(false)}
                                     className="block px-2 py-1 text-xs text-brand-ink/70 hover:text-brand-maroon"
                                   >

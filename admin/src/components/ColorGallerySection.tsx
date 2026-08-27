@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ProductAttributeAssignment, ColorMediaConfig } from '../types/attribute.types';
 import { Card } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Palette, Plus, Trash2, Image as ImageIcon, Upload, UploadCloud } from 'lucide-react';
+import { Palette, Plus, X, UploadCloud } from 'lucide-react';
 
 interface ColorGallerySectionProps {
   productAttributes: ProductAttributeAssignment[];
   colorMediaConfigs: ColorMediaConfig[];
   onChangeColorMediaConfigs: (configs: ColorMediaConfig[]) => void;
+  colors?: any[];
+  onSyncRootMedia?: (mainImage: string, galleryImages: string[]) => void;
 }
 
 export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
   productAttributes = [],
   colorMediaConfigs = [],
-  onChangeColorMediaConfigs
+  onChangeColorMediaConfigs,
+  colors = [],
+  onSyncRootMedia
 }) => {
   // Find attribute representing Color
   const colorAttr = productAttributes.find(
@@ -24,23 +26,23 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
       pa.type === 'SWATCH'
   );
 
-  if (!colorAttr || !colorAttr.selectedValues || colorAttr.selectedValues.length === 0) {
-    return null; // Don't show unless Color is assigned with selected values
-  }
-
-  const selectedColors = colorAttr.selectedValues;
+  const selectedColors = (colorAttr && colorAttr.selectedValues && colorAttr.selectedValues.length > 0)
+    ? colorAttr.selectedValues
+    : (colors.length > 0 ? colors.map((c) => c.colorName) : ['Standard']);
 
   // Sync / Ensure each selected color has a ColorMediaConfig object
-  const activeMediaConfigs = selectedColors.map((colorName) => {
+  const activeMediaConfigs: ColorMediaConfig[] = selectedColors.map((colorName) => {
     const existing = colorMediaConfigs.find(
       (c) => c.colorName.toLowerCase() === colorName.toLowerCase()
     );
     if (existing) return existing;
+    const matchingColor = colors.find((c) => c.colorName.toLowerCase() === colorName.toLowerCase());
     return {
-      colorValueId: `col-${colorName.toLowerCase()}`,
+      colorValueId: `col-${colorName.toLowerCase().replace(/\s+/g, '-')}`,
       colorName,
-      mainImage: '',
-      gallery: []
+      colorCode: matchingColor?.colorHex || '#000000',
+      mainImage: matchingColor?.mainImage || matchingColor?.displayImage || '',
+      gallery: matchingColor?.galleryImages || []
     };
   });
 
@@ -49,22 +51,16 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
       c.colorName.toLowerCase() === colorName.toLowerCase() ? { ...c, [field]: value } : c
     );
     onChangeColorMediaConfigs(updated);
+
+    if (onSyncRootMedia && updated.length > 0) {
+      const firstMain = updated[0]?.mainImage || '';
+      const allGalleries = updated.flatMap((c) => c.gallery || []);
+      onSyncRootMedia(firstMain, allGalleries);
+    }
   };
 
   const handleUpdateMainImage = (colorName: string, mainImage: string) => {
     handleUpdateField(colorName, 'mainImage', mainImage);
-  };
-
-  const handleAddGalleryImage = (colorName: string, imageUrl: string) => {
-    if (!imageUrl.trim()) return;
-    const updated = activeMediaConfigs.map((c) => {
-      if (c.colorName.toLowerCase() === colorName.toLowerCase()) {
-        const nextGallery = [...(c.gallery || []), imageUrl.trim()];
-        return { ...c, gallery: nextGallery };
-      }
-      return c;
-    });
-    onChangeColorMediaConfigs(updated);
   };
 
   const handleAddMultipleGalleryImages = (colorName: string, imageUrls: string[]) => {
@@ -77,6 +73,12 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
       return c;
     });
     onChangeColorMediaConfigs(updated);
+
+    if (onSyncRootMedia && updated.length > 0) {
+      const firstMain = updated[0]?.mainImage || '';
+      const allGalleries = updated.flatMap((c) => c.gallery || []);
+      onSyncRootMedia(firstMain, allGalleries);
+    }
   };
 
   const handleRemoveGalleryImage = (colorName: string, index: number) => {
@@ -88,6 +90,12 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
       return c;
     });
     onChangeColorMediaConfigs(updated);
+
+    if (onSyncRootMedia && updated.length > 0) {
+      const firstMain = updated[0]?.mainImage || '';
+      const allGalleries = updated.flatMap((c) => c.gallery || []);
+      onSyncRootMedia(firstMain, allGalleries);
+    }
   };
 
   return (
@@ -97,10 +105,10 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
         <div>
           <div className="flex items-center gap-2.5">
             <Palette className="w-4 h-4 text-black shrink-0" />
-            <h2 className="text-sm font-bold text-black tracking-tight uppercase">Color Specific Customization (Title, Media &amp; Description)</h2>
+            <h2 className="text-sm font-bold text-black tracking-tight uppercase">Color &amp; Attribute Media Management</h2>
           </div>
           <p className="text-xs text-neutral-500 font-normal mt-0.5">
-            Configure color-specific Title, Main Image, Gallery Images, and Description Info for each color.
+            Set the Main Cover Photo and Additional Gallery Photos for each color variation or standard product.
           </p>
         </div>
       </div>
@@ -114,7 +122,6 @@ export const ColorGallerySection: React.FC<ColorGallerySectionProps> = ({
             onUpdateTitle={(title) => handleUpdateField(config.colorName, 'title', title)}
             onUpdateProductInfo={(info) => handleUpdateField(config.colorName, 'productInfo', info)}
             onUpdateMainImage={(img) => handleUpdateMainImage(config.colorName, img)}
-            onAddGalleryImage={(img) => handleAddGalleryImage(config.colorName, img)}
             onAddMultipleGalleryImages={(imgs) => handleAddMultipleGalleryImages(config.colorName, imgs)}
             onRemoveGalleryImage={(idx) => handleRemoveGalleryImage(config.colorName, idx)}
           />
@@ -129,27 +136,17 @@ interface ColorMediaCardProps {
   onUpdateTitle: (title: string) => void;
   onUpdateProductInfo: (productInfo: string) => void;
   onUpdateMainImage: (mainImage: string) => void;
-  onAddGalleryImage: (imageUrl: string) => void;
   onAddMultipleGalleryImages: (imageUrls: string[]) => void;
   onRemoveGalleryImage: (index: number) => void;
 }
 
 const ColorMediaCard: React.FC<ColorMediaCardProps> = ({
   config,
-  onUpdateTitle,
-  onUpdateProductInfo,
   onUpdateMainImage,
-  onAddGalleryImage,
   onAddMultipleGalleryImages,
   onRemoveGalleryImage
 }) => {
-  const [newGalleryUrl, setNewGalleryUrl] = useState('');
-
-  const handleAddUrlImage = () => {
-    if (!newGalleryUrl.trim()) return;
-    onAddGalleryImage(newGalleryUrl);
-    setNewGalleryUrl('');
-  };
+  const gallery = config.gallery || [];
 
   const handleUploadMainFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -189,12 +186,12 @@ const ColorMediaCard: React.FC<ColorMediaCardProps> = ({
   };
 
   return (
-    <div className="p-5 sm:p-6 rounded-2xl border border-neutral-200 bg-neutral-50/70 space-y-6 font-sans">
-      {/* COLOR HEADER */}
-      <div className="flex items-center justify-between border-b border-neutral-200/80 pb-3">
+    <div className="p-5 sm:p-6 rounded-2xl border border-neutral-200 bg-white space-y-5 font-sans shadow-2xs">
+      {/* COLOR HEADER & COUNT */}
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
         <div className="flex items-center gap-2.5">
           <span
-            className="w-5 h-5 rounded-full border border-neutral-300 shadow-2xs shrink-0"
+            className="w-4 h-4 rounded-full border border-neutral-300 shadow-2xs shrink-0"
             style={{
               backgroundColor:
                 config.colorName.toLowerCase() === 'white'
@@ -204,60 +201,65 @@ const ColorMediaCard: React.FC<ColorMediaCardProps> = ({
                   : config.colorName.toLowerCase() === 'beige'
                   ? '#E8D3C3'
                   : config.colorName.toLowerCase() === 'red'
-                  ? '#FF0000'
-                  : config.colorName.toLowerCase() === 'blue' || config.colorName.toLowerCase() === 'denim blue'
-                  ? '#3B5998'
-                  : '#888888'
+                  ? '#800000'
+                  : config.colorName.toLowerCase() === 'gold'
+                  ? '#D4AF37'
+                  : config.colorName.toLowerCase() === 'blue' || config.colorName.toLowerCase() === 'royal blue'
+                  ? '#1A3B8B'
+                  : config.colorCode || '#888888'
             }}
           />
-          <h3 className="font-extrabold text-black text-sm uppercase tracking-wide">
-            Color: <span className="text-black font-black">{config.colorName}</span>
+          <h3 className="font-bold text-black text-xs sm:text-sm uppercase tracking-wider">
+            PRODUCT MEDIA &amp; COVER IMAGES — <span className="font-extrabold text-black">{config.colorName}</span>
           </h3>
         </div>
+        <span className="text-[11px] font-medium text-neutral-400">
+          {config.mainImage ? '1 Cover Photo' : 'No Cover Photo'} • {gallery.length} Gallery Photos
+        </span>
       </div>
 
-      {/* COLOR SPECIFIC TITLE & DESCRIPTION */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-black uppercase tracking-wider">
-            Color Specific Title ({config.colorName})
-          </label>
-          <Input
-            type="text"
-            placeholder={`e.g. Aaramly Seamless Bralette - ${config.colorName} Edition`}
-            value={config.title || ''}
-            onChange={(e) => onUpdateTitle(e.target.value)}
-            className="bg-white border-neutral-200 text-xs font-semibold text-black"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-black uppercase tracking-wider">
-            Color Specific Product Info / Description
-          </label>
-          <Input
-            type="text"
-            placeholder={`Custom description details for ${config.colorName}...`}
-            value={config.productInfo || ''}
-            onChange={(e) => onUpdateProductInfo(e.target.value)}
-            className="bg-white border-neutral-200 text-xs font-medium text-black"
-          />
-        </div>
-      </div>
-
-      {/* SECTION 1: MAIN COVER IMAGE & LIVE PREVIEW */}
-      <div className="space-y-2 pt-2 border-t border-neutral-200/70">
-        <label className="block text-xs font-bold text-black uppercase tracking-wider">
-          1. Main Cover Image for {config.colorName} *
-        </label>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-white p-4 rounded-xl border border-neutral-200">
-          {/* UPLOAD & URL CONTROLS */}
-          <div className="md:col-span-3 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs shrink-0 active:scale-95">
-                <Upload className="w-4 h-4 text-emerald-400" />
-                <span>Upload Main Image File</span>
+      {/* MEDIA GRID MATCHING EXACT REFERENCE SCREENSHOT */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+        {/* LEFT: MAIN COVER PHOTO */}
+        <div className="sm:col-span-4 lg:col-span-4 space-y-1.5">
+          <span className="block text-[11px] font-semibold text-neutral-600">
+            Main Cover Photo
+          </span>
+          <div className="relative aspect-square w-full rounded-2xl border-2 border-neutral-200 bg-[#fbf9f6] overflow-hidden flex flex-col items-center justify-center group shadow-xs">
+            {config.mainImage ? (
+              <>
+                <img
+                  src={config.mainImage}
+                  alt={`${config.colorName} Cover`}
+                  className="w-full h-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                  <label className="px-3 py-1.5 bg-white text-black text-[11px] font-bold rounded-lg shadow-sm cursor-pointer hover:bg-neutral-100 transition-all flex items-center gap-1.5">
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Change Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadMainFile}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateMainImage('')}
+                    className="text-[11px] text-red-300 hover:text-red-100 underline cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-neutral-100/70 transition-colors p-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center mb-1 text-neutral-600">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-bold text-black">Upload Cover Photo</span>
+                <span className="text-[10px] text-neutral-400 mt-0.5">PNG, JPG, WEBP</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -265,64 +267,19 @@ const ColorMediaCard: React.FC<ColorMediaCardProps> = ({
                   onChange={handleUploadMainFile}
                 />
               </label>
-
-              <span className="text-xs font-bold text-neutral-400">OR</span>
-
-              <Input
-                type="text"
-                placeholder="Paste image URL link here..."
-                value={config.mainImage}
-                onChange={(e) => onUpdateMainImage(e.target.value)}
-                className="bg-neutral-50 border-neutral-200 text-xs font-medium text-black flex-1 min-w-[220px]"
-              />
-            </div>
-            <p className="text-[11px] text-neutral-500 font-medium">
-              This image will serve as the primary cover photo for the <span className="font-bold text-black">{config.colorName}</span> swatch.
-            </p>
-          </div>
-
-          {/* PROMINENT MAIN IMAGE PREVIEW BOX */}
-          <div className="flex flex-col items-center justify-center space-y-1.5 border-l border-neutral-100 pl-0 md:pl-4">
-            <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider">Main Image Preview</span>
-            {config.mainImage ? (
-              <div className="relative w-24 h-32 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 shadow-sm group">
-                <img src={config.mainImage} alt={config.colorName} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button
-                    type="button"
-                    onClick={() => onUpdateMainImage('')}
-                    className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-xs"
-                    title="Remove Main Image"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="w-24 h-32 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 flex flex-col items-center justify-center text-neutral-400 p-2 text-center">
-                <ImageIcon className="w-7 h-7 mb-1 stroke-1" />
-                <span className="text-[10px] font-semibold">No Image</span>
-              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* SECTION 2: MULTIPLE COLOR GALLERY IMAGES */}
-      <div className="space-y-3 pt-3 border-t border-neutral-200/70">
-        <div className="flex items-center justify-between">
-          <label className="block text-xs font-bold text-black uppercase tracking-wider">
-            2. {config.colorName} Color Gallery ({config.gallery ? config.gallery.length : 0} Images Selected)
-          </label>
-        </div>
-
-        {/* MULTIPLE IMAGE UPLOAD DROPZONE / CONTROL BAR */}
-        <div className="p-4 bg-white rounded-xl border border-neutral-200 space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* MULTIPLE FILE UPLOAD BUTTON */}
-            <label className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs shrink-0 active:scale-95">
-              <UploadCloud className="w-4 h-4 text-emerald-400" />
-              <span>Select Multiple Image Files</span>
+        {/* RIGHT: ADDITIONAL ANGLE / GALLERY PHOTOS */}
+        <div className="sm:col-span-8 lg:col-span-8 space-y-1.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="block text-[11px] font-semibold text-neutral-600">
+              Additional Angle / Gallery Photos
+            </span>
+            <label className="px-3 py-1 bg-neutral-100 hover:bg-neutral-200 text-black text-[11px] font-bold rounded-md cursor-pointer transition-colors flex items-center gap-1">
+              <Plus className="w-3 h-3" />
+              <span>Add Photos</span>
               <input
                 type="file"
                 accept="image/*"
@@ -331,72 +288,40 @@ const ColorMediaCard: React.FC<ColorMediaCardProps> = ({
                 onChange={handleUploadGalleryFiles}
               />
             </label>
+          </div>
 
-            <span className="text-xs font-bold text-neutral-400">OR</span>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 p-3 rounded-2xl border border-neutral-200 bg-neutral-50/50 min-h-[140px] items-start">
+            {gallery.map((imgUrl, idx) => (
+              <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-neutral-200 group bg-white shadow-2xs">
+                <img src={imgUrl} alt={`${config.colorName} Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => onRemoveGalleryImage(idx)}
+                  className="absolute top-1.5 right-1.5 bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
+                  title="Delete Photo"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
 
-            {/* URL INPUT */}
-            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <Input
-                type="text"
-                placeholder={`Enter gallery image URL for ${config.colorName}...`}
-                value={newGalleryUrl}
-                onChange={(e) => setNewGalleryUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddUrlImage();
-                  }
-                }}
-                className="bg-neutral-50 border-neutral-200 text-xs font-medium text-black flex-1"
+            {/* DASHED + ADD BOX */}
+            <label className="aspect-square rounded-xl border-2 border-dashed border-neutral-300 hover:border-neutral-500 bg-white flex flex-col items-center justify-center text-neutral-400 hover:text-black cursor-pointer transition-colors group shadow-2xs">
+              <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-bold mt-1 text-neutral-500">Add</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleUploadGalleryFiles}
               />
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleAddUrlImage}
-                className="bg-neutral-800 hover:bg-black text-white text-xs font-bold px-3.5 h-9 shrink-0 rounded-lg"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add URL</span>
-              </Button>
-            </div>
+            </label>
           </div>
-
-          <p className="text-[11px] text-neutral-500 font-medium">
-            💡 Select multiple images at once (Hold Ctrl or Shift) to populate gallery for <span className="font-bold text-black">{config.colorName}</span>.
-          </p>
         </div>
-
-        {/* MULTIPLE GALLERY IMAGES GRID PREVIEW */}
-        {config.gallery && config.gallery.length > 0 ? (
-          <div className="pt-2 space-y-2">
-            <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider">Gallery Thumbnails:</span>
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
-              {config.gallery.map((imgUrl, idx) => (
-                <div key={idx} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-neutral-200 bg-white group shadow-2xs">
-                  <img src={imgUrl} alt={`${config.colorName} gallery ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={() => onRemoveGalleryImage(idx)}
-                      className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer shadow-xs"
-                      title="Delete Image"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-2xs">
-                    #{idx + 1}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl border border-dashed border-neutral-300 bg-white text-center text-neutral-400 text-xs font-medium">
-            No gallery images selected for {config.colorName} yet. Click "Select Multiple Image Files" above to add images.
-          </div>
-        )}
       </div>
     </div>
   );
 };
+
+export default ColorGallerySection;

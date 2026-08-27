@@ -13,7 +13,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = "aaramly_wishlist_v1";
+const LOCAL_STORAGE_KEY = "awesome_wishlist_v1";
 const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
   ? "http://localhost:5000/api/v1"
   : "/api/v1";
@@ -23,11 +23,14 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [rawWishlistIds, setRawWishlistIds] = useState<string[]>(() => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("aaramly_wishlist_v1");
+      }
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.map(String).filter((id: string) => id !== "prod-1");
+          return parsed.map(String).filter((id: string) => !id.startsWith("prod-1") && id !== "prod-2" && id !== "prod-3");
         }
       }
     } catch {

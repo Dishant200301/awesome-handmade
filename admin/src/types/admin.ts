@@ -204,6 +204,9 @@ export interface Product {
   shortDescription?: string;
   fullDescription?: string;
   image?: string;
+  mainImage?: string;
+  galleryImages?: string[];
+  defaultSku?: string;
   images: string[];
   labels?: ProductLabels;
   inventory?: ProductInventory;

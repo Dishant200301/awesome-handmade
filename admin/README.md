@@ -1,6 +1,6 @@
-# AARAMLY Enterprise Admin Dashboard
+# Awesome Handmade Enterprise Admin Dashboard
 
-This directory contains the Admin Panel for the AARAMLY E-commerce Platform.
+This directory contains the Admin Panel for the Awesome Handmade E-commerce Platform.
 
 ## Features
 - **Dashboard & Real-time Analytics**: Sales, top sellers, order volume, live conversion.

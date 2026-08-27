@@ -16,19 +16,57 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = "aaramly_cart_v1";
+const LOCAL_STORAGE_KEY = "awesome_cart_v1";
 const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
   ? "http://localhost:5000/api/v1"
   : "/api/v1";
+
+export const isLegacyAaramlyItem = (item: any): boolean => {
+  if (!item) return true;
+  const str = `${item.name || ""} ${item.category || ""} ${item.subcategory || ""} ${item.sku || ""} ${item.image || ""} ${item.colorName || ""}`.toLowerCase();
+  return (
+    str.includes("panty") ||
+    str.includes("bralette") ||
+    str.includes("tactel") ||
+    str.includes("innerwear") ||
+    str.includes("lingerie") ||
+    str.includes("seamless bra") ||
+    str.includes("nipple cover") ||
+    str.includes("stayfresh") ||
+    str.includes("absorbent") ||
+    str.includes("period") ||
+    str.includes("aaramly") ||
+    str.includes("underwear") ||
+    item.productId === "prod-1" ||
+    item.productId === "prod-2" ||
+    item.productId === "prod-3" ||
+    item.id === "prod-1" ||
+    item.id === "prod-2" ||
+    item.id === "prod-3"
+  );
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isLoggedIn, user } = useAuth();
 
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("aaramly_cart_v1");
+        localStorage.removeItem("aaramly_wishlist_v1");
+        localStorage.removeItem("aaramly_recently_viewed_v1");
+        localStorage.removeItem("aaramly_compare_v1");
+        localStorage.removeItem("aaramly_orders_v1");
+        localStorage.removeItem("aaramly_user_orders");
+        localStorage.removeItem("aaramly_user_addresses");
+        localStorage.removeItem("aaramly_user_session");
+      }
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((item: CartItem) => !isLegacyAaramlyItem(item));
+        }
       }
     } catch {
       // ignore
@@ -42,7 +80,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Local storage persistence (guest & logged-in cache)
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cartItems));
+      const cleanItems = cartItems.filter((item) => !isLegacyAaramlyItem(item));
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cleanItems));
     } catch {
       // ignore
     }
@@ -56,7 +95,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!wasLoggedInRef.current) {
           try {
             const savedLocal = localStorage.getItem(LOCAL_STORAGE_KEY);
-            const localItems: CartItem[] = savedLocal ? JSON.parse(savedLocal) : [];
+            const localItems: CartItem[] = savedLocal
+              ? JSON.parse(savedLocal).filter((item: CartItem) => !isLegacyAaramlyItem(item))
+              : [];
             if (localItems.length > 0) {
               await fetch(`${API_BASE_URL}/cart/merge`, {
                 method: "POST",
@@ -81,7 +122,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           const json = await res.json();
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setCartItems(json.data);
+            const clean = json.data.filter((item: CartItem) => !isLegacyAaramlyItem(item));
+            setCartItems(clean);
           }
         } catch (err) {
           console.warn("Cart DB fetch warning:", err);

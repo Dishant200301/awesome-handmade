@@ -44,11 +44,11 @@ export default function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/shop" element={<ShopPage />} />
-                    <Route path="/categories" element={<CollectionPage />} />
-                    <Route path="/collections" element={<CollectionPage />} />
-                    <Route path="/collections/:categorySlug" element={<CollectionPage />} />
-                    <Route path="/collection/:categorySlug" element={<CollectionPage />} />
-                    <Route path="/category/:categorySlug" element={<CollectionPage />} />
+                    <Route path="/categories" element={<ShopPage />} />
+                    <Route path="/collections" element={<ShopPage />} />
+                    <Route path="/collections/:categorySlug" element={<ShopPage />} />
+                    <Route path="/collection/:categorySlug" element={<ShopPage />} />
+                    <Route path="/category/:categorySlug" element={<ShopPage />} />
                     <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />

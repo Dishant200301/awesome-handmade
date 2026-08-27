@@ -61,116 +61,7 @@ export interface ProductItem {
 import fs from "fs";
 import path from "path";
 
-export const INITIAL_PRODUCTS: ProductItem[] = [
-  {
-    id: "prod-1",
-    name: "Women's Seamless Padded Bralette",
-    subtitle: "Ultra-soft 4-way stretch wire-free contour bra",
-    brand: "AARAMLY",
-    category: "Bralettes",
-    slug: "womens-seamless-padded-bralette",
-    price: 799,
-    originalPrice: 1299,
-    discountPercentage: 38,
-    rating: 4.8,
-    reviewCount: 1240,
-    stock: 145,
-    defaultSku: "AAR-BR-BLK-S",
-    image: "https://m.media-amazon.com/images/I/71LtEuQjqXL._SL1500_.jpg",
-    images: [
-      "https://m.media-amazon.com/images/I/71LtEuQjqXL._SL1500_.jpg",
-      "https://m.media-amazon.com/images/I/71hu9PaEBcL._SL1500_.jpg"
-    ],
-    variations: [
-      { id: "v1", sku: "AAR-BR-BLK-S", colorName: "Black", size: "S", price: 799, originalPrice: 1299, stock: 45 },
-      { id: "v2", sku: "AAR-BR-BLK-M", colorName: "Black", size: "M", price: 799, originalPrice: 1299, stock: 50 }
-    ],
-    availableSizes: ["S", "M", "L", "XL"],
-    descriptionCards: [],
-    idealForPills: ["Everyday Wear", "Lounging"],
-    washingInstructions: [],
-    manufacturingInfo: { manufacturer: "AARAMLY Intimates", countryOfOrigin: "India" },
-    productAttributes: [
-      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "64% Nylon + 36% Spandex", showInHighlights: true, displayOrder: 1 },
-      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Contemporary Seamless", showInHighlights: true, displayOrder: 2 },
-      { attributeId: "attr-underwire", attributeName: "Underwire Type", attributeSlug: "underwire-type", type: "select", value: "Wire Free", showInHighlights: true, displayOrder: 3 },
-      { attributeId: "attr-padding", attributeName: "Padding", attributeSlug: "padding", type: "select", value: "CloudSoft Removable Pads", showInHighlights: true, displayOrder: 4 },
-      { attributeId: "attr-support", attributeName: "Support", attributeSlug: "support", type: "select", value: "High Support Contour Shaper", showInHighlights: true, displayOrder: 5 }
-    ],
-    isFeatured: true,
-    isPublished: true,
-    status: "Published"
-  },
-  {
-    id: "prod-2",
-    name: "Women's Contour Seamless Bra",
-    subtitle: "Zero-wire contour support with breathable side wings",
-    brand: "AARAMLY",
-    category: "Everyday Bras",
-    slug: "womens-contour-seamless-bra",
-    price: 899,
-    originalPrice: 1499,
-    discountPercentage: 40,
-    rating: 4.7,
-    reviewCount: 890,
-    stock: 98,
-    defaultSku: "AAR-BRA-DNM-M",
-    image: "https://m.media-amazon.com/images/I/71hu9PaEBcL._SL1500_.jpg",
-    images: [
-      "https://m.media-amazon.com/images/I/71hu9PaEBcL._SL1500_.jpg"
-    ],
-    variations: [
-      { id: "v5", sku: "AAR-BRA-DNM-34B", colorName: "Denim Blue", size: "34B", price: 899, originalPrice: 1499, stock: 40 }
-    ],
-    availableSizes: ["34B", "36B", "36C", "38D"],
-    descriptionCards: [],
-    idealForPills: ["Daily Comfort", "Office Wear"],
-    washingInstructions: [],
-    manufacturingInfo: { manufacturer: "AARAMLY Intimates", countryOfOrigin: "India" },
-    productAttributes: [
-      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "72% Nylon + 28% Elastane", showInHighlights: true, displayOrder: 1 },
-      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Wirefree Contour", showInHighlights: true, displayOrder: 2 },
-      { attributeId: "attr-underwire", attributeName: "Underwire Type", attributeSlug: "underwire-type", type: "select", value: "Wire Free", showInHighlights: true, displayOrder: 3 },
-      { attributeId: "attr-padding", attributeName: "Padding", attributeSlug: "padding", type: "select", value: "Fixed Moulded Contour Pads", showInHighlights: true, displayOrder: 4 },
-      { attributeId: "attr-support", attributeName: "Support", attributeSlug: "support", type: "select", value: "Medium Everyday Support", showInHighlights: true, displayOrder: 5 }
-    ],
-    isFeatured: true,
-    isPublished: true,
-    status: "Published"
-  },
-  {
-    id: "prod-3",
-    name: "Silicone Nipple Covers (Reusable)",
-    subtitle: "Hypoallergenic reusable medical-grade silicone covers",
-    brand: "AARAMLY Care",
-    category: "Accessories",
-    slug: "silicone-nipple-covers",
-    price: 299,
-    originalPrice: 499,
-    discountPercentage: 40,
-    rating: 4.9,
-    reviewCount: 3100,
-    stock: 350,
-    defaultSku: "AAR-NC-SIL-FREE",
-    image: "https://m.media-amazon.com/images/I/51yter5yXjL._SL1500_.jpg",
-    images: [
-      "https://m.media-amazon.com/images/I/51yter5yXjL._SL1500_.jpg"
-    ],
-    variations: [],
-    availableSizes: ["Free Size"],
-    descriptionCards: [],
-    idealForPills: ["Backless Tops", "Dresses"],
-    washingInstructions: [],
-    manufacturingInfo: { manufacturer: "AARAMLY Care", countryOfOrigin: "India" },
-    productAttributes: [
-      { attributeId: "attr-material", attributeName: "Material Composition", attributeSlug: "material-composition", type: "text", value: "100% Medical-Grade Silicone", showInHighlights: true, displayOrder: 1 },
-      { attributeId: "attr-style", attributeName: "Style", attributeSlug: "style", type: "select", value: "Invisible Coverage", showInHighlights: true, displayOrder: 2 }
-    ],
-    isFeatured: true,
-    isPublished: true,
-    status: "Published"
-  }
-];
+export const INITIAL_PRODUCTS: ProductItem[] = [];
 
 const DB_FILE_PATH = path.join(process.cwd(), "products_db.json");
 
@@ -186,15 +77,23 @@ class ProductStore {
       if (fs.existsSync(DB_FILE_PATH)) {
         const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          this.products = parsed;
+        if (Array.isArray(parsed)) {
+          // Filter out legacy lingerie demo products if any exist
+          this.products = parsed.filter(
+            (p) =>
+              p &&
+              p.name &&
+              !p.name.toLowerCase().includes("bralette") &&
+              !p.name.toLowerCase().includes("contour seamless bra") &&
+              !p.name.toLowerCase().includes("nipple covers")
+          );
           return;
         }
       }
     } catch (e) {
-      console.warn("[ProductStore] Could not read products_db.json, using defaults.");
+      console.warn("[ProductStore] Could not read products_db.json, using empty store.");
     }
-    this.products = [...INITIAL_PRODUCTS];
+    this.products = [];
     this.saveToDisk();
   }
 
@@ -232,9 +131,9 @@ class ProductStore {
     const newProd: ProductItem = {
       id: productData.id || `prod-${Date.now()}`,
       name: productData.name || "New Product",
-      subtitle: productData.subtitle || "Premium comfort wear",
-      brand: productData.brand || "AARAMLY",
-      category: productData.category || "Bralettes",
+      subtitle: productData.subtitle || "Artisanal handmade craft",
+      brand: productData.brand || "AOCIND",
+      category: productData.category || "Latkan",
       slug: productData.slug || slug,
       price: productData.price || 999,
       originalPrice: productData.originalPrice || 1499,
@@ -247,28 +146,28 @@ class ProductStore {
       rating: productData.rating || 5.0,
       reviewCount: productData.reviewCount || 1,
       stock: productData.stock || 50,
-      defaultSku: productData.defaultSku || (productData as any).sku || `AAR-${Date.now()}`,
+      defaultSku: productData.defaultSku || (productData as any).sku || `AOC-${Date.now()}`,
       barcode: productData.barcode,
       image:
         productData.image ||
         productData.images?.[0] ||
-        "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=600",
+        "/images/category/Latkan.webp",
       images: productData.images || [
-        "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=600"
+        "/images/category/Latkan.webp"
       ],
       colors: productData.colors || [],
       variations: (productData.variations && productData.variations.length > 0)
         ? productData.variations
         : ((productData as any).variants || []),
-      availableSizes: productData.availableSizes || ["S", "M", "L", "XL"],
+      availableSizes: productData.availableSizes || ["Free Size"],
       descriptionCards: productData.descriptionCards || [],
-      idealForPills: productData.idealForPills || ["Daily Comfort"],
+      idealForPills: productData.idealForPills || ["Festive Wear", "Handmade"],
       washingInstructions: productData.washingInstructions || [],
       manufacturingInfo: productData.manufacturingInfo || {
-        manufacturer: "AARAMLY Intimates",
-        address: "Ahmedabad, Gujarat",
+        manufacturer: "AOCIND Craft Studio",
+        address: "Surat, Gujarat",
         countryOfOrigin: "India",
-        material: "Microfiber Nylon Blend"
+        material: "Handcrafted Mirror & Silk"
       },
       productAttributes: productData.productAttributes || [],
       isFeatured: productData.isFeatured !== undefined ? productData.isFeatured : true,

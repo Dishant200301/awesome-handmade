@@ -1,70 +1,123 @@
 import { Product, Order, Category, Subcategory, Attribute, Customer, ContactMessage, Brand, Variant } from '../types/admin';
+import { idbGet, idbSet } from './idbStorage';
 
 export const MOCK_BRANDS: Brand[] = [
-  { id: 'b-1', name: 'AARAMLY', slug: 'aaramly', logo: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=100' },
-  { id: 'b-2', name: 'AARAMLY Care', slug: 'aaramly-care', logo: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=100' },
-  { id: 'b-3', name: 'AARAMLY Luxe', slug: 'aaramly-luxe', logo: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?q=80&w=100' }
+  { id: 'b-1', name: 'AOCIND', slug: 'aocind', logo: '/images/common/logo.png' },
+  { id: 'b-2', name: 'Awesome Handmade', slug: 'awesome-handmade', logo: '/images/common/logo.png' }
 ];
 
 export const MOCK_CATEGORIES: Category[] = [
-  { id: 'cat-1', name: 'Bralettes', slug: 'bralettes', productCount: 12, isActive: true },
-  { id: 'cat-2', name: 'Everyday Bras', slug: 'everyday-bras', productCount: 24, isActive: true },
-  { id: 'cat-3', name: 'Seamless Panties', slug: 'panties', productCount: 18, isActive: true },
-  { id: 'cat-4', name: 'Shapewear', slug: 'shapewear', productCount: 8, isActive: true },
-  { id: 'cat-5', name: 'Accessories', slug: 'accessories', productCount: 15, isActive: true }
+  { id: 'cat-1', name: 'Gift Hamper', slug: 'gift-hamper', productCount: 15, isActive: true },
+  { id: 'cat-2', name: 'Choli', slug: 'choli', productCount: 28, isActive: true },
+  { id: 'cat-3', name: 'Krishna Outfit', slug: 'krishna-outfit', productCount: 10, isActive: true },
+  { id: 'cat-4', name: 'Necklace', slug: 'necklace', productCount: 22, isActive: true },
+  { id: 'cat-5', name: 'Latkan', slug: 'latkan', productCount: 35, isActive: true },
+  { id: 'cat-6', name: 'Tassel', slug: 'tassel', productCount: 14, isActive: true },
+  { id: 'cat-7', name: 'Hair Accessories', slug: 'hair-accessories', productCount: 18, isActive: true },
+  { id: 'cat-8', name: 'Watch', slug: 'watch', productCount: 12, isActive: true },
+  { id: 'cat-9', name: 'Bracelet', slug: 'bracelet', productCount: 16, isActive: true },
+  { id: 'cat-10', name: 'Waist Belt', slug: 'waist-belt', productCount: 9, isActive: true },
+  { id: 'cat-11', name: 'Earrings', slug: 'earrings', productCount: 30, isActive: true },
+  { id: 'cat-12', name: 'Anklet', slug: 'anklet', productCount: 8, isActive: true },
+  { id: 'cat-13', name: 'Plastic Ring', slug: 'plastic-ring', productCount: 6, isActive: true },
+  { id: 'cat-14', name: 'Finger Ring', slug: 'finger-ring', productCount: 14, isActive: true },
+  { id: 'cat-15', name: 'Jewellery Set', slug: 'jewellery-set', productCount: 19, isActive: true },
+  { id: 'cat-16', name: 'Dispatch', slug: 'dispatch', productCount: 5, isActive: true },
+  { id: 'cat-17', name: 'Macrame Hanging', slug: 'macrame-hanging', productCount: 11, isActive: true },
+  { id: 'cat-18', name: 'Pom-Pom Wristband', slug: 'pom-pom-wristband', productCount: 8, isActive: true }
 ];
 
 export const MOCK_SUBCATEGORIES: Subcategory[] = [
-  { id: 'sub-1', categoryId: 'cat-1', categoryName: 'Bralettes', name: 'Seamless Padded Bralettes', slug: 'seamless-padded-bralettes' },
-  { id: 'sub-2', categoryId: 'cat-1', categoryName: 'Bralettes', name: 'Lace Triangle Bralettes', slug: 'lace-triangle-bralettes' },
-  { id: 'sub-3', categoryId: 'cat-2', categoryName: 'Everyday Bras', name: 'Contour Wire-Free Bras', slug: 'contour-wirefree-bras' },
-  { id: 'sub-4', categoryId: 'cat-2', categoryName: 'Everyday Bras', name: 'T-Shirt Plunge Bras', slug: 't-shirt-plunge-bras' },
-  { id: 'sub-5', categoryId: 'cat-5', categoryName: 'Accessories', name: 'Silicone Nipple Covers', slug: 'silicone-nipple-covers' },
-  { id: 'sub-6', categoryId: 'cat-5', categoryName: 'Accessories', name: 'Bra Extenders & Straps', slug: 'bra-extenders-straps' }
+  { id: 'sub-1', categoryId: 'cat-1', categoryName: 'Gift Hamper', name: 'Keychain', slug: 'keychain' },
+  { id: 'sub-2', categoryId: 'cat-2', categoryName: 'Choli', name: 'Kids Choli', slug: 'kids-choli' },
+  { id: 'sub-3', categoryId: 'cat-2', categoryName: 'Choli', name: 'Adult Choli', slug: 'adult-choli' },
+  { id: 'sub-4', categoryId: 'cat-4', categoryName: 'Necklace', name: 'Mirror Necklace', slug: 'mirror-necklace' },
+  { id: 'sub-5', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Mirror Latkan', slug: 'mirror-latkan' },
+  { id: 'sub-6', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Blouse Latkan', slug: 'blouse-latkan' },
+  { id: 'sub-7', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Mirror Wall Decor', slug: 'mirror-wall-decor' },
+  { id: 'sub-8', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Fabric Latkan', slug: 'fabric-latkan' },
+  { id: 'sub-9', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Golden Latkan', slug: 'golden-latkan' },
+  { id: 'sub-10', categoryId: 'cat-5', categoryName: 'Latkan', name: 'Crochet Latkan', slug: 'crochet-latkan' },
+  { id: 'sub-11', categoryId: 'cat-6', categoryName: 'Tassel', name: 'Long Tassels', slug: 'long-tassels' },
+  { id: 'sub-12', categoryId: 'cat-7', categoryName: 'Hair Accessories', name: 'Hair Bow', slug: 'hair-bow' },
+  { id: 'sub-13', categoryId: 'cat-7', categoryName: 'Hair Accessories', name: 'Hair Clip', slug: 'hair-clip' },
+  { id: 'sub-14', categoryId: 'cat-7', categoryName: 'Hair Accessories', name: 'Hair Band', slug: 'hair-band' },
+  { id: 'sub-15', categoryId: 'cat-8', categoryName: 'Watch', name: 'Kids Watch', slug: 'kids-watch' },
+  { id: 'sub-16', categoryId: 'cat-8', categoryName: 'Watch', name: 'Traditional Watch', slug: 'traditional-watch' },
+  { id: 'sub-17', categoryId: 'cat-10', categoryName: 'Waist Belt', name: 'Mirror Waist Belt', slug: 'mirror-waist-belt' },
+  { id: 'sub-18', categoryId: 'cat-11', categoryName: 'Earrings', name: 'Mirror Earrings', slug: 'mirror-earrings' },
+  { id: 'sub-19', categoryId: 'cat-11', categoryName: 'Earrings', name: 'Hoop Earrings', slug: 'hoop-earrings' }
 ];
 
 export const MOCK_COLLECTIONS = [
-  'Summer Essentials 2026',
-  'Bridal Silk & Lace',
-  'Everyday Comfort Wire-Free',
-  'Seamless Nude Essentials'
+  'Navratri Choli Collection',
+  'Mirror Latkan Studio',
+  'Bridal & Festive Edit',
+  'Artisan Gifts & Hampers',
+  'Traditional Earrings',
+  'Macrame & Wall Hangings'
 ];
 
 export const MOCK_TAGS = [
-  'Seamless',
-  'Wire-free',
-  'Padded',
-  'Cotton',
-  'Silicone',
-  'Breathable',
-  'Hypoallergenic',
-  'Invisible'
+  'Handmade',
+  'Traditional',
+  'Mirror Work',
+  'Festive',
+  'Bridal',
+  'Gujarati Craft',
+  'Cotton Macrame',
+  'Artisan Special'
 ];
+
+export const sanitizeProducts = (list: any[]): Product[] => {
+  if (!Array.isArray(list)) return [];
+  return list.filter(
+    (p) =>
+      p &&
+      p.name &&
+      !p.name.toLowerCase().includes("bralette") &&
+      !p.name.toLowerCase().includes("contour seamless bra") &&
+      !p.name.toLowerCase().includes("nipple covers")
+  );
+};
 
 export const MOCK_PRODUCTS: Product[] = [];
 
-// Load products from localStorage if present
+// Load products from IndexedDB & LocalStorage on startup
 if (typeof window !== 'undefined') {
   try {
-    const stored = localStorage.getItem('aaramly_admin_sync');
+    const stored = localStorage.getItem('awesome_admin_sync') || localStorage.getItem('aaramly_admin_sync');
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.products) && parsed.products.length > 0) {
-        MOCK_PRODUCTS.push(...parsed.products);
+      if (Array.isArray(parsed.products)) {
+        const clean = sanitizeProducts(parsed.products);
+        MOCK_PRODUCTS.push(...clean);
       }
     }
   } catch (e) {}
+
+  // Async load from IndexedDB (handles large Base64 images without quota limits)
+  idbGet<any>('awesome_admin_sync').then((stored) => {
+    if (stored && Array.isArray(stored.products) && stored.products.length > 0) {
+      const clean = sanitizeProducts(stored.products);
+      MOCK_PRODUCTS.length = 0;
+      MOCK_PRODUCTS.push(...clean);
+      window.dispatchEvent(new Event('awesome_product_sync'));
+      window.dispatchEvent(new Event('aaramly_product_sync'));
+    }
+  }).catch(() => {});
 }
 
 export const getAdminProducts = (): Product[] => {
   if (typeof window !== 'undefined') {
     try {
-      const stored = localStorage.getItem('aaramly_admin_sync');
+      const stored = localStorage.getItem('awesome_admin_sync') || localStorage.getItem('aaramly_admin_sync');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed.products)) {
+        if (Array.isArray(parsed.products) && parsed.products.length > 0) {
+          const clean = sanitizeProducts(parsed.products);
           MOCK_PRODUCTS.length = 0;
-          MOCK_PRODUCTS.push(...parsed.products);
+          MOCK_PRODUCTS.push(...clean);
         }
       }
     } catch (e) {}
@@ -91,29 +144,62 @@ export const getGlobalVariantsList = (): Variant[] => {
 const BACKEND_API_URL = 'http://localhost:5000/api/v1/products';
 
 export const fetchProductsFromBackend = async (): Promise<Product[]> => {
+  // 1. Sync from IndexedDB first (contains all newly added and edited admin products)
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = await idbGet<any>('awesome_admin_sync');
+      if (stored && Array.isArray(stored.products) && stored.products.length > 0) {
+        const clean = sanitizeProducts(stored.products);
+        clean.forEach((p) => {
+          if (!deletedProductIds.has(String(p.id))) {
+            const idx = MOCK_PRODUCTS.findIndex((m) => String(m.id) === String(p.id));
+            if (idx !== -1) {
+              MOCK_PRODUCTS[idx] = p;
+            } else {
+              MOCK_PRODUCTS.unshift(p);
+            }
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
+  // 2. Fetch from backend API
   try {
     const res = await fetch(`${BACKEND_API_URL}?admin=true`);
     if (res.ok) {
       const json = await res.json();
       const list = json.data || json.items || json.products;
-      if (json.success && Array.isArray(list) && list.length > 0) {
-        const existingIds = new Set(list.map((p: any) => p.id));
-        const localOnly = MOCK_PRODUCTS.filter((p) => !existingIds.has(p.id));
-        MOCK_PRODUCTS.length = 0;
-        MOCK_PRODUCTS.push(...list, ...localOnly);
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('aaramly_admin_sync', JSON.stringify({ timestamp: Date.now(), products: MOCK_PRODUCTS }));
-            window.dispatchEvent(new Event('aaramly_product_sync'));
-          } catch (e) {}
-        }
-        return MOCK_PRODUCTS;
+      if (json.success && Array.isArray(list)) {
+        const cleanList = sanitizeProducts(list);
+        cleanList.forEach((backendProd) => {
+          if (!deletedProductIds.has(String(backendProd.id))) {
+            const idx = MOCK_PRODUCTS.findIndex((m) => String(m.id) === String(backendProd.id));
+            if (idx === -1) {
+              MOCK_PRODUCTS.push(backendProd);
+            }
+          }
+        });
       }
     }
   } catch (e) {
     console.warn('[Backend Network API] Unable to fetch live backend products on load:', e);
   }
-  return getAdminProducts();
+
+  // Filter out any deleted products
+  const finalProducts = MOCK_PRODUCTS.filter((p) => !deletedProductIds.has(String(p.id)));
+  MOCK_PRODUCTS.length = 0;
+  MOCK_PRODUCTS.push(...finalProducts);
+
+  if (typeof window !== 'undefined') {
+    idbSet('awesome_admin_sync', {
+      timestamp: Date.now(),
+      products: MOCK_PRODUCTS,
+      deletedIds: Array.from(deletedProductIds)
+    });
+  }
+
+  return MOCK_PRODUCTS;
 };
 
 export const syncProductToBackend = async (product: Product, isEdit: boolean = false) => {
@@ -140,12 +226,18 @@ const deletedProductIds = new Set<string>();
 
 if (typeof window !== 'undefined') {
   try {
-    const savedDeleted = localStorage.getItem('aaramly_deleted_products');
+    const savedDeleted = localStorage.getItem('awesome_deleted_products') || localStorage.getItem('aaramly_deleted_products');
     if (savedDeleted) {
       const parsed = JSON.parse(savedDeleted);
       if (Array.isArray(parsed)) parsed.forEach((id) => deletedProductIds.add(String(id)));
     }
   } catch (e) {}
+
+  idbGet<string[]>('awesome_deleted_products').then((ids) => {
+    if (Array.isArray(ids)) {
+      ids.forEach((id) => deletedProductIds.add(String(id)));
+    }
+  }).catch(() => {});
 }
 
 export const getDeletedProductIds = (): Set<string> => deletedProductIds;
@@ -159,8 +251,9 @@ export const deleteAdminProduct = async (productId: string) => {
     MOCK_PRODUCTS.splice(idx, 1);
   }
 
+  idbSet('awesome_deleted_products', Array.from(deletedProductIds));
   try {
-    localStorage.setItem('aaramly_deleted_products', JSON.stringify(Array.from(deletedProductIds)));
+    localStorage.setItem('awesome_deleted_products', JSON.stringify(Array.from(deletedProductIds)));
   } catch (e) {}
 
   try {
@@ -185,8 +278,16 @@ export const broadcastAdminProductChange = (updatedProduct?: Product) => {
     }
   }
 
+  // 1. Save to IndexedDB (unlimited storage for base64 images)
+  idbSet('awesome_admin_sync', {
+    timestamp: Date.now(),
+    products: MOCK_PRODUCTS,
+    deletedIds: Array.from(deletedProductIds)
+  });
+
+  // 2. BroadcastChannel
   try {
-    const channel = new BroadcastChannel('aaramly_product_sync');
+    const channel = new BroadcastChannel('awesome_product_sync');
     channel.postMessage({
       type: 'PRODUCT_UPDATED',
       timestamp: Date.now(),
@@ -195,21 +296,34 @@ export const broadcastAdminProductChange = (updatedProduct?: Product) => {
       deletedIds: Array.from(deletedProductIds)
     });
     channel.close();
-  } catch (e) {
-    console.warn('BroadcastChannel not supported in this environment.');
-  }
+  } catch (e) {}
 
   try {
-    localStorage.setItem('aaramly_admin_sync', JSON.stringify({
+    const legacyChannel = new BroadcastChannel('aaramly_product_sync');
+    legacyChannel.postMessage({
+      type: 'PRODUCT_UPDATED',
+      timestamp: Date.now(),
+      product: updatedProduct,
+      products: MOCK_PRODUCTS,
+      deletedIds: Array.from(deletedProductIds)
+    });
+    legacyChannel.close();
+  } catch (e) {}
+
+  // 3. LocalStorage & Window Events
+  try {
+    localStorage.setItem('awesome_admin_sync', JSON.stringify({
       timestamp: Date.now(),
       products: MOCK_PRODUCTS,
       deletedIds: Array.from(deletedProductIds)
     }));
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('aaramly_product_sync'));
-    }
   } catch (e) {
-    console.warn('LocalStorage write failed.');
+    console.warn('LocalStorage write failed (quota exceeded, using IndexedDB fallback).');
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('awesome_product_sync'));
+    window.dispatchEvent(new Event('aaramly_product_sync'));
   }
 };
 
@@ -217,7 +331,7 @@ export const MOCK_CONTACT_MESSAGES: ContactMessage[] = [];
 
 if (typeof window !== 'undefined') {
   try {
-    const stored = localStorage.getItem('aaramly_contact_sync');
+    const stored = localStorage.getItem('awesome_contact_sync') || localStorage.getItem('aaramly_contact_sync');
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
@@ -235,7 +349,7 @@ if (typeof window !== 'undefined') {
 export const MOCK_ORDERS: Order[] = [
   {
     id: 'ord-1001',
-    orderNumber: '#AAR-98214',
+    orderNumber: '#AOC-98214',
     customerName: 'Priya Sharma',
     customerEmail: 'priya.sharma@example.com',
     date: '2026-07-30 14:20',
@@ -244,8 +358,8 @@ export const MOCK_ORDERS: Order[] = [
     paymentGateway: 'Razorpay',
     itemsCount: 2,
     items: [
-      { id: 'item-1', productName: "Women's Seamless Padded Bralette", variantSku: 'AAR-BR-BLK-S', price: 799, quantity: 2, image: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=200' },
-      { id: 'item-2', productName: 'Silicone Nipple Covers', variantSku: 'AAR-NC-SIL-FREE', price: 299, quantity: 1, image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=200' }
+      { id: 'item-1', productName: "Handcrafted Royal Mirror Latkan Pair", variantSku: 'AOC-LAT-MR-RED', price: 799, quantity: 2, image: '/images/category/Latkan.webp' },
+      { id: 'item-2', productName: 'Navratri Designer Mirror Choli', variantSku: 'AOC-CHO-NAV-FREE', price: 1099, quantity: 1, image: '/images/category/Choli.webp' }
     ]
   }
 ];
@@ -256,25 +370,25 @@ export const MOCK_ATTRIBUTES: Attribute[] = [
     name: 'Color',
     displayType: 'swatch',
     values: [
-      { id: 'val-1', value: 'Black', hexCode: '#000000' },
-      { id: 'val-2', value: 'White', hexCode: '#FFFFFF' },
-      { id: 'val-3', value: 'Beige', hexCode: '#E8D3C3' },
-      { id: 'val-4', value: 'Blush Pink', hexCode: '#F4C2C2' },
-      { id: 'val-5', value: 'Denim Blue', hexCode: '#3B5998' }
+      { id: 'val-1', value: 'Maroon', hexCode: '#800000' },
+      { id: 'val-2', value: 'Gold', hexCode: '#D4AF37' },
+      { id: 'val-3', value: 'Royal Blue', hexCode: '#4169E1' },
+      { id: 'val-4', value: 'Emerald Green', hexCode: '#50C878' },
+      { id: 'val-5', value: 'Pink', hexCode: '#FF69B4' },
+      { id: 'val-6', value: 'Yellow', hexCode: '#FFD700' }
     ]
   },
   {
     id: 'attr-2',
-    name: 'Size',
+    name: 'Size / Type',
     displayType: 'button',
     values: [
-      { id: 'val-6', value: 'S' },
-      { id: 'val-7', value: 'M' },
-      { id: 'val-8', value: 'L' },
-      { id: 'val-9', value: 'XL' },
-      { id: 'val-10', value: '34B' },
-      { id: 'val-11', value: '36B' },
-      { id: 'val-12', value: '36C' }
+      { id: 'val-7', value: 'Free Size' },
+      { id: 'val-8', value: 'Kids (2-4 Yrs)' },
+      { id: 'val-9', value: 'Kids (5-8 Yrs)' },
+      { id: 'val-10', value: 'Adult S' },
+      { id: 'val-11', value: 'Adult M' },
+      { id: 'val-12', value: 'Adult L' }
     ]
   }
 ];
@@ -286,13 +400,22 @@ export const MOCK_CUSTOMERS: Customer[] = [
 export const getAdminCategoriesAndSubcategories = () => {
   if (typeof window !== 'undefined') {
     try {
-      const saved = localStorage.getItem('aaramly_categories');
+      const saved = localStorage.getItem('awesome_categories') || localStorage.getItem('aocind_categories') || localStorage.getItem('aaramly_categories');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        // Validate if saved categories are the old Aaramly intimates categories, and if so discard them
+        const hasOldCategories = Array.isArray(parsed) && parsed.some((c: any) => 
+          ['Bralettes', 'Everyday Bras', 'Seamless Panties', 'Shapewear', 'bralettes'].includes(c.name || c.slug)
+        );
+        if (!hasOldCategories && Array.isArray(parsed) && parsed.length > 0) {
           const mainCats = parsed.filter((c: any) => c.type !== 'sub' && (c.isActive ?? true));
           const subCats = parsed.filter((c: any) => c.type === 'sub' && (c.isActive ?? true));
           return { mainCategories: mainCats, subcategories: subCats };
+        } else if (hasOldCategories) {
+          // Clear legacy intimates data
+          localStorage.removeItem('aaramly_categories');
+          localStorage.removeItem('aocind_categories');
+          localStorage.removeItem('awesome_categories');
         }
       }
     } catch (e) {}

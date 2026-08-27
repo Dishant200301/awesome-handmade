@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 interface ProductHoverSliderProps {
   product: any;
@@ -16,92 +16,104 @@ export const ProductHoverSlider: React.FC<ProductHoverSliderProps> = ({
   children,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Extract all available gallery images cleanly
-  const galleryImages = useMemo(() => {
+  const { firstImage, secondImage } = useMemo(() => {
     const p = product || {};
-    const list: string[] = [];
+    
+    // 1. Primary main image (Admin main image, image, or first available image)
+    const primary = 
+      p.mainImage || 
+      p.image || 
+      p.img || 
+      (Array.isArray(p.images) && p.images[0]) || 
+      (Array.isArray(p.colors) && (p.colors[0]?.mainImage || p.colors[0]?.displayImage)) ||
+      "/images/category/Latkan.webp";
 
-    // Main images
-    if (p.image) list.push(p.image);
-    if (p.img) list.push(p.img);
-    if (p.mainImage) list.push(p.mainImage);
+    // 2. Secondary hover image (First gallery image added in Admin, or images[1], or variation gallery)
+    let secondary: string | null = null;
 
-    // Gallery array fields
-    if (p.images && Array.isArray(p.images)) list.push(...p.images);
-    if (p.galleryImages && Array.isArray(p.galleryImages)) list.push(...p.galleryImages);
-    if (p.gallery && Array.isArray(p.gallery)) list.push(...p.gallery);
-
-    // Color Media Configurations
-    if (p.colorMediaConfigs && Array.isArray(p.colorMediaConfigs)) {
-      p.colorMediaConfigs.forEach((c: any) => {
-        if (c.mainImage) list.push(c.mainImage);
-        if (c.gallery && Array.isArray(c.gallery)) list.push(...c.gallery);
-      });
+    if (Array.isArray(p.galleryImages) && p.galleryImages.length > 0) {
+      for (const item of p.galleryImages) {
+        const u = typeof item === "string" ? item : item?.url;
+        if (u && typeof u === "string" && u.trim() && u.trim() !== primary) {
+          secondary = u.trim();
+          break;
+        }
+      }
     }
 
-    // Color Swatch object images
-    if (p.colors && Array.isArray(p.colors)) {
-      p.colors.forEach((c: any) => {
-        if (c.mainImage) list.push(c.mainImage);
-        if (c.displayImage) list.push(c.displayImage);
-        if (c.galleryImages && Array.isArray(c.galleryImages)) list.push(...c.galleryImages);
-      });
+    if (!secondary && Array.isArray(p.images) && p.images.length > 1) {
+      for (let i = 1; i < p.images.length; i++) {
+        const u = typeof p.images[i] === "string" ? p.images[i] : p.images[i]?.url;
+        if (u && typeof u === "string" && u.trim() && u.trim() !== primary) {
+          secondary = u.trim();
+          break;
+        }
+      }
     }
 
-    // Hover image fallbacks
-    if (p.hoverImg) list.push(p.hoverImg);
-    if (p.hoverImage) list.push(p.hoverImage);
-
-    // Deduplicate while preserving order & filtering out falsy strings
-    const unique = Array.from(new Set(list.filter((img) => typeof img === "string" && img.trim().length > 0)));
-
-    if (unique.length === 0) {
-      return ["https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=600"];
+    if (!secondary && Array.isArray(p.colors) && p.colors.length > 0) {
+      const c0 = p.colors[0];
+      if (Array.isArray(c0?.galleryImages) && c0.galleryImages.length > 0) {
+        for (const item of c0.galleryImages) {
+          const u = typeof item === "string" ? item : item?.url;
+          if (u && typeof u === "string" && u.trim() && u.trim() !== primary) {
+            secondary = u.trim();
+            break;
+          }
+        }
+      }
+      if (!secondary && p.colors.length > 1) {
+        const c1 = p.colors[1];
+        const c1Img = c1?.mainImage || c1?.displayImage || (c1?.galleryImages && c1.galleryImages[0]);
+        if (c1Img && typeof c1Img === "string" && c1Img.trim() && c1Img.trim() !== primary) {
+          secondary = c1Img.trim();
+        }
+      }
     }
 
-    return unique;
+    if (!secondary && (p.hoverImage || p.hoverImg)) {
+      const h = p.hoverImage || p.hoverImg;
+      if (h && typeof h === "string" && h.trim() && h.trim() !== primary) {
+        secondary = h.trim();
+      }
+    }
+
+    return {
+      firstImage: primary,
+      secondImage: secondary || primary,
+    };
   }, [product]);
 
-  // Smooth Auto-sliding timer on hover
-  useEffect(() => {
-    if (!isHovered || galleryImages.length <= 1) {
-      setCurrentIndex(0);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % galleryImages.length);
-    }, 1300); // 1.3 seconds smooth right-to-left transition
-
-    return () => clearInterval(interval);
-  }, [isHovered, galleryImages.length]);
+  const hasSecondImage = Boolean(secondImage && secondImage !== firstImage);
 
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setCurrentIndex(0);
-      }}
+      onMouseLeave={() => setIsHovered(false)}
       className={className}
     >
-      {/* Sliding Images Container (Right-to-Left) */}
-      <div
-        className="flex w-full h-full transition-transform duration-700 ease-in-out"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {galleryImages.map((imgUrl, idx) => (
-          <img
-            key={`${imgUrl}-${idx}`}
-            src={imgUrl}
-            alt={`${alt} view ${idx + 1}`}
-            loading={idx === 0 ? "eager" : "lazy"}
-            className={imageClassName}
-          />
-        ))}
-      </div>
+      {/* Primary Image (First image from Admin) */}
+      <img
+        src={firstImage}
+        alt={alt}
+        loading="eager"
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${
+          isHovered && hasSecondImage ? "opacity-0 scale-105" : isHovered ? "scale-105" : "opacity-100 scale-100"
+        } ${imageClassName}`}
+      />
+
+      {/* Secondary Gallery Image (Smooth Fade-in on Hover) */}
+      {hasSecondImage && (
+        <img
+          src={secondImage}
+          alt={`${alt} hover view`}
+          loading="lazy"
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${
+            isHovered ? "opacity-100 scale-105" : "opacity-0 scale-100"
+          } ${imageClassName}`}
+        />
+      )}
 
       {/* Badges / Wishlist Button / Overlay Children */}
       {children}

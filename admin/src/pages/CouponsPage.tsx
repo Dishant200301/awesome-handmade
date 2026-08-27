@@ -13,7 +13,7 @@ interface Coupon {
 
 export const CouponsPage: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([
-    { id: 'c1', code: 'AARAMLY20', discountType: 'Percentage', discountValue: 20, minOrderValue: 999, usageCount: 142, isActive: true },
+    { id: 'c1', code: 'AOCIND20', discountType: 'Percentage', discountValue: 20, minOrderValue: 999, usageCount: 142, isActive: true },
     { id: 'c2', code: 'WELCOME100', discountType: 'Fixed', discountValue: 100, minOrderValue: 499, usageCount: 389, isActive: true },
   ]);
 

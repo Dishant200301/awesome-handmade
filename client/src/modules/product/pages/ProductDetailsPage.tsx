@@ -4,7 +4,6 @@ import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navbar from "@/modules/core/components/Navbar";
 import Footer from "@/modules/core/components/Footer";
-import { ProductBreadcrumb } from "../components/ProductBreadcrumb";
 import { VerticalGallery } from "../components/VerticalGallery";
 import { ProductInfo } from "../components/ProductInfo";
 import { SizeChartModal } from "../components/SizeChartModal";
@@ -17,7 +16,7 @@ import { ManufacturingDetailsSection } from "../components/ManufacturingDetailsS
 import { CustomerReviewsSection } from "../components/CustomerReviewsSection";
 import { RelatedProductsSection } from "../components/RelatedProductsSection";
 import { ProductColorVariation } from "../types/product";
-import { getLiveProductById, subscribeToProductStore } from "@/modules/core/lib/apiStore";
+import { getLiveProductById, fetchLiveProducts, subscribeToProductStore } from "@/modules/core/lib/apiStore";
 import { useRecentlyViewed } from "../context/RecentlyViewedContext";
 
 export const ProductDetailsPage: React.FC = () => {
@@ -29,23 +28,45 @@ export const ProductDetailsPage: React.FC = () => {
   const prodAny = product as any;
 
   const [selectedColor, setSelectedColor] = useState<string>(
-    () => product.colors?.[0]?.colorName || product.variations[0]?.colorName || "Black"
+    () => product.colors?.[0]?.colorName || (product as any).colorMediaConfigs?.[0]?.colorName || product.variations?.[0]?.colorName || "Standard"
   );
   const [selectedSize, setSelectedSize] = useState<string>(
-    () => product.colors?.[0]?.sizes?.[0] || product.variations[0]?.size || product.availableSizes[0] || "S"
+    () => product.colors?.[0]?.sizes?.[0] || product.variations?.[0]?.size || product.availableSizes?.[0] || "Standard Pair"
   );
 
   // Dynamic computation of active variation based on Color AND Size selection
   const activeVariation: ProductColorVariation = React.useMemo(() => {
+    // Gather all root product images
+    const rootGallery: string[] = [];
+    if (prodAny.mainImage && typeof prodAny.mainImage === "string") rootGallery.push(prodAny.mainImage);
+    if (prodAny.image && typeof prodAny.image === "string" && !rootGallery.includes(prodAny.image)) rootGallery.push(prodAny.image);
+    if (Array.isArray(prodAny.galleryImages)) {
+      prodAny.galleryImages.forEach((img: any) => {
+        const u = typeof img === "string" ? img : img?.url;
+        if (u && typeof u === "string" && u.trim() && !rootGallery.includes(u.trim())) rootGallery.push(u.trim());
+      });
+    }
+    if (Array.isArray(prodAny.images)) {
+      prodAny.images.forEach((img: any) => {
+        const u = typeof img === "string" ? img : img?.url;
+        if (u && typeof u === "string" && u.trim() && !rootGallery.includes(u.trim())) rootGallery.push(u.trim());
+      });
+    }
+
     // Find matching color configuration object
     const colorObj = (product.colors || []).find(
-      (c) => c.colorName.toLowerCase() === (selectedColor || "").toLowerCase()
+      (c) => c && (c.colorName || (c as any).name || (c as any).color || "").toLowerCase() === (selectedColor || "").toLowerCase()
+    );
+    const colorMedia = ((product as any).colorMediaConfigs || []).find(
+      (cm: any) => cm && (cm.colorName || cm.name || "").toLowerCase() === (selectedColor || "").toLowerCase()
     );
 
     // Build color images (Main Image + Gallery Images for selected color)
-    const colorMain = colorObj?.mainImage || colorObj?.displayImage || colorObj?.galleryImages?.[0] || prodAny.image || "";
-    const colorGallery = colorObj?.galleryImages || [];
-    const allUrls = Array.from(new Set([colorMain, ...colorGallery].filter(Boolean)));
+    const colorMain = colorMedia?.mainImage || colorObj?.mainImage || colorObj?.displayImage || colorObj?.galleryImages?.[0] || rootGallery[0] || "";
+    const colorGallery = (colorMedia?.gallery && colorMedia.gallery.length > 0)
+      ? colorMedia.gallery
+      : (colorObj?.galleryImages && colorObj.galleryImages.length > 0) ? colorObj.galleryImages : rootGallery;
+    const allUrls = Array.from(new Set([colorMain, ...colorGallery, ...rootGallery].filter(Boolean)));
     const colorImages = allUrls.map((gUrl, idx) => ({
       id: `img-gal-${idx}`,
       url: gUrl,
@@ -55,33 +76,32 @@ export const ProductDetailsPage: React.FC = () => {
     if (!product.variations || product.variations.length === 0) {
       return {
         id: "v-default",
-        colorName: selectedColor || "DEFAULT",
-        colorHex: colorObj?.colorHex || "#000000",
+        colorName: selectedColor || "Standard",
+        colorHex: colorObj?.colorHex || colorMedia?.colorCode || "#C89B3C",
         size: selectedSize,
-        thumbnail: colorObj?.displayImage || colorObj?.mainImage || prodAny.image || "",
+        thumbnail: colorMain || "/images/category/Latkan.webp",
         price: prodAny.price || 799,
         originalPrice: prodAny.originalPrice || 1299,
         discountPercentage: 38,
         sku: product.defaultSku || "AWH-SKU-100",
         stock: 50,
-        images: colorImages.length > 0 ? colorImages : (Array.isArray(prodAny.images) && prodAny.images.length > 0 ? prodAny.images.map((u: string, i: number) => ({ id: `img-${i}`, url: u, alt: product.name })) : [])
+        images: colorImages.length > 0 ? colorImages : [{ id: "img-0", url: "/images/category/Latkan.webp", alt: product.name }]
       };
     }
 
     // 1. Try exact match for both Color AND Size
-    const exactMatch = product.variations.find(
+    const exactMatch = (product.variations || []).find(
       (v) =>
-        (v.colorName || "").toLowerCase() === (selectedColor || "").toLowerCase() &&
-        ((v.size || "").toLowerCase() === (selectedSize || "").toLowerCase() ||
-          (v.sizeName || "").toLowerCase() === (selectedSize || "").toLowerCase())
+        v &&
+        (v.colorName || (v as any).color || "").toLowerCase() === (selectedColor || "").toLowerCase() &&
+        (((v.size || "").toLowerCase() === (selectedSize || "").toLowerCase()) ||
+          ((v.sizeName || "").toLowerCase() === (selectedSize || "").toLowerCase()))
     );
 
     if (exactMatch) {
-      const finalImages = colorImages.length > 0
-        ? colorImages
-        : (exactMatch.images && exactMatch.images.length > 0 ? exactMatch.images : [
-          { id: "img-thumb", url: exactMatch.thumbnail || prodAny.image, alt: product.name }
-        ]);
+      const finalImages = (exactMatch.images && exactMatch.images.length > 1)
+        ? exactMatch.images
+        : (colorImages.length > 0 ? colorImages : (exactMatch.images || []));
 
       return {
         ...exactMatch,
@@ -91,16 +111,14 @@ export const ProductDetailsPage: React.FC = () => {
     }
 
     // 2. Fallback to Color match
-    const colorMatch = product.variations.find(
-      (v) => (v.colorName || "").toLowerCase() === (selectedColor || "").toLowerCase()
+    const colorMatch = (product.variations || []).find(
+      (v) => v && (v.colorName || (v as any).color || "").toLowerCase() === (selectedColor || "").toLowerCase()
     );
 
     if (colorMatch) {
-      const finalImages = colorImages.length > 0
-        ? colorImages
-        : (colorMatch.images && colorMatch.images.length > 0 ? colorMatch.images : [
-          { id: "img-thumb", url: colorMatch.thumbnail || prodAny.image, alt: product.name }
-        ]);
+      const finalImages = (colorMatch.images && colorMatch.images.length > 1)
+        ? colorMatch.images
+        : (colorImages.length > 0 ? colorImages : (colorMatch.images || []));
 
       return {
         ...colorMatch,
@@ -109,8 +127,12 @@ export const ProductDetailsPage: React.FC = () => {
       };
     }
 
-    // 3. Default to first variation
-    return product.variations[0];
+    // 3. Default to first variation with full gallery fallback
+    const firstVar = product.variations[0];
+    return {
+      ...firstVar,
+      images: (firstVar.images && firstVar.images.length > 1) ? firstVar.images : (colorImages.length > 0 ? colorImages : (firstVar.images || []))
+    };
   }, [product.colors, product.variations, selectedColor, selectedSize, prodAny]);
 
   const [hoverVariation, setHoverVariation] = useState<ProductColorVariation | null>(null);
@@ -118,34 +140,62 @@ export const ProductDetailsPage: React.FC = () => {
 
   // Subscribe to live API product store updates from Admin
   useEffect(() => {
-    const updateProduct = () => {
-      const live = getLiveProductById(id);
-      setProduct(live);
-      if (live && live.id) {
-        addRecentlyViewed(live);
+    let isMounted = true;
+
+    const loadLiveProduct = async () => {
+      // 1. Initial synchronous lookup
+      const local = getLiveProductById(id);
+      if (isMounted) setProduct(local);
+
+      // 2. Fresh fetch from backend API
+      try {
+        await fetchLiveProducts();
+        if (isMounted) {
+          const fresh = getLiveProductById(id);
+          setProduct(fresh);
+          if (fresh && fresh.id) {
+            addRecentlyViewed(fresh);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load fresh product:", e);
       }
     };
 
+    loadLiveProduct();
 
-    updateProduct();
-    const unsubscribe = subscribeToProductStore(updateProduct);
-    return () => unsubscribe();
+    const unsubscribe = subscribeToProductStore(() => {
+      if (isMounted) {
+        const live = getLiveProductById(id);
+        setProduct(live);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [id]);
 
   // Sync selectedColor and selectedSize whenever product updates
   useEffect(() => {
-    const validColors = product.colors && product.colors.length > 0
-      ? product.colors.map(c => c.colorName)
-      : (product.variations || []).map(v => v.colorName).filter(Boolean);
+    if (!product) return;
+    const validColors = [
+      ...(product.colors || []).map(c => c?.colorName || (c as any)?.name || (c as any)?.color),
+      ...((product as any).colorMediaConfigs || []).map((cm: any) => cm?.colorName || cm?.name),
+      ...(product.variations || []).map(v => v?.colorName || (v as any)?.color)
+    ].filter(Boolean);
 
     if (validColors.length > 0) {
       const colorExists = validColors.some(
         (cName) => (cName || "").toLowerCase() === (selectedColor || "").toLowerCase()
       );
       if (!colorExists) {
-        const firstColor = validColors[0];
+        const firstColor = validColors[0] || "Standard";
         setSelectedColor(firstColor);
-        const colorObj = (product.colors || []).find(c => c.colorName.toLowerCase() === firstColor.toLowerCase());
+        const colorObj = (product.colors || []).find(
+          (c) => c && (c.colorName || (c as any).name || (c as any).color || "").toLowerCase() === (firstColor || "").toLowerCase()
+        );
         if (colorObj?.sizes && colorObj.sizes.length > 0) {
           setSelectedSize(colorObj.sizes[0]);
         }
@@ -153,10 +203,10 @@ export const ProductDetailsPage: React.FC = () => {
     }
 
     if (!selectedSize || (product.availableSizes && !product.availableSizes.includes(selectedSize))) {
-      const fallbackSize = (product.colors?.[0]?.sizes?.[0]) || (product.availableSizes?.[0]) || "S";
+      const fallbackSize = (product.colors?.[0]?.sizes?.[0]) || (product.availableSizes?.[0]) || "Standard Pair";
       setSelectedSize(fallbackSize);
     }
-  }, [product, selectedColor, selectedSize]);
+  }, [product]);
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -184,7 +234,6 @@ export const ProductDetailsPage: React.FC = () => {
       {/* Main Content Container */}
       <div className="pt-10 md:pt-12">
         {/* Breadcrumb */}
-        <ProductBreadcrumb productName={product.name} />
 
         {/* TOP PRODUCT HERO SECTION */}
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 md:py-8">

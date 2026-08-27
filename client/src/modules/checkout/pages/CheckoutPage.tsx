@@ -23,7 +23,7 @@ import { PlaceOrderButton } from "../components/PlaceOrderButton";
 import Footer from "@/modules/core/components/Footer";
 import { AlertCircle, ShoppingBag, ArrowLeft } from "lucide-react";
 
-const SAVED_ADDRESSES_KEY = "aaramly_saved_addresses_v1";
+const SAVED_ADDRESSES_KEY = "awesome_saved_addresses_v1";
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -256,10 +256,11 @@ export const CheckoutPage: React.FC = () => {
 
         // Save order to LocalStorage history
         try {
-          const existingSaved = localStorage.getItem("aaramly_orders_v1");
+          localStorage.removeItem("aaramly_orders_v1");
+          const existingSaved = localStorage.getItem("awesome_orders_v1");
           const ordersList: OrderPayload[] = existingSaved ? JSON.parse(existingSaved) : [];
           ordersList.unshift(orderObj);
-          localStorage.setItem("aaramly_orders_v1", JSON.stringify(ordersList));
+          localStorage.setItem("awesome_orders_v1", JSON.stringify(ordersList));
         } catch {}
 
         // Save Address if checked

@@ -36,11 +36,17 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ initialTab = 'al
   const [categories, setCategories] = useState<EnhancedCategory[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('aaramly_categories');
+        const saved = localStorage.getItem('aocind_categories') || localStorage.getItem('aaramly_categories');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasOldCategories = Array.isArray(parsed) && parsed.some((c: any) => 
+            ['Bralettes', 'Everyday Bras', 'Seamless Panties', 'Shapewear', 'bralettes', 'everyday-bras'].includes(c.name || c.slug)
+          );
+          if (!hasOldCategories && Array.isArray(parsed) && parsed.length > 0) {
             return parsed;
+          } else if (hasOldCategories) {
+            localStorage.removeItem('aaramly_categories');
+            localStorage.removeItem('aocind_categories');
           }
         }
       } catch (e) {}
@@ -97,8 +103,11 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ initialTab = 'al
   // Sync to LocalStorage & Dispatch Sync Event
   useEffect(() => {
     try {
-      localStorage.setItem('aaramly_categories', JSON.stringify(categories));
+      localStorage.setItem('awesome_categories', JSON.stringify(categories));
+      localStorage.setItem('aocind_categories', JSON.stringify(categories));
       if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('awesome_category_sync'));
+        window.dispatchEvent(new Event('aocind_category_sync'));
         window.dispatchEvent(new Event('aaramly_category_sync'));
       }
     } catch (e) {}
@@ -520,7 +529,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ initialTab = 'al
               <Input
                 type="text"
                 required
-                placeholder={categoryType === 'sub' ? 'e.g. Seamless Padded Bralettes, Lace Undies' : 'e.g. Bralettes, Panties, Accessories'}
+                placeholder={categoryType === 'sub' ? 'e.g. Mirror Latkan, Kids Choli' : 'e.g. Latkan, Choli, Gift Hamper, Necklace'}
                 value={categoryName}
                 onChange={handleNameChange}
                 className="bg-white border-neutral-200 text-xs text-black font-medium"

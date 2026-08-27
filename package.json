@@ -1,8 +1,8 @@
 {
-  "name": "aaramly-ecommerce-platform",
+  "name": "awesome-handmade-ecommerce-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "Enterprise Monorepo for AARAMLY Platform",
+  "description": "Enterprise Monorepo for Awesome Handmade Platform",
   "workspaces": [
     "client",
     "server",

@@ -14,7 +14,8 @@ export const OrderSuccessPage: React.FC = () => {
     }
     // Fallback: try finding from LocalStorage
     try {
-      const saved = localStorage.getItem("aaramly_orders_v1");
+      localStorage.removeItem("aaramly_orders_v1");
+      const saved = localStorage.getItem("awesome_orders_v1");
       if (saved) {
         const list: OrderPayload[] = JSON.parse(saved);
         return list.find((o) => o.orderId === orderId) || null;

@@ -305,9 +305,9 @@ export const products: CatalogProduct[] = [
     brand: "Awesome Handmade",
     availableSizes: ["Standard Pair"],
     colors: [
-      { name: "Gold & Maroon", hex: "#520618", image: "/images/category/Latkan.webp" },
-      { name: "Royal Gold", hex: "#C89B3C", image: "/images/category/Latkan.webp" },
-      { name: "Emerald Green", hex: "#1A5235", image: "/images/category/Latkan.webp" },
+      { name: "Gold & Maroon", hex: "#520618", image: "/images/category/Latkan.webp", displayImage: "/images/category/Latkan.webp", mainImage: "/images/category/Latkan.webp" },
+      { name: "Royal Gold", hex: "#C89B3C", image: "/images/category/Latkan.webp", displayImage: "/images/category/Latkan.webp", mainImage: "/images/category/Latkan.webp" },
+      { name: "Emerald Green", hex: "#1A5235", image: "/images/category/Latkan.webp", displayImage: "/images/category/Latkan.webp", mainImage: "/images/category/Latkan.webp" },
     ]
   },
   {

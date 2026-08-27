@@ -291,7 +291,7 @@ export const VariantGeneratorSection: React.FC<VariantGeneratorSectionProps> = (
                 <Input
                   type="text"
                   required
-                  placeholder="e.g. Aaramly Seamless Bralette - Midnight Black / Medium"
+                  placeholder="e.g. Awesome Handmade Royal Mirror Latkan - Maroon & Gold / Free Size"
                   value={editingVariantConfig.title || ''}
                   onChange={(e) => setEditingVariantConfig({ ...editingVariantConfig, title: e.target.value })}
                   className="bg-white border-neutral-300 text-xs font-bold text-black"

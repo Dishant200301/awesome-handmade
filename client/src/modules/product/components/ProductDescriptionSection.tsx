@@ -19,7 +19,7 @@ export const ProductDescriptionSection: React.FC<ProductDescriptionSectionProps>
   shortDescription,
 }) => {
   const [activePill, setActivePill] = useState("Everyday Wear");
-  const descriptionText = fullDescription || shortDescription || "Super Combed Cotton Elastane Stretch Fabric | Fabric Composition : Cotton and Elastane | Full Coverage Bra with Contoured Shaper Panels | Wirefree and Non-Padded | Broad Fabric Strap at Front for Added Comfort | Contoured Shaper Panel for Extra Support | Label Free for All Day Comfort | Based on the Size Band Of the Bra, the Number Of Hook and Eye Varies for Better Support";
+  const descriptionText = fullDescription || shortDescription || "Handcrafted with artisanal precision by master craftswomen in Surat, Gujarat. Made using premium quality materials, intricate embellishments, and traditional craftsmanship.";
 
   const displayCards = (cards || []).filter((card) => {
     if (!card.colorName || card.colorName === 'All' || card.colorName.toLowerCase() === 'all' || card.colorName.toLowerCase() === 'general') {

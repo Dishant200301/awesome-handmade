@@ -27,3 +27,7 @@ dist-ssr/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Database & Runtime Data
+server/products_db.json
+products_db.json

@@ -11,6 +11,7 @@ import FeaturedProductsSection from "../components/FeaturedProductsSection";
 import PromoBannerSection from "../components/PromoBannerSection";
 import BestSellingSection from "../components/BestSellingSection";
 import PopularCategoriesSection from "../components/PopularCategoriesSection";
+import BentoGridSection from "../components/BentoGridSection";
 import WatchShopSection from "../components/WatchShopSection";
 import WhyChooseUsSection from "../components/WhyChooseUsSection";
 
@@ -38,11 +39,12 @@ export default function HomePage() {
       <HeroSection />
       {/* <CuratedEditSection /> */}
       <FeaturedCategoriesSection onSelectCategory={(cat) => setActiveTab(cat)} />
-      <ExplainerSection />
+      <BentoGridSection />
       <FeaturedProductsSection activeTab={activeTab} setActiveTab={setActiveTab} />
+      <ExplainerSection />
       {/* <PromoBannerSection /> */}
       <BestSellingSection />
-      <PopularCategoriesSection />
+      {/* <PopularCategoriesSection /> */}
       <WatchShopSection />
       <WhyChooseUsSection />
       <Footer />

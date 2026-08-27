@@ -2,6 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { heroSlides } from '@/data/catalog';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+const mobileHeroSlides = [
+  '/images/home/hero/mobile-hero-1.webp',
+  '/images/home/hero/mobile-hero-2.webp',
+  '/images/home/hero/mobile-hero-3.webp',
+  '/images/home/hero/mobile-hero-4.webp',
+  '/images/home/hero/mobile-hero-5.webp',
+];
+
 export const HeroSection: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -131,7 +139,7 @@ export const HeroSection: React.FC = () => {
     >
       {/* Interactive Carousel Track Container with Cursor Grab */}
       <div
-        className={`relative w-full aspect-[3352/1412] max-h-[650px] overflow-hidden bg-brand-cream/20 select-none ${
+        className={`relative w-full aspect-[9/15.5] sm:aspect-[9/13] md:aspect-[3352/1412] md:max-h-[650px] overflow-hidden bg-brand-cream/20 select-none ${
           isDraggingState ? 'cursor-grabbing' : 'cursor-grab'
         }`}
         onMouseDown={handleMouseDown}
@@ -160,13 +168,19 @@ export const HeroSection: React.FC = () => {
                 className="block w-full h-full pointer-events-auto"
                 draggable={false}
               >
-                <img
-                  src={slideUrl}
-                  alt={`Awesome Handmade Hero Banner ${index + 1}`}
-                  className="w-full h-full object-cover object-center select-none pointer-events-none"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  draggable={false}
-                />
+                <picture className="w-full h-full block">
+                  <source
+                    media="(max-width: 767px)"
+                    srcSet={mobileHeroSlides[index] || slideUrl}
+                  />
+                  <img
+                    src={slideUrl}
+                    alt={`Awesome Handmade Hero Banner ${index + 1}`}
+                    className="w-full h-full object-cover object-center select-none pointer-events-none"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    draggable={false}
+                  />
+                </picture>
               </a>
             </div>
           ))}

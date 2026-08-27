@@ -56,8 +56,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
     const handleCategorySync = () => {
       setCategoriesData(getAdminCategoriesAndSubcategories());
     };
+    window.addEventListener('awesome_category_sync', handleCategorySync);
     window.addEventListener('aaramly_category_sync', handleCategorySync);
-    return () => window.removeEventListener('aaramly_category_sync', handleCategorySync);
+    return () => {
+      window.removeEventListener('awesome_category_sync', handleCategorySync);
+      window.removeEventListener('aaramly_category_sync', handleCategorySync);
+    };
   }, []);
 
   // Sync products in real-time from Express MySQL backend, localStorage & BroadcastChannel
@@ -71,17 +75,23 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
     reload(true);
 
     const handleCustomEvent = () => reload(false);
+    window.addEventListener('awesome_product_sync', handleCustomEvent);
     window.addEventListener('aaramly_product_sync', handleCustomEvent);
 
     let channel: BroadcastChannel | null = null;
+    let legacyChannel: BroadcastChannel | null = null;
     try {
-      channel = new BroadcastChannel('aaramly_product_sync');
+      channel = new BroadcastChannel('awesome_product_sync');
       channel.onmessage = () => reload(false);
+      legacyChannel = new BroadcastChannel('aaramly_product_sync');
+      legacyChannel.onmessage = () => reload(false);
     } catch (e) {}
 
     return () => {
+      window.removeEventListener('awesome_product_sync', handleCustomEvent);
       window.removeEventListener('aaramly_product_sync', handleCustomEvent);
       if (channel) channel.close();
+      if (legacyChannel) legacyChannel.close();
     };
   }, []);
 
@@ -91,18 +101,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   const [slug, setSlug] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [fullDescription, setFullDescription] = useState('');
-  const [mainImage, setMainImage] = useState('https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=600');
+  const [mainImage, setMainImage] = useState('/images/category/Latkan.webp');
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [galleryInput, setGalleryInput] = useState('');
 
   const [productType, setProductType] = useState<'Simple' | 'Variable'>('Simple');
-  const [category, setCategory] = useState('Bralettes');
-  const [subcategory, setSubcategory] = useState('Seamless Padded Bralettes');
-  const [brand, setBrand] = useState('AARAMLY');
+  const [category, setCategory] = useState('Latkan');
+  const [subcategory, setSubcategory] = useState('Mirror Latkan');
+  const [brand, setBrand] = useState('Awesome Handmade');
 
   const [regularPrice, setRegularPrice] = useState<number>(1299);
   const [salePrice, setSalePrice] = useState<number>(799);
-  const [sku, setSku] = useState('AAR-SKU-' + Math.floor(1000 + Math.random() * 9000));
+  const [sku, setSku] = useState('AWH-PRD-' + Math.floor(1000 + Math.random() * 9000));
   const [barcode, setBarcode] = useState('890123' + Math.floor(100000 + Math.random() * 900000));
   const [stockQuantity, setStockQuantity] = useState<number>(100);
 
@@ -239,11 +249,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
       id: editingId || `prod-${Date.now()}`,
       name: name.trim(),
       slug: slug || `prod-${Date.now()}`,
-      sku: sku.trim() || `AAR-${Date.now()}`,
+      sku: sku.trim() || `AWH-${Date.now()}`,
       category: category,
       subcategory: subcategory,
       categories: [category],
-      brand: brand,
+      brand: brand || 'Awesome Handmade',
       price: salePrice,
       originalPrice: regularPrice,
       stock: stockQuantity,

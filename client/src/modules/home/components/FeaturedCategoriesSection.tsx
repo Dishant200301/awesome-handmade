@@ -64,7 +64,7 @@ export const FeaturedCategoriesSection: React.FC<FeaturedCategoriesProps> = ({ o
       className="shrink-0 w-[calc((100vw-32px)/3.5)] sm:w-[calc((100vw-48px)/4.5)] lg:w-[calc((min(1500px,100vw)-48px)/5.5)]"
     >
       <Link
-        to={`/collections/${cat.slug}`}
+        to={`/shop?category=${encodeURIComponent(cat.slug)}`}
         onClick={(e) => handleCategoryClick(e, cat.slug)}
         className="group flex flex-col items-center text-center cursor-pointer block"
         draggable={false}
@@ -89,7 +89,7 @@ export const FeaturedCategoriesSection: React.FC<FeaturedCategoriesProps> = ({ o
   );
 
   return (
-    <section id="categories" className="py-8 sm:py-12 md:py-16 bg-[#FFFDF9] border-b border-[#EDE5DA] overflow-hidden pr-0 mr-0">
+    <section id="categories" className="py-8 sm:py-12 md:py-16 bg-[#FFFDF9] overflow-hidden pr-0 mr-0">
       {/* Section Heading aligned with Navbar */}
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 text-center mb-6 sm:mb-8 md:mb-10">
         <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold tracking-[0.12em] text-brand-maroon uppercase">

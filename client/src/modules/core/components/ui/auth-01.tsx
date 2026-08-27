@@ -39,8 +39,8 @@ export interface Auth1Props {
 }
 
 export function Auth1({
-  brandName = "Aaramly",
-  badgeText = "Luxury Home & Living",
+  brandName = "AOCIND",
+  badgeText = "Artisan Handcrafted",
   heading,
   subheading,
   emailLabel = "Email Address",

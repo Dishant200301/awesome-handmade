@@ -44,8 +44,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToSignup, onLogi
         <Card className="shadow-lg p-2">
           <CardHeader className="space-y-3 text-center pb-4">
             <div className="flex items-center justify-center gap-2 select-none mx-auto">
-              <img src={`${import.meta.env.BASE_URL}images/home/logo.png`.replace(/\/+/g, '/')} alt="Aaramly Logo" className="h-7 w-auto object-contain" />
-              <img src={`${import.meta.env.BASE_URL}images/home/aaramly_text_logo.png`.replace(/\/+/g, '/')} alt="Aaramly" className="h-7 w-auto object-contain" />
+              <img src={`${import.meta.env.BASE_URL}images/common/logo.png`.replace(/\/+/g, '/')} alt="Awesome Handmade Logo" className="h-8 w-8 rounded-full object-cover border border-neutral-200" />
+              <span className="text-xl font-bold tracking-tight text-neutral-900">Awesome Handmade <span className="text-xs text-neutral-500 font-semibold uppercase">Admin</span></span>
             </div>
           </CardHeader>
 

@@ -36,8 +36,12 @@ export const ProductAttributeSection: React.FC<ProductAttributeSectionProps> = (
   useEffect(() => {
     fetchGlobalAttributes();
     const handleSync = () => fetchGlobalAttributes();
+    window.addEventListener('awesome_attribute_sync', handleSync);
     window.addEventListener('aaramly_attribute_sync', handleSync);
-    return () => window.removeEventListener('aaramly_attribute_sync', handleSync);
+    return () => {
+      window.removeEventListener('awesome_attribute_sync', handleSync);
+      window.removeEventListener('aaramly_attribute_sync', handleSync);
+    };
   }, []);
 
   // Assigned attribute IDs set for duplicate prevention

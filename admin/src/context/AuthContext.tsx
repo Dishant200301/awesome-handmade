@@ -22,12 +22,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(() => {
-    const saved = localStorage.getItem('aaramly_admin_user');
+    const saved = localStorage.getItem('awesome_admin_user') || localStorage.getItem('aaramly_admin_user');
     return saved ? JSON.parse(saved) : null;
   });
 
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('aaramly_admin_token');
+    return localStorage.getItem('awesome_admin_token') || localStorage.getItem('aaramly_admin_token');
   });
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .then((data) => {
           if (data.success && data.data) {
             setUser(data.data);
-            localStorage.setItem('aaramly_admin_user', JSON.stringify(data.data));
+            localStorage.setItem('awesome_admin_user', JSON.stringify(data.data));
           } else {
             // Token expired or invalid
             logout();
@@ -67,8 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user: loggedInUser, token: authToken } = data.data;
     setUser(loggedInUser);
     setToken(authToken);
-    localStorage.setItem('aaramly_admin_user', JSON.stringify(loggedInUser));
-    localStorage.setItem('aaramly_admin_token', authToken);
+    localStorage.setItem('awesome_admin_user', JSON.stringify(loggedInUser));
+    localStorage.setItem('awesome_admin_token', authToken);
   };
 
   const signup = async (name: string, email: string, pass: string): Promise<void> => {
@@ -86,13 +86,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user: registeredUser, token: authToken } = data.data;
     setUser(registeredUser);
     setToken(authToken);
-    localStorage.setItem('aaramly_admin_user', JSON.stringify(registeredUser));
-    localStorage.setItem('aaramly_admin_token', authToken);
+    localStorage.setItem('awesome_admin_user', JSON.stringify(registeredUser));
+    localStorage.setItem('awesome_admin_token', authToken);
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
+    localStorage.removeItem('awesome_admin_user');
+    localStorage.removeItem('awesome_admin_token');
     localStorage.removeItem('aaramly_admin_user');
     localStorage.removeItem('aaramly_admin_token');
   };

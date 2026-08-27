@@ -79,16 +79,16 @@ export const CartDrawer: React.FC = () => {
   const handleAddRecommended = (prod: any) => {
     addToCart({
       productId: prod.id,
-      productName: prod.name || prod.title || "CONTRAST TIPPING POLO",
-      brand: prod.brand || "AARAMLY",
-      price: prod.price || prod.salePrice || 2279,
+      productName: prod.name || prod.title || "Handcrafted Latkan",
+      brand: prod.brand || "Awesome Handmade",
+      price: prod.price || prod.salePrice || 799,
       originalPrice: prod.originalPrice || prod.regularPrice || 2399,
-      image: prod.image || prod.mainImage || (prod.images && prod.images[0]) || "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&w=600&q=80",
+      image: prod.image || prod.mainImage || (prod.images && prod.images[0]) || "/images/category/Latkan.webp",
       quantity: 1,
-      size: prod.size || "S",
-      colorName: prod.color || prod.colorName || "Taupe",
-      colorHex: prod.colorHex || "#000000",
-      sku: prod.sku || `AAR-${prod.id}`
+      size: prod.size || "Free Size",
+      colorName: prod.color || prod.colorName || "Maroon",
+      colorHex: prod.colorHex || "#520618",
+      sku: prod.sku || `AH-${prod.id}`
     });
   };
 

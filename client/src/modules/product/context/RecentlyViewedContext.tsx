@@ -9,15 +9,24 @@ interface RecentlyViewedContextType {
 
 const RecentlyViewedContext = createContext<RecentlyViewedContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = "aaramly_recently_viewed_v1";
+const LOCAL_STORAGE_KEY = "awesome_recently_viewed_v1";
 const MAX_RECENT_ITEMS = 10;
 
 export const RecentlyViewedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>(() => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("aaramly_recently_viewed_v1");
+      }
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((p: any) => {
+            const str = `${p.name || ""} ${p.category || ""}`.toLowerCase();
+            return !str.includes("panty") && !str.includes("bralette") && !str.includes("tactel") && !str.includes("lingerie");
+          });
+        }
       }
     } catch {
       // ignore

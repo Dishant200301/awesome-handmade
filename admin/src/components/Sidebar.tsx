@@ -89,9 +89,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="h-14 px-3.5 border-b border-neutral-200 flex items-center justify-between shrink-0 bg-white">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <img
-              src={`${import.meta.env.BASE_URL}images/home/logo.png`.replace(/\/+/g, '/')}
-              alt="Aaramly Logo"
-              className="h-7 w-auto object-contain shrink-0"
+              src={`${import.meta.env.BASE_URL}images/common/logo.png`.replace(/\/+/g, '/')}
+              alt="Awesome Handmade Logo"
+              className="h-7 w-7 rounded-full object-cover shrink-0 border border-neutral-200"
             />
             {!collapsed && (
               <motion.div
@@ -100,11 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-1.5 overflow-hidden whitespace-nowrap"
               >
-                <img
-                  src={`${import.meta.env.BASE_URL}images/home/aaramly_text_logo.png`.replace(/\/+/g, '/')}
-                  alt="AARAMLY"
-                  className="h-5 w-auto object-contain"
-                />
+                <span className="font-bold text-sm tracking-wide text-neutral-900">Awesome Handmade <span className="text-xs text-neutral-500 font-semibold uppercase">Admin</span></span>
               </motion.div>
             )}
           </div>

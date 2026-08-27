@@ -3,21 +3,21 @@ import { HeroSlide, HomepageBanner, ContentPageItem, BlogPost, FaqItem, StoreSet
 let heroSlides: HeroSlide[] = [
   {
     id: "slide-1",
-    title: "Seamless Everyday Comfort",
-    subtitle: "Engineered with 4-way micro-stretch for zero wire pinching",
-    image: "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=1400",
-    buttonText: "Explore Collection",
-    link: "/category/bralettes",
+    title: "Handcrafted Heritage & Festive Charm",
+    subtitle: "Authentic Gujarati mirror embroidery, handcrafted in Surat",
+    image: "/images/home/hero/hero-1.webp",
+    buttonText: "Shop Latkans",
+    link: "/collections/latkan",
     status: "Active",
     sortOrder: 1
   },
   {
     id: "slide-2",
-    title: "Silk & Lace Couture",
-    subtitle: "Handcrafted french lace bralettes designed for elegance",
-    image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?q=80&w=1400",
-    buttonText: "Shop Bralettes",
-    link: "/category/silk-lace",
+    title: "Navratri Traditional Choli Edit",
+    subtitle: "Vibrant festive cholis designed with royal mirror elegance",
+    image: "/images/home/hero/hero-2.webp",
+    buttonText: "Explore Cholis",
+    link: "/collections/choli",
     status: "Active",
     sortOrder: 2
   }
@@ -26,21 +26,21 @@ let heroSlides: HeroSlide[] = [
 let homepageBanners: HomepageBanner[] = [
   {
     id: "banner-1",
-    title: "Buy 2 Get 1 Free",
-    subtitle: "On all Padded Bralette sets",
-    image: "https://images.unsplash.com/photo-1516575334481-f85287c2c82d?q=80&w=800",
-    badge: "LIMITED OFFER",
-    link: "/category/bralettes",
+    title: "Festive Season Special",
+    subtitle: "Flat 20% Off on all Handmade Latkans & Jewellery Sets",
+    image: "/images/banner/banner.png",
+    badge: "FESTIVE SALE",
+    link: "/collections/latkan",
     gridPosition: "Hero Side Upper",
     status: "Active"
   },
   {
     id: "banner-2",
-    title: "Bridal Trousseau Special",
-    subtitle: "Flat 25% Off Luxury Gift Boxes",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800",
-    badge: "NEW BRIDAL",
-    link: "/category/bridal",
+    title: "Customized Gift Hampers",
+    subtitle: "Personalized macrame keychains & festive boxes",
+    image: "/images/category/Gift Hamper.webp",
+    badge: "NEW ARRIVAL",
+    link: "/collections/gift-hamper",
     gridPosition: "Hero Side Lower",
     status: "Active"
   }
@@ -49,11 +49,11 @@ let homepageBanners: HomepageBanner[] = [
 let contentPages: ContentPageItem[] = [
   {
     id: "page-1",
-    title: "About AARAMLY Intimates",
+    title: "About AOCIND Handmade",
     slug: "about-us",
-    content: "AARAMLY is India's premier luxury intimates brand crafted for 360-degree all-day comfort.",
-    metaTitle: "About Us - AARAMLY",
-    metaDescription: "Learn about AARAMLY Intimates' story and comfort engineering.",
+    content: "AOCIND is India's premier artisanal handcrafted fashion and accessories brand crafted with love and authentic craftsmanship in Surat, Gujarat.",
+    metaTitle: "About Us - AOCIND",
+    metaDescription: "Learn about AOCIND's story, artisan roots, and authentic handcrafting.",
     status: "Published",
     updatedAt: "2026-08-01"
   },
@@ -62,8 +62,8 @@ let contentPages: ContentPageItem[] = [
     title: "Privacy & Cookie Policy",
     slug: "privacy-policy",
     content: "We protect your personal data with 256-bit SSL encryption.",
-    metaTitle: "Privacy Policy - AARAMLY",
-    metaDescription: "Read AARAMLY's privacy and data protection terms.",
+    metaTitle: "Privacy Policy - AOCIND",
+    metaDescription: "Read AOCIND's privacy and data protection terms.",
     status: "Published",
     updatedAt: "2026-08-01"
   }
@@ -72,13 +72,13 @@ let contentPages: ContentPageItem[] = [
 let blogPosts: BlogPost[] = [
   {
     id: "blog-1",
-    title: "How to Find Your Perfect Bralette Size",
-    slug: "how-to-find-perfect-bralette-size",
-    category: "Fitting Guide",
-    author: "AARAMLY Fit Specialist",
-    excerpt: "Step-by-step measurement guide for choosing wire-free contour bras.",
-    content: "Full detailed guide on measuring underbust and full bust in centimeters and inches...",
-    featuredImage: "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=800",
+    title: "The Art of Handcrafted Mirror Latkans & Navratri Cholis",
+    slug: "art-of-handcrafted-mirror-latkans",
+    category: "Artisan Stories",
+    author: "AOCIND Craft Specialist",
+    excerpt: "Step-by-step styling guide for bridal latkans, mirror jewellery and traditional cholis.",
+    content: "Full detailed guide on handcrafted accessories made by women artisans in Gujarat...",
+    featuredImage: "/images/category/Latkan.webp",
     readTime: "4 min read",
     status: "Published",
     publishedDate: "2026-07-28"
@@ -88,8 +88,8 @@ let blogPosts: BlogPost[] = [
 let faqItems: FaqItem[] = [
   {
     id: "faq-1",
-    question: "What is AARAMLY's return & exchange policy?",
-    answer: "We offer hassle-free 7-day exchanges on unused, unwashed bralettes with intact tags.",
+    question: "What is AOCIND's return & exchange policy?",
+    answer: "We offer hassle-free 7-day exchanges on unused, unworn items with original tags intact.",
     category: "Shipping & Returns",
     sortOrder: 1,
     status: "Active"
@@ -97,7 +97,7 @@ let faqItems: FaqItem[] = [
   {
     id: "faq-2",
     question: "How long does standard delivery take across India?",
-    answer: "Express orders deliver in 2-4 business days across metro cities.",
+    answer: "Artisan handmade orders are dispatched within 24-48 hours and delivered in 2-5 business days across India.",
     category: "Delivery",
     sortOrder: 2,
     status: "Active"
@@ -105,20 +105,20 @@ let faqItems: FaqItem[] = [
 ];
 
 let storeSettings: StoreSettings = {
-  storeName: "AARAMLY Intimates",
-  storeLogo: "/images/home/logo.png",
-  email: "care@aaramly.com",
+  storeName: "AOCIND Handmade",
+  storeLogo: "/images/common/logo.png",
+  email: "care@aocind.com",
   phone: "+91 98765 43210",
-  address: "Plot 42, GIDC Industrial Estate, Ahmedabad, Gujarat 380015",
+  address: "Surat, Gujarat, India",
   currency: "₹ (INR)",
   taxRate: 18,
   shippingFee: 99,
-  freeShippingThreshold: 1499,
-  facebookUrl: "https://facebook.com/aaramly",
-  instagramUrl: "https://instagram.com/aaramly",
-  twitterUrl: "https://twitter.com/aaramly",
-  metaTitle: "AARAMLY Intimates - Premium Bralettes & Lingerie",
-  metaDescription: "Shop luxury wire-free bralettes, contour bras, and seamless intimates online."
+  freeShippingThreshold: 999,
+  facebookUrl: "https://facebook.com/aocind",
+  instagramUrl: "https://instagram.com/aocind",
+  twitterUrl: "https://twitter.com/aocind",
+  metaTitle: "AOCIND Handmade - Artisan Latkans, Cholis & Indian Crafts",
+  metaDescription: "Shop authentic handcrafted Indian latkans, Navratri cholis, jewellery, and macrame decor online."
 };
 
 // Store getters & setters

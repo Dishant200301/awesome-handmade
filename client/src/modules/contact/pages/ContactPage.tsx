@@ -73,11 +73,14 @@ export function ContactPage() {
     MOCK_CONTACT_MESSAGES.unshift(newMsg);
 
     try {
-      localStorage.setItem("aaramly_contact_sync", JSON.stringify({
+      const syncData = {
         timestamp: Date.now(),
         message: newMsg,
         messages: MOCK_CONTACT_MESSAGES
-      }));
+      };
+      localStorage.setItem("awesome_contact_sync", JSON.stringify(syncData));
+      localStorage.setItem("aaramly_contact_sync", JSON.stringify(syncData));
+      window.dispatchEvent(new Event("awesome_contact_sync"));
       window.dispatchEvent(new Event("aaramly_contact_sync"));
     } catch (e) {}
 
@@ -294,9 +297,9 @@ export function ContactPage() {
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="w-full h-[400px] md:h-[480px] bg-zinc-100 overflow-hidden border border-zinc-200 rounded-2xl shadow-xs">
             <iframe
-              title="Aaramly Location Map"
+              title="AOCIND Location Map"
               className="h-full w-full grayscale contrast-125 border-0"
-              src="https://maps.google.com/maps?q=Bandra%20West%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed"
+              src="https://maps.google.com/maps?q=Surat%20Gujarat&t=&z=13&ie=UTF8&iwloc=&output=embed"
               loading="lazy"
             />
           </div>

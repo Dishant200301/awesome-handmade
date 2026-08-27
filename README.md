@@ -1,6 +1,6 @@
-# AARAMLY Home Showcase
+# Awesome Handmade Showcase & E-Commerce Platform
 
-A premium web showcase for AARAMLY seamless innerwear, designed to deliver high-fidelity visuals, animations, and fully interactive layouts highlighting zero-feel everyday comfort products.
+A premium artisan showcase and e-commerce platform for Awesome Handmade handcrafted creations (Latkans, Cholis, Jewellery, Tassels, Gift Hampers & festive accessories from Surat, Gujarat).
 
 ## Development Setup
 

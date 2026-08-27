@@ -123,14 +123,14 @@ export const WishlistPage: React.FC = () => {
                             addToCart({
                               productId: String(w.id),
                               productName: w.name,
-                              brand: w.brand || "AARAMLY",
-                              colorName: "Black",
-                              colorHex: "#000000",
-                              size: (w.availableSizes && w.availableSizes[0]) || "S",
+                              brand: w.brand || "AOCIND",
+                              colorName: "Maroon",
+                              colorHex: "#800000",
+                              size: (w.availableSizes && w.availableSizes[0]) || "Free Size",
                               price: w.price,
                               originalPrice: w.originalPrice || w.price,
                               image: mainImg,
-                              sku: w.sku || "AAR-SKU",
+                              sku: w.sku || "AOC-SKU",
                               quantity: 1,
                             })
                           }

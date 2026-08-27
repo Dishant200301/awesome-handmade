@@ -1,8 +1,8 @@
 {
-  "name": "aaramly-admin-dashboard",
+  "name": "awesome-handmade-admin-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "Enterprise Admin Dashboard for AARAMLY Platform",
+  "description": "Enterprise Admin Dashboard for Awesome Handmade Platform",
   "type": "module",
   "scripts": {
     "dev": "vite",

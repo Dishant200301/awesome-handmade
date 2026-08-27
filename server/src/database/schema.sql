@@ -1,11 +1,11 @@
 -- =========================================================
--- AARAMLY ENTERPRISE E-COMMERCE PLATFORM - MYSQL DDL SCHEMA
--- Database Name: aaramly_ecommerce
+-- AWESOME HANDMADE ENTERPRISE E-COMMERCE PLATFORM - MYSQL DDL SCHEMA
+-- Database Name: awesome_handmade_ecommerce
 -- Engine: InnoDB | Character Set: utf8mb4_unicode_ci
 -- =========================================================
 
-CREATE DATABASE IF NOT EXISTS aaramly CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE aaramly;
+CREATE DATABASE IF NOT EXISTS awesome_handmade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE awesome_handmade;
 
 -- 1. CATEGORIES
 CREATE TABLE IF NOT EXISTS categories (

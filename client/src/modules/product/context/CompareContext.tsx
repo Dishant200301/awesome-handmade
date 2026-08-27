@@ -12,15 +12,24 @@ interface CompareContextType {
 
 const CompareContext = createContext<CompareContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = "aaramly_compare_v1";
+const LOCAL_STORAGE_KEY = "awesome_compare_v1";
 const MAX_COMPARE_ITEMS = 4;
 
 export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [compareProducts, setCompareProducts] = useState<Product[]>(() => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("aaramly_compare_v1");
+      }
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((p: any) => {
+            const str = `${p.name || ""} ${p.category || ""}`.toLowerCase();
+            return !str.includes("panty") && !str.includes("bralette") && !str.includes("tactel") && !str.includes("lingerie");
+          });
+        }
       }
     } catch {
       // ignore
