@@ -4,6 +4,17 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   base: '/admin/',
+  esbuild: {
+    target: "esnext",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
+  build: {
+    target: "esnext",
+  },
   plugins: [
     react(),
     tailwindcss()

@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 export default defineConfig({
   server: {
@@ -20,7 +21,17 @@ export default defineConfig({
         ws: true,
       },
     },
-
+  },
+  esbuild: {
+    target: "esnext",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
+  build: {
+    target: "esnext",
   },
   plugins: [
     react(),
@@ -29,7 +40,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": "/src",
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
