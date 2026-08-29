@@ -12,7 +12,6 @@ dist-ssr/
 .output/
 
 # IDEs / Editors
-.vscode/
 .idea/
 .DS_Store
 *.suo
@@ -22,8 +21,6 @@ dist-ssr/
 *.sw?
 
 # Local Environment Variables
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -34,3 +31,7 @@ products_db.json
 
 # Lockfiles
 package-lock.json
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+config.bat
